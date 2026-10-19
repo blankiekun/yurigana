@@ -133,7 +133,11 @@ class Reader:
         for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
-            words.append(Word(start, end, text[start:end], number + (counter or ''), 'counter', None))
+            word = Word(start, end, text[start:end], number + (counter or ''), 'counter', None)
+            if start in at and words[at[start]].end == end:  # one token (三軒 みのき, 一回 いちかい)
+                words[at[start]] = word
+            else:
+                words.append(word)
             if counter and number_end in at and words[at[number_end]].end == end:
                 own = words[at[number_end]]
                 plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))

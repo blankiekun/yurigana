@@ -106,7 +106,9 @@ It comes just before the tokens' own Words, which stay: the counter's Word gets 
 counter's plain reading (本 ほん) for word lists, with `source='counter'` too (never `only`:
 the plain reading is not how it reads there). Ruby over any part of the span wins: no
 span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅうぶん, 何本, 一日 ついたち
-after a month) are its own. A number alone gets the same readings (六百 ろっぴゃく, 三千
+after a month) are its own, except names (三軒 みのき, 一列 かずなみ) and words it reads without
+the sound change (一回 いちかい), which get the span's reading; 三十分 (三 + 十分) and 二十人 are
+read as numbers. A number alone gets the same readings (六百 ろっぴゃく, 三千
 さんぜん; Sudachi reads them digit by digit), as `source='counter'`.
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
@@ -117,22 +119,23 @@ numbers in kanji (三十五, 一九九九), digits (35, ３５) and 何, 幾, �
 |---|---|
 | gemination of 1, 6, 8, 10, 100 before k and h, of 1, 8, 10 before s and t (h becomes p) | 一本 いっぽん, 六回 ろっかい, 八杯 はっぱい, 十冊 じゅっさつ, 百個 ひゃっこ, 一対 いっつい |
 | voicing after 3, 何, 千, 万 | 三本 さんぼん, 何匹 なんびき, 三階 さんがい, 三軒 さんげん, 三足 さんぞく, 何分 なんぷん |
-| h counters | 本 匹 杯 発 泊 版 編 分 歩 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん) |
+| h counters | 本 匹 杯 発 泊 版 編 分 歩 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん unless の goes on with a word: 徒歩１０分の距離 ふん, but 十分の じゅうぶん) |
 | 分 as a tenth | ぶ in pairs (五分五分, 七分三分, 五分と五分), after 割/寸/両 (三割五分) and before 咲き/目/通り (三分咲き) |
-| k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) |
-| s, t counters | 冊 歳/才 足 週 週間; 対 点 頭 通 着 |
+| k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) 貫 脚 間 (けん; 三間 さんげん, not 二間 ふたま) |
+| s, t counters | 冊 歳/才 足 週 週間 銭 周 隻 艘 寸 尺 升 (三寸 さんずん, 三尺 さんじゃく, 三升 さんじょう); 対 点 頭 通 着 町 丁 |
+| ひと, ふた for 1, 2 | 晩 粒 坪 (一晩 ひとばん, 二粒 ふたつぶ; 三晩 さんばん) |
 | 羽 | わ, ば after 3/何/千, っぱ after 6, 8, 10, 100 |
-| no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 |
-| 4, 7, 9 | よん, なな, きゅう; 時, 時間 よ, しち, く; 人 よ, しち; 円, 年 よ; 月 し, しち, く |
+| no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 列 畳 分目 (八分目 はちぶんめ) |
+| 4, 7, 9 | よん, なな, きゅう; 時, 時間 よ, しち, く; 人 よ, しち; 円, 年, 畳 よ; 月 し, しち, く |
 | days (日, 日間) | ついたち after 月, else いちにち; ふつか … とおか, じゅうよっか, はつか, にじゅうよっか, 十七日 じゅうしちにち |
-| others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何) |
+| others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何); two consecutive digits are "two or three" (二三日 にさんにち, 三四日 さんよっか, 四五人 しごにん) |
 
 Where usage varies one reading is given: 8 geminates (はっぽん, not はちほん), 10 is じゅっ
 (not じっ), 七人 しちにん. 一対一 (one on one) is left alone, and numbers with a point or
 a comma are skipped.
 
 `tests/test_counters.py` holds the acceptance grid: 1-10, 100, 1000 and 何, in kanji and
-in digits, with 25 counters, written by hand from the grammar.
+in digits, with 29 counters, written by hand from the grammar.
 
 Tatoeba is not a fair test here: its readings come from MeCab + IPAdic and were mostly left
 as they were, so they read the parts on their own (一匹 いち + ひき, ２杯 はい). On half b
