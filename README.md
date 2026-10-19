@@ -46,6 +46,22 @@ None when nothing gives one (a conjugated word whose listed readings don't singl
 that fits Sudachi's reading of it, or whose surface isn't its kanji stem plus kana). `readings.surface_reading(surface, form, reading, after)` turns it into the
 reading of the surface, for furigana: 行っ, 行く, いく → いっ; 来 before た is き, before ない こ.
 
+For one sentence (or any short text), `furigana` gives it back with each kanji run's reading
+in brackets, the reading of the surface as written, okurigana outside:
+
+```python
+from yurigana import furigana
+
+furigana('三本の取り扱いに注意して、十分に休んだ。')
+# '三本[さんぼん]の取[と]り扱[あつか]いに注意[ちゅうい]して、十分[じゅうぶん]に休[やす]んだ。'
+furigana('王の都へ向かった。', known='jiten_freq_global.zip')  # with a reading list
+```
+
+From the shell: `python -m yurigana 本を読んだ。` (or text on stdin, one line at a time;
+`--known LIST`). `Reader.segments(text, hints)` gives the same as (piece, reading or None)
+pairs, and `Reader.furigana(text, hints)` the bracketed string for a Reader you already have.
+Words with no reading are left plain.
+
 `book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
 paragraph per line, without tables of contents or colophons, and its ruby as hints.
 
