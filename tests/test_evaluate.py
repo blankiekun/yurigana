@@ -3,6 +3,7 @@ import unittest
 
 from yurigana.evaluate import (_binomial_p, compare, items_of, metrics, ndl_lines, ndl_readings, score_sentence,
                                surface_reading, tatoeba_sentence)
+from yurigana.evaluate import add_alts, prediction_tokens, triage
 
 
 def span(b, e, surface, reading, alts=()):
@@ -108,6 +109,36 @@ class GoldTest(unittest.TestCase):
         self.assertIn('はなぢ', ndl_readings('鼻血', 'はなじ'))
         tsv = '行番号: 1\t\t\n夜の刀\t\t[入力文]\n\tよるの かたな\t[入力 読み]\n夜\tよる\t漢字\nの\tの\tひらがな\n\t \t分かち書き\n刀\tかたな\t漢字\n'
         self.assertEqual(list(ndl_lines(tsv)), [('夜の刀', [span(0, 1, '夜', 'よる'), span(2, 3, '刀', 'かたな')])])
+
+
+class ReviewTest(unittest.TestCase):
+    def test_prediction_tokens(self):
+        sentence = {'text': '人気のない道', 'spans': [span(0, 2, '人気', 'ひとけ'), span(5, 6, '道', 'みち')]}
+        tokens = prediction_tokens('人気[ヒトケ]のない道[どう]', sentence['text'])
+        self.assertEqual(tokens[0], (0, 2, 'ひとけ', None))
+        self.assertEqual(score_sentence(sentence, tokens), [('ok', True, True, False), ('ok', False, False, False)])
+        self.assertIsNone(prediction_tokens('人気[ひとけ]の無い道[みち]', sentence['text']))
+        self.assertEqual(score_sentence(sentence, None), [('align', False, False, False)] * 2)
+
+    def test_alts(self):
+        import tempfile
+        sets = {'s': [{'id': 3, 'text': '明日', 'spans': [span(0, 2, '明日', 'あした')]}]}
+        with tempfile.NamedTemporaryFile('w', suffix='.tsv', delete=False) as f:
+            f.write('# set\tid\tsurface\treading\ns\t3\t明日\tアス\n')
+        add_alts(sets, f.name)
+        self.assertEqual(sets['s'][0]['spans'][0]['alts'], ['あす'])
+
+    def test_triage(self):
+        sentences = [{'id': n, 'text': '方', 'spans': [span(0, 1, '方', 'かた')]} for n in range(3)]
+        right = {'ours': '010', 'a': '001', 'b': '001', 'c': '100'}
+        readings = {'ours': [(0, 1, 'ほう'), (0, 1, 'かた'), (0, 1, None)],
+                    'a': [(0, 1, 'ほう'), (0, 1, 'ほう'), (0, 1, 'かた')],
+                    'b': [(0, 1, 'ほう'), (0, 1, 'ほう'), (0, 1, 'かた')],
+                    'c': [(0, 1, 'かた'), (0, 1, 'みち'), (0, 1, 'みち')]}
+        self.assertEqual(triage('s', sentences, right, readings), [
+            ('gold', 's', 0, '方', 'かた', 'ほう', 'ours,a,b', 'ほう'),  # 3 of 4 agree against the gold
+            # item 1: a, b agree on ほう, but 2 of 4 readings isn't a majority
+            ('ours', 's', 2, '方', 'かた', 'かた', 'a,b', '')])  # ours gave none, 2 of 3 others right
 
 
 if __name__ == '__main__':
