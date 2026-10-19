@@ -11,6 +11,7 @@
       --lines lines each, spread over the work.
   python -m yurigana.evaluate SET.jsonl ... [--known jiten_freq_global.zip] [--systems ours,sudachi-C|all]
                               [--compare old.json] [--out report.json] [--bootstrap 1000] [--misses misses.tsv]
+                              [--exclude noise.tsv] [--classes classes.tsv]
       Scores each system on each set; a markdown table per set on stdout.
       --predictions NAME=FILE (repeatable) scores other annotators' output as system NAME: FILE
       holds `ID | text with 漢字[かな]` lines (the furigana LLMs write), each bracketed kanji run a
@@ -49,8 +50,23 @@ environment with yurigana on PYTHONPATH:
   pip install --no-deps yomikata && pip install torch transformers fugashi unidic jaconv speach pynvml rich
   python -m unidic download && python -m yomikata download
 
+Per-item tags (with --known; in --out as `tags`, and as TSV with --classes: set, key, listed,
+partial, kanjidic_only, proper, number, excluded, clean, hard; keys only, no text): `listed`
+the readings the list gives the form (lemma when given, else the Sudachi-C word over the span
+when it is longer, as 行く over 行, else the surface; distinct as word list compares them),
+`proper` a Sudachi 固有名詞 over the span, `number` a kanji numeral or a 数詞/助数詞 over it.
+Without SudachiPy the form is the lemma or surface, and proper/number come from numerals only.
+
 Metrics, each with a 95% interval from a bootstrap over sentences:
 - word list: share of items read right (voicing folded), over all kanji words;
+- clean: word list without items the gold itself makes unscorable or doubtful (needs --known):
+  `partial` (a kanji next to the span that no span reads and isn't a kanji numeral: ruby over
+  part of a word, which no tokeniser can score), `kanjidic_only` (the form isn't in the list and
+  the reading is only spelled out by its kanji's KANJIDIC readings: mostly names and invented
+  on'yomi) and items in --exclude (TSV set, id, surface: gold noise found on review);
+- hard: clean over forms the list reads 2+ ways (`listed` >= 2), where systems actually differ:
+  about 60% of a book set's items are read right by every tokeniser, which squeezes the gaps
+  in word list (docs/evaluation.md);
 - display: the same, strict about voicing;
 - w/o both-standard: word list without forms with two standard readings (BOTH_STANDARD);
 - heteronym micro/macro: forms (lemma, else surface) with 2+ gold readings of MIN_GOLD+
@@ -337,6 +353,62 @@ def items_of(sentences):
             for n, s in enumerate(sentences) for span in s['spans'] if is_item(span['surface'])]
 
 
+def _covering(tokenizer, text):
+    """(begin, end, dictionary form, part of speech) of each Sudachi-C token, or [] without one."""
+    return [(m.begin(), m.end(), m.dictionary_form(), m.part_of_speech()) for m in tokenizer.tokenize(text)] \
+        if tokenizer else []
+
+
+def sudachi_tokenizer():
+    try:
+        from sudachipy import Dictionary, SplitMode
+        return Dictionary(dict='full').create(SplitMode.C)
+    except Exception as error:  # not installed, or a SudachiDict-full this SudachiPy can't read (the second environment)
+        NOTES.append(f'tags without Sudachi ({type(error).__name__}): forms are lemma or surface, proper/number from numerals')
+        return None
+
+
+TAGS = ('partial', 'kanjidic_only', 'proper', 'number', 'excluded', 'clean', 'hard')
+
+
+def item_tags(name, sentences, ranks, exclude=frozenset(), tokenizer=None) -> dict:
+    """Per item (items_of order): `listed` (ints) and each of TAGS as a '0'/'1' string (see the docstring)."""
+    from .reader import PlainReadings
+    plain, listed = PlainReadings(), defaultdict(set)
+    for term, reading in ranks:
+        listed[term].add(fold(reading, True))
+    out = {'listed': [], **{t: [] for t in TAGS}}
+    for s in sentences:
+        text, covered = s['text'], {i for sp in s['spans'] for i in range(sp['b'], sp['e'])}
+        tokens = _covering(tokenizer, text)
+        for sp in s['spans']:
+            if not is_item(sp['surface']):
+                continue
+            b, e, surface = sp['b'], sp['e'], sp['surface']
+            over = [t for t in tokens if t[0] < e and t[1] > b]
+            form = sp.get('lemma') or (over[0][2] if len(over) == 1 and (over[0][0] < b or over[0][1] > e) else surface)
+            n, gold = len(listed.get(form, ())), fold(sp['reading'], True)
+            tags = {
+                'partial': any(0 <= i < len(text) and i not in covered and HAS_KANJI.match(text[i]) and text[i] not in _NUMERALS
+                               for i in (b - 1, e)),
+                'kanjidic_only': n == 0 and gold not in listed.get(surface, ()) and (surface, to_hiragana(sp['reading'])) in plain,
+                'proper': any(t[3][1] == '固有名詞' for t in over),
+                'number': any(c in _NUMERALS for c in surface) or any(t[3][1] == '数詞' or t[3][2] == '助数詞' for t in over),
+                'excluded': (name, str(s.get('id')), surface) in exclude}
+            tags['clean'] = not (tags['partial'] or tags['kanjidic_only'] or tags['excluded'])
+            tags['hard'] = tags['clean'] and n >= 2
+            out['listed'].append(n)
+            for t in TAGS:
+                out[t].append('1' if tags[t] else '0')
+    return {k: v if k == 'listed' else ''.join(v) for k, v in out.items()}
+
+
+def read_exclude(path) -> frozenset:
+    """(set, id, surface) rows of an --exclude TSV."""
+    with open(path, encoding='utf-8') as f:
+        return frozenset(tuple(row.rstrip('\n').split('\t')[:3]) for row in f if row.strip() and not row.startswith('#'))
+
+
 def _binomial_p(k: int, n: int) -> float:
     """Exact two-sided sign test (McNemar on the discordant pairs)."""
     if n == 0:
@@ -346,8 +418,10 @@ def _binomial_p(k: int, n: int) -> float:
     return min(1.0, 2 * sum(math.exp(x) for x in log))
 
 
-def metrics(items, results, sentences: int, rounds: int = 1000, seed: int = 0) -> dict:
-    """Each metric as [value, low, high] (95% bootstrap interval over sentences)."""
+def metrics(items, results, sentences: int, rounds: int = 1000, seed: int = 0, subsets=None) -> dict:
+    """Each metric as [value, low, high] (95% bootstrap interval over sentences); subsets
+    {metric: item keys} adds word list over those items (clean, hard)."""
+    subsets = subsets or {}
     readings = defaultdict(Counter)
     for _, _, form, gold in items:
         readings[form][gold] += 1
@@ -361,6 +435,7 @@ def metrics(items, results, sentences: int, rounds: int = 1000, seed: int = 0) -
         'align fail': lambda it, r: (True, r[0] == 'align'),
         'no reading': lambda it, r: (True, r[0] == 'none'),
         **({'shown precision': lambda it, r: (r[3], r[1]), 'coverage': lambda it, r: (True, r[3])} if shown_any else {}),
+        **{name: (lambda keys: lambda it, r: (it[1] in keys, r[2]))(keys) for name, keys in subsets.items()},
     }
     sums = {}
     for name, f in ratios.items():
@@ -411,12 +486,14 @@ def metrics(items, results, sentences: int, rounds: int = 1000, seed: int = 0) -
         out[name] = [value, low, high]
     out['items'] = len(items)
     out['heteronym forms'] = len({f for f, _ in cells})
+    for name, keys in subsets.items():
+        out[f'{name} items'] = len(keys)
     return out
 
 
 # ---------------------------------------------------------------------------- report
 
-COLUMNS = ('word list', 'display', 'w/o both-standard', 'heteronym micro', 'heteronym macro', 'align fail',
+COLUMNS = ('word list', 'clean', 'hard', 'display', 'w/o both-standard', 'heteronym micro', 'heteronym macro', 'align fail',
            'no reading', 'shown precision', 'coverage')
 
 
@@ -432,14 +509,18 @@ def markdown(report: dict) -> str:
     lines = []
     for name, data in report['sets'].items():
         any_system = next(iter(data['systems'].values()), {})
-        lines += [f"### {name}: {data['items']} items in {data['sentences']} sentences, "
-                  f"{any_system.get('metrics', {}).get('heteronym forms', 0)} heteronym forms", '',
+        m = any_system.get('metrics', {})
+        subsets = ''.join(f", {m[f'{x} items']} {x}" for x in ('clean', 'hard') if f'{x} items' in m)
+        lines += [f"### {name}: {data['items']} items{subsets} in {data['sentences']} sentences, "
+                  f"{m.get('heteronym forms', 0)} heteronym forms", '',
                   '| system | ' + ' | '.join(COLUMNS) + ' |', '|---|' + '---|' * len(COLUMNS)]
         for system, result in data['systems'].items():
             lines.append(f'| {system} | ' + ' | '.join(_pct(result['metrics'].get(c)) for c in COLUMNS) + ' |')
         for system, c in data.get('compare', {}).items():
             lines.append(f"\n{system} vs {report['compare']}: {c['fixed']} fixed, {c['broken']} broken "
-                         f"(McNemar p = {c['p']:.3g}), word list {c['old'] * 100:.1f} → {c['new'] * 100:.1f}")
+                         f"(McNemar p = {c['p']:.3g}), word list {c['old'] * 100:.1f} → {c['new'] * 100:.1f}"
+                         + ''.join(f"; {x} {c[x]['fixed']} fixed, {c[x]['broken']} broken, {c[x]['old'] * 100:.1f} → "
+                                   f"{c[x]['new'] * 100:.1f}" for x in ('clean', 'hard') if x in c))
         if name.startswith('tatoeba'):
             lines.append('\n' + TATOEBA_NOTE)
         lines.append('')
@@ -457,13 +538,18 @@ def compare(old: dict, new: dict):
             past = before['systems'].get(system)
             if not past:
                 continue
-            pairs = [(past['right'][old_keys[k]], result['right'][i]) for i, k in enumerate(data['keys']) if k in old_keys]
-            fixed = sum(a == '0' and b == '1' for a, b in pairs)
-            broken = sum(a == '1' and b == '0' for a, b in pairs)
-            data.setdefault('compare', {})[system] = {
-                'fixed': fixed, 'broken': broken, 'p': _binomial_p(fixed, fixed + broken),
-                'old': sum(a == '1' for a, _ in pairs) / max(len(pairs), 1),
-                'new': sum(b == '1' for _, b in pairs) / max(len(pairs), 1)}
+            def paired(subset=None):
+                pairs = [(past['right'][old_keys[k]], result['right'][i]) for i, k in enumerate(data['keys'])
+                         if k in old_keys and (subset is None or subset[i] == '1')]
+                fixed = sum(a == '0' and b == '1' for a, b in pairs)
+                broken = sum(a == '1' and b == '0' for a, b in pairs)
+                return {'fixed': fixed, 'broken': broken, 'p': _binomial_p(fixed, fixed + broken),
+                        'old': sum(a == '1' for a, _ in pairs) / max(len(pairs), 1),
+                        'new': sum(b == '1' for _, b in pairs) / max(len(pairs), 1)}
+            c = data.setdefault('compare', {})[system] = paired()
+            for x in ('clean', 'hard'):  # over the new report's tags
+                if x in data.get('tags', {}):
+                    c[x] = paired(data['tags'][x])
 
 
 _FURIGANA = re.compile(r'([㐀-䶿一-鿿豈-﫿々〆ヶ]+)\[([^\[\]]+)\]')
@@ -529,7 +615,8 @@ def triage(name, sentences, right, readings, agree=2):
     return rows
 
 
-def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(), alts=None, review=None, agree=2):
+def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(), alts=None, review=None, agree=2,
+             exclude=frozenset(), classes=None):
     sets = {}
     for path in paths:
         with open(path, encoding='utf-8') as f:
@@ -537,6 +624,10 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
     if alts:
         add_alts(sets, alts)
     report = {'sets': {}, 'notes': []}
+    if isinstance(known, str):
+        from .yomitan import reading_ranks
+        known = reading_ranks(known)
+    tokenizer = sudachi_tokenizer() if known is not None else None
     made = {}
     for system in systems:
         try:
@@ -552,6 +643,12 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
         items = items_of(sentences)
         data = report['sets'][name] = {'sentences': len(sentences), 'items': len(items), 'systems': {},
                                        'keys': [it[1] for it in items]}
+        subsets = None
+        if known is not None:
+            tags = data['tags'] = item_tags(name, sentences, known, exclude, tokenizer)
+            subsets = {x: {k for k, f in zip(data['keys'], tags[x]) if f == '1'} for x in ('clean', 'hard')}
+            if classes is not None:
+                classes += [(name, k, tags['listed'][i], *(tags[t][i] for t in TAGS)) for i, k in enumerate(data['keys'])]
         read = {}
         for system, tokens in made.items():
             start = time.time()
@@ -559,7 +656,7 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
             results = [r for s in sentences for r in score_sentence(s, tokens(s), missed, read[system])]
             if misses is not None:
                 misses += [(name, system, *m) for m in missed]
-            data['systems'][system] = {'metrics': metrics(items, results, len(sentences), rounds),
+            data['systems'][system] = {'metrics': metrics(items, results, len(sentences), rounds, subsets=subsets),
                                        'seconds': round(time.time() - start, 1),
                                        'right': ''.join('1' if r[2] else '0' for r in results)}
             print(f'{name} {system}: {time.time() - start:.0f} s', file=sys.stderr, flush=True)
@@ -719,12 +816,20 @@ def main(argv=None):
     p.add_argument('--alts', help='TSV of accepted readings (set, id, surface, reading) merged into the gold')
     p.add_argument('--triage', help='write candidate gold errors and fixes for ours as TSV')
     p.add_argument('--agree', type=int, default=2, help='systems that must agree for --triage')
+    p.add_argument('--exclude', help='TSV of reviewed gold noise (set, id, surface) left out of clean and hard')
+    p.add_argument('--classes', help='write each item\'s tags as TSV (needs --known): set, key, listed, ' + ', '.join(TAGS))
     args = p.parse_args(argv)
     systems = SYSTEMS if args.systems == 'all' else [s for s in args.systems.split(',') if s]
     misses = [] if args.misses else None
     review = [] if args.triage else None
     predictions = [x.split('=', 1) for x in args.predictions]
-    report = evaluate(args.sets, systems, args.known, args.bootstrap, misses, predictions, args.alts, review, args.agree)
+    classes = [] if args.classes else None
+    report = evaluate(args.sets, systems, args.known, args.bootstrap, misses, predictions, args.alts, review, args.agree,
+                      read_exclude(args.exclude) if args.exclude else frozenset(), classes)
+    if args.classes:
+        with open(args.classes, 'w', encoding='utf-8') as f:
+            f.write('set\tkey\tlisted\t' + '\t'.join(TAGS) + '\n')
+            f.writelines('\t'.join(map(str, r)) + '\n' for r in classes)
     if args.triage:
         with open(args.triage, 'w', encoding='utf-8') as f:
             f.write('kind\tset\tid\tsurface\tgold\tmajority\tsystems\tours\n')

@@ -4,7 +4,7 @@ import unittest
 
 from yurigana.evaluate import (_binomial_p, compare, items_of, make_system, metrics, ndl_lines, ndl_readings,
                                score_sentence, surface_reading, tatoeba_sentence, yomikata_pieces)
-from yurigana.evaluate import add_alts, prediction_tokens, triage
+from yurigana.evaluate import add_alts, item_tags, prediction_tokens, read_exclude, triage
 
 
 def span(b, e, surface, reading, alts=()):
@@ -104,6 +104,55 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual((c['fixed'], c['broken']), (2, 1))
         self.assertAlmostEqual(_binomial_p(1, 3), 1.0)
         self.assertAlmostEqual(_binomial_p(0, 10), 2 / 1024)
+
+
+class TagsTest(unittest.TestCase):
+    RANKS = {('生', 'せい'): 1, ('生', 'なま'): 2, ('人', 'ひと'): 1, ('学校', 'がっこう'): 1}
+
+    def test_tags(self):
+        sentences = [{'id': 1, 'text': '生だ', 'spans': [span(0, 1, '生', 'なま')]},  # listed two ways: hard
+                     {'id': 2, 'text': '学校', 'spans': [span(0, 1, '学', 'がく')]},  # 校 has no ruby: partial
+                     {'id': 3, 'text': '三人', 'spans': [span(1, 2, '人', 'にん')]},  # numerals are no partial
+                     {'id': 4, 'text': '海と宇宙', 'spans': [span(0, 1, '海', 'かい'),  # unlisted, KANJIDIC spells it
+                                                         span(2, 4, '宇宙', 'そら')]}]  # gikun: not kanjidic_only
+        tags = item_tags('s', sentences, self.RANKS)
+        self.assertEqual(tags['listed'], [2, 0, 1, 0, 0])
+        self.assertEqual(tags['partial'], '01000')
+        self.assertEqual(tags['kanjidic_only'], '01010')  # 学 alone isn't listed either
+        self.assertEqual(tags['number'], '00000')  # 人 itself holds no numeral; without Sudachi no 助数詞
+        self.assertEqual(tags['clean'], '10101')
+        self.assertEqual(tags['hard'], '10000')
+        lemma = [{'id': 5, 'text': '生', 'spans': [{**span(0, 1, '生', 'せい'), 'lemma': '人'}]}]
+        self.assertEqual(item_tags('s', lemma, self.RANKS)['listed'], [1])
+
+    def test_exclude(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile('w', suffix='.tsv', delete=False) as f:
+            f.write('# set\tid\tsurface\ns\t1\t生\n')
+        sentences = [{'id': 1, 'text': '生', 'spans': [span(0, 1, '生', 'なま')]}]
+        tags = item_tags('s', sentences, self.RANKS, read_exclude(f.name))
+        self.assertEqual((tags['excluded'], tags['clean'], tags['hard']), ('1', '0', '0'))
+
+    def test_clean_and_hard_metrics(self):
+        sentences = [{'id': n, 'text': '生', 'spans': [span(0, 1, '生', 'なま')]} for n in range(4)]
+        items = items_of(sentences)
+        results = [('ok', r, r, False) for r in (True, False, True, True)]
+        m = metrics(items, results, 4, rounds=10, subsets={'clean': {'0:0', '1:0', '2:0'}, 'hard': {'1:0'}})
+        self.assertAlmostEqual(m['word list'][0], 0.75)
+        self.assertAlmostEqual(m['clean'][0], 2 / 3)
+        self.assertAlmostEqual(m['hard'][0], 0.0)
+        self.assertEqual((m['clean items'], m['hard items']), (3, 1))
+        self.assertNotIn('clean', metrics(items, results, 4, rounds=10))
+
+    def test_compare_subsets(self):
+        old = {'sets': {'s': {'keys': ['1:0', '2:0', '3:0'], 'systems': {'ours': {'right': '100'}}}}}
+        new = {'sets': {'s': {'keys': ['1:0', '2:0', '3:0'], 'systems': {'ours': {'right': '011'}},
+                              'tags': {'clean': '011', 'hard': '001'}}}}
+        compare(old, new)
+        c = new['sets']['s']['compare']['ours']
+        self.assertEqual((c['fixed'], c['broken']), (2, 1))
+        self.assertEqual((c['clean']['fixed'], c['clean']['broken'], c['clean']['new']), (2, 0, 1.0))
+        self.assertEqual((c['hard']['fixed'], c['hard']['old']), (1, 0.0))
 
 
 class GoldTest(unittest.TestCase):
