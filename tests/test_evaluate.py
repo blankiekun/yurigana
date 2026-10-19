@@ -38,6 +38,20 @@ class ScoreTest(unittest.TestCase):
         sentence = {'text': '一緒', 'spans': [span(0, 2, '一緒', 'いっしょ')]}
         self.assertEqual(score_sentence(sentence, [(0, 2, 'いつしよ', None)]), [('ok', True, True, False)])
 
+    def test_overlapping_tokens(self):
+        # a counter span (三本) next to its own tokens at the same start: scored as the span, in any order
+        sentence = {'id': 7, 'text': '三本', 'spans': [span(0, 2, '三本', 'さんぼん')]}
+        for tokens in ([(0, 2, 'さんぼん', True, 'rule'), (0, 1, 'さん', None), (1, 2, 'ほん', None)],
+                       [(0, 1, 'さん', None), (1, 2, 'ほん', None), (0, 2, 'さんぼん', True, 'rule')]):
+            self.assertEqual(score_sentence(sentence, tokens), [('ok', True, True, True)])
+
+    def test_misses(self):
+        sentence = {'id': 7, 'text': '三本', 'spans': [span(0, 2, '三本', 'さんぼん')]}
+        misses = []
+        score_sentence(sentence, [(0, 2, 'みもと', False, 'dictionary')], misses)
+        score_sentence(sentence, [(0, 2, 'さんぼん', True, 'rule')], misses)
+        self.assertEqual(misses, [(7, '三本', 'さんぼん', 'みもと', 'dictionary')])
+
     def test_surface_reading(self):
         self.assertEqual(surface_reading('行っ', '行く', 'いく'), 'いっ')
         self.assertEqual(surface_reading('学校', '学校', 'がっこう'), 'がっこう')

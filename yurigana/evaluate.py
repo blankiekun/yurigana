@@ -10,7 +10,7 @@
       OUT/ndl-test.jsonl: the works of held-out authors (crc32 of the name % 5 == 0), up to
       --lines lines each, spread over the work.
   python -m yurigana.evaluate SET.jsonl ... [--known jiten_freq_global.zip] [--systems ours,sudachi-C|all]
-                              [--compare old.json] [--out report.json] [--bootstrap 1000]
+                              [--compare old.json] [--out report.json] [--bootstrap 1000] [--misses misses.tsv]
       Scores each system on each set; a markdown table per set on stdout.
 
 Gold sets are JSONL, one sentence per line: {"id", "text", "spans": [{"b", "e", "surface",
@@ -87,7 +87,7 @@ def fold(reading: str, voicing: bool) -> str:
 
 
 # ---------------------------------------------------------------------------- systems
-# Each returns tokens(text) -> [(start, end, reading of text[start:end] or None, shown or None)].
+# Each returns tokens(text) -> [(start, end, reading of text[start:end] or None, shown or None[, source])].
 
 def surface_reading(surface: str, form: str, reading: str | None) -> str | None:
     """The reading of a token's surface from its dictionary form's: 行った, 行く, いく → いった."""
@@ -103,8 +103,8 @@ def surface_reading(surface: str, form: str, reading: str | None) -> str | None:
 def _ours(known):
     from .reader import Reader
     reader = Reader(known=known)
-    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading), w.source in SHOWN)
-                         for w in reader.read(text)]
+    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading), w.source in SHOWN,
+                          w.source) for w in reader.read(text)]
 
 
 def _sudachi(mode):
@@ -199,8 +199,8 @@ def _gold_readings(text, b, e, spans_at):
 
 
 def _system_reading(text, b, e, tokens_at):
-    """(reading of text[b:e] from the tokens, shown): None when a token there has none."""
-    out, shown, i = [], [], b
+    """(reading of text[b:e] from the tokens, shown, sources): None when a token there has none."""
+    out, shown, sources, i = [], [], [], b
     while i < e:
         token = tokens_at.get(i)
         if token and token[1] <= e:
@@ -208,32 +208,37 @@ def _system_reading(text, b, e, tokens_at):
             if _KANA.match(surface):
                 out.append(surface)
             elif token[2] is None:
-                return None, False
+                return None, False, token[4:]
             else:
                 out.append(token[2])
                 shown.append(token[3])
+                sources += token[4:]
             i = token[1]
         elif _KANA.match(text[i]):
             out.append(text[i])
             i += 1
         else:
-            return None, False
-    return ''.join(out), bool(shown) and all(shown)
+            return None, False, sources
+    return ''.join(out), bool(shown) and all(shown), sources
 
 
-def score_sentence(sentence, tokens):
+def score_sentence(sentence, tokens, misses=None):
     """One result per item (span with kanji): (status 'ok' | 'none' | 'align', display right,
-    word list right, shown)."""
+    word list right, shown). Stretches read wrong are appended to misses as (id, stretch, gold
+    readings, system reading, sources)."""
     text, spans = sentence['text'], sentence['spans']
     spans_at = {s['b']: s for s in spans}
-    tokens_at = {t[0]: t for t in tokens}
+    tokens_at = {}
+    for t in tokens:  # the longest token at a start: a counter span (三本) over its own tokens
+        if t[1] > tokens_at.get(t[0], (0, -1))[1]:
+            tokens_at[t[0]] = t
     results = {}
     for b, e in units(spans, tokens):
         inside = [s for s in spans if b <= s['b'] < e and is_item(s['surface'])]
         if not inside:
             continue
         gold = _gold_readings(text, b, e, spans_at)
-        reading, shown = _system_reading(text, b, e, tokens_at) if gold else (None, False)
+        reading, shown, sources = _system_reading(text, b, e, tokens_at) if gold else (None, False, ())
         if not gold:
             result = ('align', False, False, False)
         elif reading is None:
@@ -241,6 +246,8 @@ def score_sentence(sentence, tokens):
         else:
             result = ('ok', fold(reading, False) in {fold(g, False) for g in gold},
                       fold(reading, True) in {fold(g, True) for g in gold}, shown)
+        if misses is not None and not result[2]:
+            misses.append((sentence.get('id', ''), text[b:e], '/'.join(gold or ()), reading or '', ','.join(sources)))
         for s in inside:
             results[s['b']] = result
     return [results[s['b']] for s in spans if is_item(s['surface'])]
@@ -338,6 +345,8 @@ COLUMNS = ('word list', 'display', 'w/o both-standard', 'heteronym micro', 'hete
 def _pct(m):
     if not m or m[0] is None:
         return '–'
+    if m[1] is None:  # --bootstrap 0
+        return f'{m[0] * 100:.1f}'
     return f'{m[0] * 100:.1f} ({m[1] * 100:.1f}–{m[2] * 100:.1f})'
 
 
@@ -379,7 +388,7 @@ def compare(old: dict, new: dict):
                 'new': sum(b == '1' for _, b in pairs) / max(len(pairs), 1)}
 
 
-def evaluate(paths, systems, known=None, rounds=1000):
+def evaluate(paths, systems, known=None, rounds=1000, misses=None):
     sets = {}
     for path in paths:
         with open(path, encoding='utf-8') as f:
@@ -398,7 +407,10 @@ def evaluate(paths, systems, known=None, rounds=1000):
                                        'keys': [it[1] for it in items]}
         for system, tokens in made.items():
             start = time.time()
-            results = [r for s in sentences for r in score_sentence(s, tokens(s['text']))]
+            missed = []
+            results = [r for s in sentences for r in score_sentence(s, tokens(s['text']), missed)]
+            if misses is not None:
+                misses += [(name, system, *m) for m in missed]
             data['systems'][system] = {'metrics': metrics(items, results, len(sentences), rounds),
                                        'seconds': round(time.time() - start, 1),
                                        'right': ''.join('1' if r[2] else '0' for r in results)}
@@ -543,9 +555,14 @@ def main(argv=None):
     p.add_argument('--compare', help='an earlier --out report: paired changes per item')
     p.add_argument('--out', help='write the report (metrics and per-item results) as JSON')
     p.add_argument('--bootstrap', type=int, default=1000, help='bootstrap rounds for the intervals')
+    p.add_argument('--misses', help='write the stretches read wrong as TSV: set, system, id, stretch, gold, reading, source')
     args = p.parse_args(argv)
     systems = SYSTEMS if args.systems == 'all' else args.systems.split(',')
-    report = evaluate(args.sets, systems, args.known, args.bootstrap)
+    misses = [] if args.misses else None
+    report = evaluate(args.sets, systems, args.known, args.bootstrap, misses)
+    if args.misses:
+        with open(args.misses, 'w', encoding='utf-8') as f:
+            f.writelines('\t'.join(map(str, m)) + '\n' for m in misses)
     if args.compare:
         with open(args.compare, encoding='utf-8') as f:
             compare(json.load(f), report)
