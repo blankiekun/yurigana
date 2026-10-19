@@ -84,7 +84,7 @@ reading wins:
    lemma's okurigana added (行《い》った is 行く read いく); ruby set in large kana, as older
    books do (いつしよ gives いっしょ).
 2. **A context rule** (`context_reading`): about 40 forms whose reading depends on the
-   words around them (人気, 今日, 明日, 上手, 市場, 金, 方, 間, 気に入る いる, カナダ人 じん …), in
+   words around them (人気, 今日, 明日, 上手, 市場, 金, 方, 間, 何, 今, 外, 気に入る いる, 尼君 ぎみ, カナダ人 じん …), in
    `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき.
@@ -110,6 +110,9 @@ reading wins:
    いっかい → ひとかたまり.
    Where Sudachi's reading of a word of 3+ characters is one voicing away from the one the
    list gives it, the list's is taken (睡眠不足 ふそく → ぶそく, `source='only'`).
+   金 きん → かね: alone, 金 is money unless a rule finds the metal (銀 or 鉄 nearby, 金のくさり,
+   金の値段). Four of Sudachi's dictionary entries carry a particle or extra kana in their
+   reading and are cut back to the word: 中宮 ちゅうぐうの, 河原 かわらの, 甲斐 かいの, 土堤 どてい.
 
 Then, for every reading but ruby, its voicing follows its place (rendaku, `_voicing`), with
 a reading list. Sudachi splits many compounds (プレハブ|小屋, 縮緬|細工) and gives the second

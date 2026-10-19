@@ -75,7 +75,9 @@ class ContextReadingTest(unittest.TestCase):
              ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん'),
              ('中', 'じゅう'), ('中', 'ちゅう'),
              ('種', 'しゅ'), ('下', 'した'), ('下', 'もと'), ('音', 'ね'), ('風', 'ふう'), ('風', 'かぜ'),
-             ('方', 'かた'), ('方', 'ほう'), ('間', 'ま'), ('間', 'あいだ'), ('後', 'あと')}
+             ('方', 'かた'), ('方', 'ほう'), ('間', 'ま'), ('間', 'あいだ'), ('後', 'あと'),
+             ('今', 'いま'), ('今', 'こん'), ('外', 'ほか'), ('外', 'そと'), ('床', 'とこ'), ('床', 'ゆか'), ('君', 'ぎみ'),
+             ('君', 'くん'), ('尼', 'あま'), ('金', 'きん'), ('金', 'かね')}
 
     def reading(self, text, form, surface=None, known=None):
         return context_reading(text, text.index(form), surface or form, form, self.known if known is None else known)
@@ -123,6 +125,23 @@ class ContextReadingTest(unittest.TestCase):
                  ('五年後三月に', '後', None), ('購入後２日', '後', None), ('後で電話する', '後', None)]
         for text, form, reading in cases:
             self.assertEqual(self.reading(text, form), reading, text)
+
+    def test_cue_rules_round_5e(self):
+        cases = [('何やってるの？', '何', 'なに'), ('何に使うの？', '何', 'なに'), ('何ごっこ？', '何', 'なに'),
+                 ('何にしても', '何', None), ('何になる', '何', None),
+                 ('彼女は今医者だ', '今', 'いま'), ('今学期は', '今', None),
+                 ('外の乗客と', '外', 'ほか'), ('待つ外はない', '外', 'ほか'), ('より外に道はない', '外', 'ほか'),
+                 ('外の方が気持ちいい', '外', None), ('家の外に出る', '外', None),
+                 ('床に就く', '床', 'とこ'), ('床から起きる', '床', 'とこ'), ('床に座る', '床', None),
+                 ('尼君が来た', '君', 'ぎみ'), ('山田君が来た', '君', None), ('尼になる', '尼', 'あま'),
+                 ('金は銀より重い', '金', 'きん'), ('雄弁は銀、沈黙は金', '金', 'きん'), ('金のくさり', '金', 'きん'),
+                 ('金を貸す', '金', 'かね'), ('金は少しある', '金', None)]  # no cue: the かね default (DEFAULT_READINGS)
+        for text, form, reading in cases:
+            self.assertEqual(self.reading(text, form), reading, text)
+        known = {('入る', 'いる'), ('入る', 'はいる')}
+        for text, reading in (('月をながめ入っていた', 'いる'), ('郷に入っては', 'いる'), ('お金が少し入っている', None)):
+            begin = text.index('入')
+            self.assertEqual(context_reading(text, begin, text[begin:begin + 2], '入る', known), reading, text)
 
     def test_hitoke_needs_a_cue(self):
         for text in ('人気のない路地', '人気も無い', '人気が少ない', '人気が絶えた', '周囲に人気がない', '人気がない場所に',
