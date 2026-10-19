@@ -292,7 +292,7 @@ built are in `yurigana/reading_context.py`'s docstring:
    no worse than rules + Sudachi (forms with rules: and better than Sudachi where no rule
    fires). B2 stays unseen.
 
-The committed table predates these two fetch fixes (T40 in TRADEOFFS.md).
+The committed table predates these two fetch fixes (T44 in TRADEOFFS.md).
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.
