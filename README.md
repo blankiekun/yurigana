@@ -106,8 +106,10 @@ reading wins:
    周囲に人気がない); この店は人気がない stays にんき.
 3. **The reading model** (`ReadingModel`): a small naive Bayes classifier per form, over
    the two tokens on each side, their pairs and the content words within six tokens of the
-   line. It answers only when its best reading's posterior is at least 0.7, and never for a
-   form that has rules.
+   line. It answers only when its best reading's posterior is at least 0.7. A form that has
+   rules gets a model only where it read better than Sudachi on the held-out occurrences no
+   rule fires on (it is trained on those too); the table lists such forms (`ruleForms`), and
+   an entry for a rule form that isn't listed is ignored.
 4. **Sudachi's reading** of the token, for an unconjugated word. For a conjugated one
    (行っ, 言わ, 早く), with a reading list: the one listed reading of its form that conjugates
    to Sudachi's reading of the surface (行っ read いっ is 行く いく, not ゆく; 来 read き or こ
@@ -241,7 +243,7 @@ sentence. Use it to sort or flag, not as a probability.
 
 ### Building a table from your own library
 
-The committed table (`reading-model-public.json.gz`, 42 forms) is trained on public-domain
+The committed table (`reading-model-public.json.gz`, 43 forms) is trained on public-domain
 works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
 own library reads far more forms (403 on one library of 19,000 books):
 
@@ -264,7 +266,8 @@ built are in `yurigana/reading_context.py`'s docstring:
 2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b`;
 3. `train` on the Aozora and half a rows together, `--priors` half a's rows;
 4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
-   that read no worse than rules + Sudachi.
+   that read no worse than rules + Sudachi (forms with rules: and better than Sudachi where
+   no rule fires).
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.

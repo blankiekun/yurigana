@@ -4,7 +4,8 @@ Built by reading_context.py from ruby (the readings books print), kept only for 
 where it beat the context rules and Sudachi on books held out.
 
 The table is gzipped JSON: {"version": 1, "forms": {form: [readings, log priors, vocabulary
-size, {feature: log P(feature | reading) per reading}]}}. Features not in a form's table are
+size, {feature: log P(feature | reading) per reading}]}, "ruleForms": [forms with context rules
+whose model was kept for the occurrences no rule reads]}. Features not in a form's table are
 ignored.
 """
 import gzip
@@ -20,8 +21,10 @@ PUBLIC_TABLE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reading
 WINDOW = 6  # tokens looked at on each side, within the line
 NEAR = 2  # tokens whose position counts (L1, L2, R1, R2); the rest are a bag of words
 CONTENT_POS = ('名詞', '動詞', '形容詞', '形状詞', '副詞', '代名詞')
-# Forms with hand rules (人気: ひとけ only with a cue): when no rule fires they keep Sudachi's
-# reading, whatever a table says (tables learnt from ruby lean to the rare reading).
+# Forms with hand rules (人気: ひとけ only with a cue). A table answers one only when no rule fires,
+# and only if it lists the form in "ruleForms": trained and kept on the occurrences no rule reads
+# (reading_context.train). Other tables' entries for them are dropped (tables learnt from ruby
+# lean to the rare reading).
 RULE_FORMS = frozenset(_CONTEXT_RULES)
 
 
@@ -64,7 +67,8 @@ class ReadingModel:
             data = json.load(f)
         if data.get('version') != 1:
             raise ValueError(f'{path}: unknown reading model version')
-        return cls(data['forms'])
+        allowed = set(data.get('ruleForms', ()))
+        return cls({form: entry for form, entry in data['forms'].items() if form not in RULE_FORMS or form in allowed})
 
     def scores(self, form: str, found: list) -> dict | None:
         """reading -> log posterior (unnormalised), or None when the form has no model."""
@@ -101,8 +105,8 @@ class ReadingModel:
 
     def reading(self, text: str, tokens, i: int, form: str, known) -> str | None:
         """The reading for the word whose head token is tokens[i], if the form has a model and
-        `known` lists the reading for it."""
-        if form not in self.forms or form in RULE_FORMS:
+        `known` lists the reading for it. Asked only when no context rule fires."""
+        if form not in self.forms:
             return None
         reading = self.predict_features(form, self.context(text, tokens, i))
         return reading if (form, reading) in known else None
