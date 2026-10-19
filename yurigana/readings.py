@@ -254,7 +254,10 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',
                  ('土堤', 'どてい'): 'どて',
                  # 鬼 alone is おに; glued (善鬼 ぜんき, 餓鬼) it keeps Sudachi's き (GLUED_CHECKED).
-                 ('鬼', 'き'): 'おに'}
+                 ('鬼', 'き'): 'おに',
+                 # Nominated by Opus's readings of post-war library sentences (Sudachi's reading where Opus
+                 # gives another one, 3+ authors, 80%+ one reading), checked on Tatoeba B1 (TRADEOFFS T45).
+                 ('擦る', 'する'): 'こする', ('素', 'もと'): 'す'}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:

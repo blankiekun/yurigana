@@ -57,6 +57,9 @@ reading wins:
    right, and no more breaks than fixes on NDL's held-out authors. 一日 as one token
    (Sudachi's ついたち) is いちにち except after 月 (来月の一日, a context rule); 一塊
    いっかい → ひとかたまり.
+   擦る する → こする and 素 もと → す were nominated by Opus's readings of post-war library
+   sentences (where Opus reads a word otherwise than Sudachi in 3+ sentences by 3+ authors and 80%+
+   of the time the same way) and checked on Tatoeba B1 (2 changes, both right); TRADEOFFS T45.
    A few more come from `yurigana/default-readings.tsv`, built by `tools/default_readings.py`:
    human readings of public-domain fiction (NDL's huriganacorpus-aozora, training authors only)
    nominate pairs that Sudachi's dictionary lacks or ranks low, and modern text (Tatoeba's half
