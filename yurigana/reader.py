@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
-from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -16,7 +16,11 @@ KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
 _UNITS = re.compile('[十百千万億兆]')
-_ONE_UNIT = re.compile('一[百千]|^[万億兆]')
+_ONE_UNIT = re.compile('一百|^[万億兆]')
+# 一 with the rest of a native word in kana: 一ト月, 一と息 (ひ, と), 一しずく (ひと), 一たい (いっ)
+_ONE_KANA = (('ひ', re.compile(r'[トと](?![〇一二三四五六七八九十百千万言云書])[㐀-䶿一-鿿豈-﫿]')),
+             ('ひと', re.compile('しずく|すくみ|やすみ|そろい|かど|しきり|すじ|きわ')),
+             ('いっ', re.compile('たい|パイ|ぱい|ペン|ぺん|そう')))
 
 
 class Word(NamedTuple):
@@ -115,6 +119,15 @@ class Reader:
                 self.readings[form].append(reading)
         self.only = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
         self._tails = None
+        # 一X whose ひと…/いっ… reading the list ranks 3+ times above its others (一重 ひとえ, not いちえ):
+        # read so when Sudachi splits it 一|X; not forms with context rules (一行 いっこう/いちぎょう)
+        ranks = known if isinstance(known, dict) else {}
+        self.one_x = {}
+        for form, readings in self.readings.items():
+            if form[:1] == '一' and len(readings) > 1 and ranks and form not in _CONTEXT_RULES:
+                best, second = sorted(readings, key=lambda r: ranks[form, r])[:2]
+                if best[:2] in ('ひと', 'いっ') and ranks[form, second] >= 3 * ranks[form, best]:
+                    self.one_x[form] = best
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
             from .tokens import SudachiTokenizer
@@ -180,13 +193,26 @@ class Reader:
             if (any(_end(a) != b.begin for a, b in zip(span, span[1:]))
                     or any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
                     or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface())
-                    or (n == 2 and _NUMERAL.match(span[0].surface()))
+                    or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一')
+                    or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
                     or any(start in hint_at for start in range(begin, end))
                     or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
                 continue
             form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
-            if form in self.only:
-                return i + n, Word(begin, end, form, self.only[form], 'only', 1.0)
+            reading = self.only.get(form)
+            if n == 2 and span[0].surface() == '一':
+                # 一|X: only the sound changes Sudachi's split misses (一|思い ひとおもい, 一|票 いっぴょう);
+                # the list's いち… for such pairs is mostly names (一章 かずあき) or kun guesses (一城 いちしろ)
+                if not (reading and reading[:2] in ('ひと', 'いっ')):
+                    reading = None
+                    if form in self.one_x:
+                        return i + n, Word(begin, end, form, self.one_x[form], 'default', None)
+            if reading:
+                return i + n, Word(begin, end, form, reading, 'only', 1.0)
+            # Sudachi's split of a word it doesn't keep whole: 一昨|日 いっさく|ひ is おととい
+            default = DEFAULT_READINGS.get((form, ''.join(to_hiragana(t.reading_form()) for t in span)))
+            if default and (form, default) in self.known:
+                return i + n, Word(begin, end, form, default, 'default', None)
         return None
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
@@ -198,7 +224,15 @@ class Reader:
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
-            return number_reading(value), 'counter', None
+            return number_reading(value, '一千' in surface), 'counter', None
+        if surface == '一' and tokens[i].part_of_speech()[1] == '数詞':
+            after = text[begin + 1:begin + 4]
+            for one, kana in _ONE_KANA:
+                if kana.match(after):
+                    return one, 'rule', 1.0
+            following = tokens[i + 1] if i + 1 < len(tokens) and tokens[i + 1].begin == begin + 1 else None
+            if following and following.part_of_speech()[0] == '動詞' and HAS_KANJI.search(following.surface()):
+                return 'ひと', 'rule', 1.0  # 一 + a verb's stem: 一睨み, 一撫で
         previous = tokens[i - 1] if i and tokens[i - 1].begin + len(tokens[i - 1].surface()) == begin else None
         reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:

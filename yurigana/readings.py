@@ -164,6 +164,8 @@ _CONTEXT_RULES = {
     '入る': [('いる', r'気に$', None), ('いる', r'水$', r'ず', 'and')],
     # 人 right after a katakana word (カナダ人); after a place name, see context_reading.
     '人': [('じん', r'[ァ-ヺー]$', None)],
+    # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
+    '一日': [('ついたち', r'月の?$', None)],
     '一行': [('いちぎょう', r'(?:最初の|最後の|文章の|冒頭の|手紙の|ほんの|たった)$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
@@ -194,7 +196,12 @@ DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 
                     ('卵', 'らん'): 'たまご', ('胡坐', 'こざ'): 'あぐら', ('緒', 'いとぐち'): 'お',
                     ('雪道', 'せつどう'): 'ゆきみち', ('卑怯者', 'ひきょうしゃ'): 'ひきょうもの',
                     ('無理強い', 'むりつよい'): 'むりじい', ('人手不足', 'ひとでふそく'): 'ひとでぶそく',
-                    ('草冠', 'そうこう'): 'くさかんむり', ('大火事', 'だいかじ'): 'おおかじ'}
+                    ('草冠', 'そうこう'): 'くさかんむり', ('大火事', 'だいかじ'): 'おおかじ',
+                    # 一X read ひと…/いち… (round 5e). 一日 as one token: Sudachi's ついたち (月一日: a rule).
+                    # 一昨日, 一日中: Sudachi splits them 一昨|日 (いっさく|ひ, |にち), 一|日中, joined in Reader._compound.
+                    ('一日', 'ついたち'): 'いちにち', ('一昨日', 'いっさくひ'): 'おととい', ('一昨日', 'いっさくにち'): 'おととい',
+                    ('一日中', 'いちにっちゅう'): 'いちにちじゅう',  # 一|日中 (Sudachi), not 一|日|中
+                    ('一塊', 'いっかい'): 'ひとかたまり'}
 
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in _CONTEXT_RULES.items()}

@@ -69,8 +69,15 @@ With a reading list, 2-4 adjacent tokens whose joined form the list gives one re
 become one `Word` with that reading (`source='only'`): 三|日|月 みかづき, 身の上|話
 みのうえばなし, 一|石|二鳥 いっせきにちょう, 昼|時 ひるどき. Spans with particles or ending in
 kana are left out (Jiten's list has phrases such as 彼の かの), as are a number with its
-counter (一|枚), spans right after a number (１|日|中) and spans with ruby. Otherwise each
-token is read on its own; the first step that gives a reading wins:
+counter (一|枚), spans right after a number (１|日|中), dates (四|月|一日 isn't わたぬき) and spans
+with ruby. 一 + one token is joined only for a ひと…/いっ… reading, the sound change the split
+misses (一|思い ひとおもい, 一|票 いっぴょう; the list's いち… there is mostly names, 一章 かずあき),
+also when the list ranks that reading 3+ times above its others (一|重 ひとえ, `source='default'`).
+Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
+readings: 一昨|日 いっさくひ → おととい, 一|日中 いちにっちゅう → いちにちじゅう. A lone 一 before
+the kana rest of a native word is ひ/ひと/いっ (一ト月, 一と息, 一しずく, 一たい), and ひと before
+a verb's stem (一睨み). Otherwise each token is read on its own; the first step that gives a
+reading wins:
 
 1. **The book's ruby** (`ruby_reading`): ruby over the token, as one span or kanji by kanji
    (人《ひと》気《け》 gives ひとけ); ruby over the kanji stem of an inflected word, with the
@@ -98,7 +105,9 @@ token is read on its own; the first step that gives a reading wins:
    鼻血, 間近, 手近 and 近々 get ぢ, the spelling of their rendaku (Sudachi writes じ).
    A second batch (箱 ばこ → はこ, 深い ぶかい, 腹 ふく, 沿い そい, 仏 ふつ, 米 べい,
    鏡 きょう and 28 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
-   right, and no more breaks than fixes on NDL's held-out authors.
+   right, and no more breaks than fixes on NDL's held-out authors. 一日 as one token
+   (Sudachi's ついたち) is いちにち except after 月 (来月の一日, a context rule); 一塊
+   いっかい → ひとかたまり.
    Where Sudachi's reading of a word of 3+ characters is one voicing away from the one the
    list gives it, the list's is taken (睡眠不足 ふそく → ぶそく, `source='only'`).
 
@@ -126,7 +135,8 @@ span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅう�
 after a month) are its own, except names (三軒 みのき, 一列 かずなみ) and words it reads without
 the sound change (一回 いちかい), which get the span's reading; 三十分 (三 + 十分) and 二十人 are
 read as numbers. A number alone gets the same readings (六百 ろっぴゃく, 三千
-さんぜん; Sudachi reads them digit by digit), as `source='counter'`.
+さんぜん; Sudachi reads them digit by digit), as `source='counter'`; a written 一千 is いっせん
+(一千万 いっせんまん).
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
 [Japanese counters appendix](https://en.wiktionary.org/wiki/Appendix:Japanese_counters)):

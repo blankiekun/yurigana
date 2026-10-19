@@ -99,8 +99,9 @@ def number_value(surface: str):
     return value if 0 < value < 10 ** 16 else None
 
 
-def _elements(value: int):
-    """[(kana, kind)]: the spoken parts of a number; kind is 1-9 for a final digit, else the unit."""
+def _elements(value: int, one_thousand: bool = False):
+    """[(kana, kind)]: the spoken parts of a number; kind is 1-9 for a final digit, else the unit.
+    one_thousand: 千 is written 一千, read いっせん (一千万 いっせんまん)."""
     out = []
     for big, name in ((10 ** 12, 'ちょう'), (10 ** 8, 'おく'), (10 ** 4, 'まん'), (1, '')):
         group = value // big % 10000
@@ -111,7 +112,7 @@ def _elements(value: int):
             if not d:
                 continue
             if unit == 1000:
-                out.append((_THOUSANDS.get(d) or _KANA[d] + 'せん', 1000))
+                out.append(('いっせん' if d == 1 and one_thousand else _THOUSANDS.get(d) or _KANA[d] + 'せん', 1000))
             elif unit == 100:
                 out.append((_HUNDREDS.get(d) or _KANA[d] + 'ひゃく', 100))
             elif unit == 10:
@@ -143,9 +144,10 @@ def _days(value, kana, kind, after_month: bool):
     return kana, 'にち'
 
 
-def number_reading(value: int) -> str:
-    """A number's reading: 六百 ろっぴゃく, 三千 さんぜん."""
-    return ''.join(kana for kana, _ in _elements(value))
+def number_reading(value: int, one_thousand: bool = False) -> str:
+    """A number's reading: 六百 ろっぴゃく, 三千 さんぜん (一千 いっせん with one_thousand)."""
+    # shortcut: one_thousand applies to every 千 of the number (三千一千 doesn't occur)
+    return ''.join(kana for kana, _ in _elements(value, one_thousand))
 
 
 def reading(number: str, counter: str, sudachi: str = '', before: str = '', after: str = ''):
@@ -167,7 +169,7 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         value = number_value(number)
         if value is None:
             return None
-        elements = _elements(value)
+        elements = _elements(value, '一千' in number)
         kana, kind = ''.join(k for k, _ in elements), elements[-1][1]
     final = _KANA.get(kind) if isinstance(kind, int) and kind < 10 else None
     if counter == '日' and sudachi in ('にち', 'か') or counter == '日間' and sudachi in ('にちかん', 'かかん'):
