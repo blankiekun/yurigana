@@ -1,14 +1,21 @@
 """The one-call entry point: Reader().read(text, hints) gives each kanji word's reading."""
+import gzip
 import json
 import math
 import os
 from collections import Counter
 from typing import NamedTuple
 
-from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, context_reading, is_kanji, ruby_reading, to_hiragana
+from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, context_reading, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
-KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
+JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
+
+
+def jmdict_pairs(path: str = JMDICT_PAIRS) -> set:
+    """The (form, reading) pairs of JMdict (tools/jmdict_pairs.py): the default reading list."""
+    with gzip.open(path, 'rt', encoding='utf-8') as f:
+        return {(form, r) for form, readings in json.load(f)['pairs'].items() for r in readings.split(' ')}
 
 
 class Word(NamedTuple):
@@ -20,56 +27,12 @@ class Word(NamedTuple):
     certainty: float | None  # see the README; None when unknown
 
 
-class _Any:
-    """Every reading is known: no list given."""
-    def __contains__(self, item):
-        return True
-
-
-_VOICED = {'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'さ': 'ざ', 'し': 'じ', 'す': 'ず',
-           'せ': 'ぜ', 'そ': 'ぞ', 'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど', 'は': 'ばぱ',
-           'ひ': 'びぴ', 'ふ': 'ぶぷ', 'へ': 'べぺ', 'ほ': 'ぼぽ'}
-
-
-class PlainReadings:
-    """(form, reading) is known when the reading is spelled by the form's kanji readings (on and
-    kun of 常用/人名用 kanji, KANJIDIC2) and its kana, with rendaku and a final っ: the JS
-    isPlainReading. The ruby check without a list: gikun (そら over 宇宙) and jukujikun don't pass."""
-
-    def __init__(self, path: str = KANJI_READINGS):
-        with open(path, encoding='utf-8') as f:
-            self.readings = {k: v.split(' ') for k, v in json.load(f).items()}
-
-    @staticmethod
-    def _variants(reading: str):
-        for start in reading[0] + _VOICED.get(reading[0], ''):
-            word = start + reading[1:]
-            yield word
-            if len(word) > 1 and word[-1] in 'つちくき':
-                yield word[:-1] + 'っ'
-
-    def __contains__(self, item) -> bool:
-        base, reading = item
-
-        def match(i: int, j: int) -> bool:
-            if i == len(base):
-                return j == len(reading)
-            char = base[i]
-            if not is_kanji(char) and char != '々':
-                return reading[j:j + 1] == to_hiragana(char) and match(i + 1, j + 1)
-            own = self.readings.get(base[i - 1] if char == '々' and i > 0 else char, ())
-            return any(reading.startswith(form, j) and match(i + 1, j + len(form))
-                       for r in own for form in self._variants(r))
-        return match(0, 0)
-
-
 class Reader:
     """Readings of kanji words in context. The first that gives one wins: the book's ruby
     (`hints`), a context rule, the reading model, then Sudachi's dictionary reading.
 
     known: (form, reading) pairs a reading must be one of (a set, the keys of a dict, or the
-        path of a rank-based Yomitan frequency list). Without one, ruby must be a plain reading
-        of its kanji (PlainReadings) and rules and the model are trusted.
+        path of a rank-based Yomitan frequency list). Without one, JMdict's (jmdict_pairs).
     tables: reading-model tables built from your own library, tried before the public one;
         missing files are skipped.
     tokenizer: anything with tokens(text) like SudachiTokenizer (the default)."""
@@ -78,11 +41,10 @@ class Reader:
         if isinstance(known, str):
             from .yomitan import reading_ranks
             known = reading_ranks(known)
-        self.known = _Any() if known is None else known
-        self.ruby_known = PlainReadings() if known is None else known
-        # Forms the list gives exactly one hiragana reading.
-        counts = Counter(form for form, reading in known if _HIRAGANA_WORD.match(reading)) if known is not None else {}
-        self.only = {form: reading for form, reading in (known or ()) if counts.get(form) == 1
+        self.known = jmdict_pairs() if known is None else known
+        # Forms the list gives exactly one reading, a hiragana one (not ぺーじ for 頁).
+        counts = Counter(form for form, reading in self.known)
+        self.only = {form: reading for form, reading in self.known if counts[form] == 1
                      and _HIRAGANA_WORD.match(reading)}
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
@@ -106,7 +68,7 @@ class Reader:
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
-        reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.ruby_known)
+        reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.known)
         if reading:
             return reading, 'ruby', 1.0
         reading = context_reading(text, begin, surface, form, self.known)

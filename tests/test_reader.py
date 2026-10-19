@@ -2,7 +2,6 @@
 import unittest
 
 from yurigana import Reader, Word, aozora_text
-from yurigana.reader import PlainReadings
 from yurigana.reading_model import ReadingModel, build_form
 from yurigana.tokens import Token
 
@@ -45,10 +44,12 @@ class ReaderTest(unittest.TestCase):
     def test_sources_in_order(self):
         hints = []
         text = aozora_text('宇宙《うちゅう》の人気のない廊下。\n人家がない。\n人家。', None, hints)
-        words = self.reader().read(text, hints)
+        known = {('宇宙', 'うちゅう'), ('人気', 'にんき'), ('人気', 'ひとけ'), ('廊下', 'ろうか'), ('人家', 'にんき'),
+                 ('人家', 'ひとけ')}
+        words = self.reader(known).read(text, hints)
         self.assertEqual(words[0], Word(0, 2, '宇宙', 'うちゅう', 'ruby', 1.0))
         self.assertEqual(words[1][3:5], ('ひとけ', 'rule'))
-        self.assertEqual(words[2], Word(8, 10, '廊下', 'ろうか', 'dictionary', None))
+        self.assertEqual(words[2], Word(8, 10, '廊下', 'ろうか', 'only', 1.0))
         self.assertEqual(words[3][3:5], ('ひとけ', 'model'))
         self.assertGreater(words[3].certainty, 0.7)
         self.assertEqual(words[4], Word(19, 21, '人家', 'にんき', 'dictionary', 0.6))  # its share in the table's prior
@@ -57,7 +58,22 @@ class ReaderTest(unittest.TestCase):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
             hints = []
             text = aozora_text(marked, None, hints)
-            self.assertEqual(self.reader().read(text, hints)[0][3:5], ('うちゅう', 'dictionary'))
+            self.assertEqual(self.reader().read(text, hints)[0][3:5], ('うちゅう', 'only'))
+
+    def test_jmdict_pairs_without_a_list(self):
+        reader = Reader(tokenizer=ToyTokenizer())
+        self.assertIn(('人気', 'ひとけ'), reader.known)
+        self.assertEqual(reader.only.get('廊下'), 'ろうか')
+        self.assertNotIn('行く', reader.only)  # いく and ゆく
+        self.assertEqual([w[3:5] for w in reader.read('廊下。行った。')], [('ろうか', 'only'), (None, 'dictionary')])
+        hints = []
+        text = aozora_text('人気《ひとけ》、人家《ひとけ》', None, hints)
+        # Ruby must be a reading JMdict lists for the form: 人家 is じんか only.
+        self.assertEqual([w[3:5] for w in reader.read(text, hints)], [('ひとけ', 'ruby'), ('にんき', 'dictionary')])
+
+    def test_only_needs_the_single_reading_to_be_hiragana(self):
+        reader = Reader({('頁', 'ぺーじ'), ('頁', 'おおがい'), ('廊下', 'ろうか')}, tokenizer=ToyTokenizer())
+        self.assertEqual(reader.only, {'廊下': 'ろうか'})
 
     def test_a_list_gives_only_readings_and_limits_ruby(self):
         known = {('人気', 'にんき'), ('人気', 'ひとけ'), ('行く', 'いく'), ('廊下', 'ろうか'), ('人家', 'にんき'),
@@ -79,13 +95,6 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(self.reader({('私', 'わたくし'), ('私', 'あたし')}).read('私。')[0][3:5],
                          ('わたくし', 'dictionary'))  # わたし not listed
 
-    def test_plain_readings(self):
-        plain = PlainReadings()
-        for pair in (('人間', 'にんげん'), ('学校', 'がっこう'), ('人々', 'ひとびと'), ('お茶', 'おちゃ'), ('行く', 'いく')):
-            self.assertIn(pair, plain)
-        for pair in (('宇宙', 'そら'), ('今日', 'きょう'), ('お茶', 'ちゃ'), ('本気', 'まじ')):
-            self.assertNotIn(pair, plain)
-
 
 @unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-full')
 class SudachiReaderTest(unittest.TestCase):
@@ -94,7 +103,7 @@ class SudachiReaderTest(unittest.TestCase):
         text = aozora_text('夜の公園は人気がなく、静かだった。｜宇宙《そら》を見る。\n学校へ行《い》った。', None, hints)
         words = {w.form: w for w in Reader().read(text, hints)}
         self.assertEqual(words['人気'][3:5], ('ひとけ', 'rule'))
-        self.assertEqual(words['宇宙'][3:5], ('うちゅう', 'dictionary'))
+        self.assertEqual(words['宇宙'][3:5], ('うちゅう', 'only'))
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 

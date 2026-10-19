@@ -26,24 +26,24 @@ text = aozora_text('夜の公園は人気がなく、静かだった。\n｜宇�
 for word in reader.read(text, hints):
     print(word)
 # Word(start=0, end=1, form='夜', reading='よる', source='dictionary', certainty=None)
-# Word(start=2, end=4, form='公園', reading='こうえん', source='dictionary', certainty=None)
+# Word(start=2, end=4, form='公園', reading='こうえん', source='only', certainty=1.0)
 # Word(start=5, end=7, form='人気', reading='ひとけ', source='rule', certainty=1.0)
-# Word(start=11, end=13, form='静か', reading='しずか', source='dictionary', certainty=None)
-# Word(start=18, end=20, form='宇宙', reading='うちゅう', source='dictionary', certainty=None)
-# Word(start=21, end=24, form='見上げる', reading=None, source='dictionary', certainty=None)
-# Word(start=25, end=27, form='学校', reading='がっこう', source='dictionary', certainty=None)
+# Word(start=11, end=13, form='静か', reading='しずか', source='only', certainty=1.0)
+# Word(start=18, end=20, form='宇宙', reading='うちゅう', source='only', certainty=1.0)
+# Word(start=21, end=24, form='見上げる', reading='みあげる', source='only', certainty=1.0)
+# Word(start=25, end=27, form='学校', reading='がっこう', source='only', certainty=1.0)
 # Word(start=28, end=30, form='行く', reading='いく', source='ruby', certainty=1.0)
 ```
 
-そら over 宇宙 is flavour ruby, so 宇宙 keeps its dictionary reading. With a reading list,
-`Reader(known='jiten_freq_global.zip')`, 見上げる gets みあげる (`source='only'`: the list
-gives it one reading).
+そら over 宇宙 is flavour ruby, so 宇宙 keeps its reading. 見上げる gets みあげる although
+it is conjugated (`source='only'`: the reading list, JMdict's by default, gives it one
+reading); 夜 (よる, よ) has two, so it keeps Sudachi's.
 
 `read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
 kanji: its character offsets in `text`, its dictionary form (行った: 行く), the reading of
 that form in hiragana, where the reading came from and how certain it is. `reading` is
-None when nothing gives one (a conjugated word without ruby, rule or model, when no
-reading list says the form has only one reading).
+None when nothing gives one (a conjugated word without ruby, rule or model, when the
+reading list doesn't give the form only one reading).
 
 `book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
 paragraph per line, without tables of contents or colophons, and its ruby as hints.
@@ -53,9 +53,8 @@ Options, all optional:
 - `Reader(known=...)`: the (form, reading) pairs a reading must be one of: a set, a dict
   keyed by them, or the path of a rank-based Yomitan frequency list with readings (e.g.
   [Jiten's](https://jiten.moe/frequency-dictionaries), `jiten_freq_global.zip`, not
-  included). With one, readings outside the list are never given, and forms the list gives
-  a single reading get `source='only'`. Without one, ruby must be spelled by its kanji's
-  readings (`kanji-readings.json`) and the rules and the model are trusted.
+  included). Readings outside the list are never given, and forms the list gives a single
+  reading get `source='only'`. Without one, the bundled JMdict pairs are the list (below).
 - `Reader(tables=[path])`: reading-model tables built from your own library (below), tried
   before the public one. A missing file is skipped, so you can always pass the path.
 - `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;
@@ -90,9 +89,43 @@ over 宇宙. Such ruby is never a reading:
 
 - katakana ruby;
 - ruby containing kanji;
-- gikun or any reading the list doesn't give for the form (with no list: a reading not
-  spelled by the kanji's own readings);
+- gikun or any reading the list doesn't give for the form;
 - ruby over part of a compound (魚《うお》市場).
+
+### The bundled reading list (JMdict)
+
+`jmdict-pairs.json.gz` (2.0 MB, about 85 MB in memory, 0.2 s to load) holds the (form,
+reading) pairs of [JMdict](https://www.edrdg.org/jmdict/j_jmdict.html): 241,561 pairs of
+226,987 forms with kanji, from the JMdict of 2026-10-19. Readings JMdict tags as irregular,
+out-dated, rare or search-only kana (ik, ok, rk, sk) are left out; kanji forms tagged rare
+stay (居る is rK, but a book that writes it means いる). Katakana readings are in hiragana
+(タバコ over 煙草 is たばこ). `python -I tools/jmdict_pairs.py JMdict_e.gz` rebuilds it from
+`http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz`.
+
+Measured against Jiten's list (forms with kanji): Jiten 313,601 pairs, JMdict 241,561,
+175,006 in both. JMdict gives 209,116 forms a single reading, Jiten 264,198; of the 180,557
+forms both have, 150,113 have the same single reading in both, 352 a different one, 15,928
+only one in JMdict (乃 の, 其の その, 遣る やる, 良い よい …), 5,142 only one in Jiten (戻る,
+一番, 理由 わけ, 描く かく: JMdict lists a rare reading too). 顔 (かお かんばせ がお), 目 (め
+もく) and 前 (さき ぜん まえ) keep 2+ readings in both lists.
+
+Tatoeba's half b with no ruby (72,838 occurrences of forms Jiten gives 2+ readings, 151,598
+kanji words in its sentences): the readings are the same with either list or none (micro
+87.4%, macro 81.6%), since `only` gives Sudachi's reading or a conjugated word's. What
+changes is what the reader can trust:
+
+| list | words `only`, `rule` or `model` | words read by Sudachi with 2+ listed readings | `only` right (aligned occurrences) |
+|---|---|---|---|
+| none (0.1) | 2.9% | n/a | n/a |
+| JMdict (default) | 64.9% | 30.5% | 99.3% of 15,705 |
+| Jiten | 59.4% | 35.5% | 98.7% of 8,179 |
+
+On the hand-written sentences (`readings-test.tsv`, 200, read by `Reader`), macro with
+ruby / without: no list 87.0% / 81.7%, JMdict 95.4% / 88.6%, Jiten 95.4% / 88.6%. The ruby
+check by the list beats the old one by kanji readings (`kanji-readings.json`, now only the
+JS package's) on the 34 sentences with ruby: 100% against 89.7%; it takes jukujikun (今日
+きょう, 大人 おとな) and large-kana ruby (いつしよ), and refuses the same flavour ruby
+(本気 まじ, 宇宙 そら, 仲間 とも).
 
 ### Certainty
 
@@ -210,5 +243,6 @@ gikun (そら over 宇宙) and jukujikun (きょう over 今日) always stay.
 
 ## Licence
 
-BSD 3-Clause (LICENSE), except `kanji-readings.json`, which is CC BY-SA 4.0 (KANJIDIC2).
+BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2) and `jmdict-pairs.json.gz`
+(JMdict), which are CC BY-SA 4.0 (EDRDG).
 The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.
