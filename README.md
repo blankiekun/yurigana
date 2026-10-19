@@ -72,7 +72,9 @@ Options, all optional:
   [Jiten's](https://jiten.moe/frequency-dictionaries), `jiten_freq_global.zip`, not
   included). With one, ruby, rules and the model never give a reading outside the list
   (Sudachi's own reading can be one: certainty 0, below), and forms the list gives a single
-  reading get `source='only'`. Without one, ruby must be spelled by its kanji's
+  reading get `source='only'` when JMdict (`jmdict-pairs.json.gz`, bundled) gives the form
+  that reading too or has no entry for it: Jiten's list carries parser noise (声がけ こえかけ,
+  振り幅 しんぷく). Without one, ruby must be spelled by its kanji's
   readings (`kanji-readings.json`) and the rules and the model are trusted.
 - `Reader(tables=[path])`: reading-model tables built from your own library (below), tried
   before the public one. A missing file is skipped, so you can always pass the path.
@@ -89,6 +91,11 @@ counter (一|枚), spans right after a number (１|日|中), dates (四|月|一�
 with ruby. 一 + one token is joined only for a ひと…/いっ… reading, the sound change the split
 misses (一|思い ひとおもい, 一|票 いっぴょう; the list's いち… there is mostly names, 一章 かずあき),
 also when the list ranks that reading 3+ times above its others (一|重 ひとえ, `source='default'`).
+A joined form JMdict doesn't have with that reading (mostly names and list noise: 三|日|後
+みひりあ, 利根|川 さねがわ) is still joined, as `source='dictionary'`. A list like Jiten's ranks
+words, not readings, so the readings of one word share a rank (言う いう = ゆう, 頭 あたま =
+かしら); wherever the rank picks a reading, readings tied at the top are decided by JMdict's
+order (its first kana reading), else not at all (`yomitan.preferred`).
 Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
 readings: 一昨|日 いっさくひ → おととい, 一|日中 いちにっちゅう → いちにちじゅう. A lone 一 before
 the kana rest of a native word is ひ/ひと/いっ (一ト月, 一と息, 一しずく, 一たい), and ひと before
@@ -439,5 +446,6 @@ gikun (そら over 宇宙) and jukujikun (きょう over 今日) always stay.
 
 ## Licence
 
-BSD 3-Clause (LICENSE), except `kanji-readings.json`, which is CC BY-SA 4.0 (KANJIDIC2).
+BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2) and `jmdict-pairs.json.gz`
+(JMdict), which are CC BY-SA 4.0 (EDRDG).
 The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.
