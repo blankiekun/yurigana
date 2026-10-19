@@ -141,14 +141,51 @@ built are in `yurigana/reading_context.py`'s docstring:
 4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
    that read no worse than rules + Sudachi.
 
-`python -m yurigana.eval_readings --dictionary jiten_freq_global.zip` scores the hand-written
-sentences in `readings-test.tsv`; add rows with every new rule.
+The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
+(`tests/test_rule_rows.py`); add rows with every new rule.
 
 ## Accuracy
 
-Measured with Jiten's frequency list as the reading list (2026-10-18).
+`python -m yurigana.evaluate` scores the shipped `Reader.read` (no ruby in the input) next to
+other tokenisers' readings, on gold sets with 95% intervals (bootstrap over sentences):
 
-The tables below are for 0.1. Since then, the default readings above and a wider 何 rule
+```sh
+pip install "yurigana[eval]"  # the baselines: fugashi, ipadic, unidic-lite, pykakasi
+python -m yurigana.evaluate tatoeba sets  # sets/tatoeba-b1.jsonl (tune), sets/tatoeba-b2.jsonl (report)
+python -m yurigana.evaluate ndl aozora_dataset.zip sets  # NDL huriganacorpus-aozora, held-out authors
+python -m yurigana.evaluate sets/tatoeba-b2.jsonl sets/ndl-test.jsonl --known jiten_freq_global.zip \
+    --systems all --out report.json  # --compare old.json: items fixed and broken, McNemar p
+```
+
+The metrics and the gold format are in `yurigana/evaluate.py`'s docstring. Scoring is by
+union span (the smallest stretch where gold and tokens line up), so segmentation doesn't
+count, only readings: Sudachi's three split modes score alike. Word list folds voicing
+(rendaku), display doesn't. Neither set is in git: Tatoeba's B2 is fixed by the ID list
+`tatoeba-b2-ids.txt.gz`, NDL's test authors by a hash of their name.
+
+Read the Tatoeba numbers with care: its gold is machine furigana made with MeCab + IPAdic,
+mostly never corrected, so MeCab + IPAdic's lead there is partly an artefact. The public
+table was pruned on all of half b, B2 included, so ours is slightly optimistic there; and the
+NDL works are Aozora Bunko texts, some of which the public table was trained on (with their
+ruby, not NDL's readings).
+
+With Jiten's list as the reading list, 2026-10-19 (the full table with intervals is in the
+pull request that added `evaluate`):
+
+| | Tatoeba B2 word list | het. macro | NDL word list | het. macro |
+|---|---|---|---|---|
+| ours | 94.3 | 88.7 | 87.2 | 70.7 |
+| Sudachi (A = B = C) | 94.3 | 92.0 | 90.7 | 75.7 |
+| MeCab + IPAdic | 97.0 | 89.6 | 86.9 | 67.2 |
+| MeCab + unidic-lite | 93.3 | 90.3 | 90.3 | 75.5 |
+| pykakasi | 93.7 | 82.4 | 84.7 | 59.3 |
+
+Ours gives no reading to 4.2% (Tatoeba) and 4.8% (NDL) of items; the readings it would show
+as furigana (only, rule, model) cover 63.5% / 57.5% of items and are right 99.3% / 96.7% of
+the time.
+
+The tables below are older measurements with earlier harnesses, not comparable to these.
+They are for 0.1. Since then, the default readings above and a wider 何 rule
 (なに before か, する, verbs and ？) give, on all of Tatoeba's half b with no ruby (72,838
 occurrences, scored on spans as the sentences mark them), micro 79.4% → 86.3%, macro
 79.7% → 80.2%, micro over forms with 2+ gold readings 81.4% → 82.6% (私 alone is 4,422 of
@@ -158,7 +195,7 @@ macro 75.6% → 81.3% (scored with a missing reading as wrong; 5,353 occurrences
 got the right one, 64 a wrong one, none that were right changed). The hand-written
 sentences, now 213 of 50 forms, macro: 96.0% with ruby, 92.2% without.
 
-Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
+Hand-written sentences (`readings-test.tsv`, 193 sentences, 40 forms, then scored by a script since removed), macro:
 
 | | with ruby | without ruby |
 |---|---|---|
