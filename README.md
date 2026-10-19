@@ -78,13 +78,13 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 
 | | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | wrong words per book⁴ |
 |---|---|---|---|---|---|---|
-| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **about 480** |
-| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | about 930 |
-| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | about 950 |
-| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | about 1,100 |
-| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | about 1,040 |
-| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | about 970 |
-| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | about 1,120 |
+| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **about 460** |
+| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | about 820 |
+| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | about 830 |
+| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | about 990 |
+| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | about 960 |
+| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | about 960 |
+| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | about 1,360 |
 | Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – |
 
 - **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
@@ -101,11 +101,11 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 - ³ One blind annotation run per set.
 - ⁴ Kanji words read wrong in a typical book: the median of 20 post-war library books has about
   19,000 kanji words (114,000 characters), times each system's error rate on plain sentences of
-  held-out authors, scored against Opus and Sonnet where they agree (no Opus figure, since those
-  labels are partly its own). That reference is itself about 1% wrong, so the numbers are slight
-  overestimates; the test gives no ruby, while a real book's ruby fixes many names and rare words;
+  held-out authors (1,000 sentences, 4,837 kanji words), scored against Claude Opus reading them
+  blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
+  favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
   and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
-  furigana yurigana marks as sure (about 12,000 a book), about 25 are wrong (0.2%).
+  furigana yurigana marks as sure (about 13,000 a book), about 65 are wrong (0.5%).
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
   about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
   from pykakasi; the ranking doesn't change without those items.
