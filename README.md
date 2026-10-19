@@ -99,6 +99,20 @@ token is read on its own; the first step that gives a reading wins:
    A second batch (箱 ばこ → はこ, 深い ぶかい, 腹 ふく, 沿い そい, 仏 ふつ, 米 べい,
    鏡 きょう and 28 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
    right, and no more breaks than fixes on NDL's held-out authors.
+   Where Sudachi's reading of a word of 3+ characters is one voicing away from the one the
+   list gives it, the list's is taken (睡眠不足 ふそく → ぶそく, `source='only'`).
+
+Then, for every reading but ruby, its voicing follows its place (rendaku, `_voicing`), with
+a reading list. Sudachi splits many compounds (プレハブ|小屋, 縮緬|細工) and gives the second
+part's plain reading, and gives some words its voiced reading even alone (この箱 ばこ, 一番深い
+ぶかい). A noun right after a compound's first part (a noun ending in kanji or katakana; not
+a number or counter, an adverbial noun or a prefix: 今|風呂, お|菓子) is voiced when the list's
+one-reading compounds ending in it read it voiced at least 4 times in 5, and 5 times
+(小屋: 犬小屋 いぬごや, 山小屋 …; 細工; not 川 or 方, whose compounds are mixed); otherwise
+it keeps its reading. Anywhere else, a reading Sudachi voiced is unvoiced when the list gives
+only the plain one (箱 はこ). Lyman's law holds (a reading with a voiced obstruent, かぜ, never
+voices) and names keep their readings. A voiced reading (小屋 ごや) is not itself in the
+list: fold voicing to look it up there.
 
 ### Numbers and counters
 

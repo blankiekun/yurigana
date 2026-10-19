@@ -42,6 +42,21 @@ class _Any:
 _VOICED = {'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'さ': 'ざ', 'し': 'じ', 'す': 'ず',
            'せ': 'ぜ', 'そ': 'ぞ', 'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど', 'は': 'ばぱ',
            'ひ': 'びぴ', 'ふ': 'ぶぷ', 'へ': 'べぺ', 'ほ': 'ぼぽ'}
+_UNVOICED = str.maketrans({v: k for k, vs in _VOICED.items() for v in vs})
+_VOICED_OBSTRUENT = re.compile('[がぎぐげござじずぜぞだぢづでどばびぶべぼ]')
+_HEAD_SURFACE = re.compile('[ァ-ヺー㐀-䶿一-鿿豈-﫿々]')
+
+
+def _one_voicing_apart(a: str, b: str) -> bool:
+    diff = [(x, y) for x, y in zip(a, b) if x != y]
+    return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(_UNVOICED) == diff[0][1].translate(_UNVOICED)
+
+
+def rendaku(reading: str) -> str | None:
+    """The reading voiced at its start (たな → だな), or None: it can't voice, or Lyman's law
+    (a voiced obstruent later in it, かぜ) keeps it from voicing."""
+    voiced = _VOICED.get(reading[:1], '')[:1]
+    return voiced and not _VOICED_OBSTRUENT.search(reading[1:]) and voiced + reading[1:] or None
 
 
 class PlainReadings:
@@ -99,6 +114,7 @@ class Reader:
             if _HIRAGANA_WORD.match(reading):
                 self.readings[form].append(reading)
         self.only = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
+        self._tails = None
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
             from .tokens import SudachiTokenizer
@@ -124,8 +140,10 @@ class Reader:
             surface, form = token.surface(), token.dictionary_form()
             if not HAS_KANJI.search(surface):
                 continue
-            words.append(Word(token.begin, token.begin + len(surface), form,
-                              *self._reading(text, tokens, i, surface, form, hint_at)))
+            reading, source, certainty = self._reading(text, tokens, i, surface, form, hint_at)
+            if reading and source not in ('ruby', 'counter'):
+                reading = self._voicing(tokens, i, form, reading)
+            words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
         # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
@@ -191,7 +209,9 @@ class Reader:
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
         only = self.only.get(form)
-        if only and sudachi in (None, only):
+        # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
+        if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
+                                                 and _one_voicing_apart(sudachi, only))):
             return only, 'only', 1.0
         if surface != form:  # the listed reading that conjugates to Sudachi's reading of the surface
             reading = conjugated_reading(surface, form, to_hiragana(tokens[i].reading_form()), self.readings.get(form, ()))
@@ -205,3 +225,43 @@ class Reader:
             priors = [math.exp(p) for p in entry[1]]
             return sudachi, 'dictionary', round(priors[entry[0].index(sudachi)] / sum(priors), 3)
         return sudachi, 'dictionary', None
+
+    def _voicing(self, tokens, i, form, reading):
+        """The reading voiced or not by its place (rendaku); names keep theirs. After a compound's
+        first part (プレハブ|小屋 ごや, 縮緬|細工 ざいく), a noun is voiced when the list's compounds
+        ending in it read it voiced 4 times in 5 (and 5+ times); other words (イチゴ好き?: ずき, or
+        a dropped particle) keep theirs. Anywhere else, a word Sudachi voiced (この箱 ばこ, 一番深い
+        ぶかい) is unvoiced when the list gives it only unvoiced."""
+        token, prev = tokens[i], tokens[i - 1] if i else None
+        if token.part_of_speech()[1] == '固有名詞':
+            return reading
+        listed = self.readings.get(form, ())
+        plain = reading[0].translate(_UNVOICED) + reading[1:]
+        pos = prev and prev.part_of_speech()
+        # A first part: a noun ending in kanji or katakana right before it; not a number or counter
+        # (一|箱, 時間|話), an adverbial or adjectival noun (今|風呂, いい加減|部屋), kana (こと|好き)
+        # or a prefix (お|菓子).
+        if (pos and _end(prev) == token.begin and pos[0] == '名詞' and pos[1] != '数詞'
+                and pos[2] not in ('副詞可能', '形状詞可能', '助数詞可能') and _HEAD_SURFACE.match(prev.surface()[-1])):
+            if token.part_of_speech()[0] not in ('名詞', '接尾辞'):
+                return reading
+            voiced, unvoiced = self._tail_counts().get((form, plain), (0, 0))
+            return rendaku(plain) if voiced >= 5 and voiced >= 4 * unvoiced and plain in listed else reading
+        return plain if plain != reading and plain in listed and reading not in listed else reading
+
+    def _tail_counts(self):
+        """{(form, reading): [voiced, unvoiced]}: how the list's one-reading compounds ending in
+        a listed form read it (本棚 ほんだな: 棚 voiced)."""
+        if self._tails is None:
+            self._tails = defaultdict(lambda: [0, 0])
+            for form, reading in self.only.items():
+                for k in range(1, len(form)):
+                    for tail in self.readings.get(form[k:], ()):
+                        voiced = rendaku(tail)
+                        if voiced and len(reading) > len(tail):
+                            if reading.endswith(voiced):
+                                self._tails[form[k:], tail][0] += 1
+                            elif reading.endswith(tail):
+                                self._tails[form[k:], tail][1] += 1
+            self._tails = dict(self._tails)
+        return self._tails
