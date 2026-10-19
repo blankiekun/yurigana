@@ -78,14 +78,14 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 
 | | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ |
 |---|---|---|---|---|---|
-| **yurigana** | **94.4** | **83.3** | **92.0** | **88.8** | **99.0** |
+| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² |
 | Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 |
 | GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 |
 | yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 |
 | MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 |
 | MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 |
 | pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 |
-| Claude Opus | 97.6 | 95.2 | 95.4 | 93.3 | – |
+| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – |
 
 - **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
   light novels by authors the tables never saw. The books are a private library, so this set
@@ -95,9 +95,30 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 - ¹ **Tatoeba B2**: 27,000 sentences. Its gold is MeCab + IPAdic machine furigana, so
   MeCab + IPAdic's score there is inflated, and yurigana's is saturated: most of its remaining
   misses are IPAdic's readings, not errors. Clean only.
+- ² Slightly favours yurigana: the public table was trained on Aozora texts that include the NDL
+  test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
+  is rebuilt without them).
+- ³ One blind annotation run per set.
+- The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
+  about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
+  from pykakasi; the ranking doesn't change without those items.
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.1% of
-the time on the modern books and cover 70% of their words; the rest are left for the reader.
+the time on the modern books and cover 71% of their words; the rest are left for the reader.
+In a typical book (median of 20 post-war library books: 114,000 characters, about 19,000 kanji
+words, of which about 12,000 get furigana marked as sure), on plain text without the book's ruby:
+
+| | rate | per book |
+|---|---|---|
+| any kanji word read wrong (word list) | 2.5% (1.7–3.3%) | about 475 (320–630) |
+| furigana marked as sure and wrong | 0.2% of those shown (0–0.5%) | about 25 (0–60) |
+| Sudachi alone, any word wrong | 4.9% | about 930 |
+
+Rates come from plain sentences of held-out authors scored against Opus and Sonnet where they
+agree, which is itself about 1% wrong, so these are slight overestimates. A real book's own ruby
+fixes many names and rare words, and a misread word counts every time it appears, so the number
+of distinct wrong words is much lower.
+
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
