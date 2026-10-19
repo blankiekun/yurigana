@@ -40,7 +40,7 @@ for word in reader.read(text, hints):
 gives it one reading).
 
 `read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
-kanji: its character offsets in `text`, its dictionary form (行った: 行く), the reading of
+kanji, or per compound (below): its character offsets in `text`, its dictionary form (行った: 行く), the reading of
 that form in hiragana, where the reading came from and how certain it is. `reading` is
 None when nothing gives one (without a reading list: a conjugated word without ruby, rule or
 model; with one: a conjugated word none or several of whose listed readings fit Sudachi's
@@ -64,7 +64,12 @@ Options, all optional:
 
 ### The order of readings
 
-The first step that gives a reading wins:
+With a reading list, 2-4 adjacent tokens whose joined form the list gives one reading
+become one `Word` with that reading (`source='only'`): 三|日|月 みかづき, 身の上|話
+みのうえばなし, 一|石|二鳥 いっせきにちょう, 昼|時 ひるどき. Spans with particles or ending in
+kana are left out (Jiten's list has phrases such as 彼の かの), as are a number with its
+counter (一|枚), spans right after a number (１|日|中) and spans with ruby. Otherwise each
+token is read on its own; the first step that gives a reading wins:
 
 1. **The book's ruby** (`ruby_reading`): ruby over the token, as one span or kanji by kanji
    (人《ひと》気《け》 gives ひとけ); ruby over the kanji stem of an inflected word, with the

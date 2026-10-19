@@ -14,7 +14,9 @@ except ImportError:
 # word -> (dictionary form, Sudachi's reading in katakana, part of speech)
 LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', 'ニンキ', '名詞'), 'のない': ('のない', '', '助詞'),
            '廊下': ('廊下', 'ロウカ', '名詞'), '宇宙': ('宇宙', 'ウチュウ', '名詞'), '行っ': ('行く', 'イッ', '動詞'),
-           '学校': ('学校', 'ガッコウ', '名詞'), '私': ('私', 'ワタクシ', '代名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞')}
+           '学校': ('学校', 'ガッコウ', '名詞'), '私': ('私', 'ワタクシ', '代名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞'),
+           '身の上': ('身の上', 'ミノウエ', '名詞'), '話': ('話', 'ハナシ', '名詞'), '彼': ('彼', 'カレ', '代名詞'),
+           '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞')}
 
 
 class ToyTokenizer:
@@ -52,6 +54,19 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(words[3][3:5], ('ひとけ', 'model'))
         self.assertGreater(words[3].certainty, 0.7)
         self.assertEqual(words[4], Word(19, 21, '人家', 'にんき', 'dictionary', 0.6))  # its share in the table's prior
+
+    def test_compounds_the_list_reads_as_one_word(self):
+        known = {('身の上話', 'みのうえばなし'), ('身の上', 'みのうえ'), ('話', 'はなし'), ('彼の', 'かの'), ('彼', 'かれ'),
+                 ('一枚', 'いちまい')}
+        words = self.reader(known).read('身の上話。彼の話。一枚。')
+        self.assertEqual(words[0], Word(0, 4, '身の上話', 'みのうえばなし', 'only', 1.0))
+        self.assertEqual([w.form for w in words[1:]], ['彼', '話', '一', '枚'])  # no particles, no number + counter
+        hints = []
+        text = aozora_text('身の上《みのうえ》話', None, hints)
+        self.assertEqual([w.form for w in self.reader(known).read(text, hints)], ['身の上', '話'])
+        reader = self.reader(known)
+        tokens = list(reader.tokenizer.tokens('身の上話'))
+        self.assertIsNone(reader._compound(tokens, 0, {}, [(0, 3, 4, 'みのうえ', 'ばなし')]))  # inside a counter span
 
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):

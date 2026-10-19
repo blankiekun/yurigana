@@ -2,6 +2,7 @@
 import json
 import math
 import os
+import re
 from collections import defaultdict
 from typing import NamedTuple
 
@@ -12,6 +13,10 @@ from .reading_model import PUBLIC_TABLE, load_tables
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 
 
+_NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
+_MAX_COMPOUND = 4  # tokens
+
+
 class Word(NamedTuple):
     start: int  # offset of the word's token in the text
     end: int
@@ -20,6 +25,10 @@ class Word(NamedTuple):
     source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see the README; None when unknown
+
+
+def _end(token):
+    return token.begin + len(token.surface())
 
 
 class _Any:
@@ -100,7 +109,16 @@ class Reader:
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = list(self.tokenizer.tokens(text))
         words = []
+        next_token = 0
+        counted = list(counter_spans(text, tokens))
         for i, token in enumerate(tokens):
+            if i < next_token:
+                continue
+            compound = self._compound(tokens, i, hint_at, counted)
+            if compound:
+                next_token, word = compound
+                words.append(word)
+                continue
             surface, form = token.surface(), token.dictionary_form()
             if not HAS_KANJI.search(surface):
                 continue
@@ -110,7 +128,7 @@ class Reader:
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
-        for start, number_end, end, number, counter in counter_spans(text, tokens):
+        for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
             words.append(Word(start, end, text[start:end], number + (counter or ''), 'counter', None))
@@ -121,6 +139,31 @@ class Reader:
                                                      certainty=None)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
+
+    def _compound(self, tokens, i, hint_at, counted=()):
+        """(next token, Word) for 2-4 adjacent tokens from i (the longest) whose joined form the list gives one
+        reading: 三|日|月 みかづき, 身の上|話 みのうえばなし, 一|石|二鳥 いっせきにちょう. Left out:
+        spans with particles or ending in kana (the list has phrases such as 彼の かの), spans with
+        ruby, a number and its counter (一|枚, or any span inside one of `counted`, the counter spans,
+        which read() reads) and spans next to a number (１|日|中, 第|一)."""
+        if not self.only or not HAS_KANJI.search(tokens[i].surface()):
+            return None
+        if i and _NUMERAL.match(tokens[i - 1].surface()) and _end(tokens[i - 1]) == tokens[i].begin:
+            return None
+        for n in range(min(_MAX_COMPOUND, len(tokens) - i), 1, -1):
+            span = tokens[i:i + n]
+            begin, end = span[0].begin, _end(span[-1])
+            if (any(_end(a) != b.begin for a, b in zip(span, span[1:]))
+                    or any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
+                    or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface())
+                    or (n == 2 and _NUMERAL.match(span[0].surface()))
+                    or any(start in hint_at for start in range(begin, end))
+                    or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
+                continue
+            form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
+            if form in self.only:
+                return i + n, Word(begin, end, form, self.only[form], 'only', 1.0)
+        return None
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
