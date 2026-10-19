@@ -10,8 +10,9 @@ import os
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
-from .cues import (ABSTRACT, BODY, BUILDING, FOOTWEAR, GROUNDS, INSECT, INSTRUMENT, IRU_STEM, KIN_TITLE, METAL, NIGHT,
-                   PEOPLE, PERSON, REALM, ROLE, SETTLEMENT, STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, VICINITY, words)
+from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, EDGE, FEW, FOOTWEAR, GROUNDS, INSECT,
+                   INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION, PEOPLE, PERSON, PRAISE, PRODUCE,
+                   REALM, ROLE, ROOM, SETTLEMENT, SOCIETY, STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, VESSEL, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -72,8 +73,8 @@ def _small_kana(reading: str):
 # fires when its `before` pattern ends where the word starts or its `after` pattern starts where the
 # word's head token ends (with 'and': both), within the line. Checked against readings-test.tsv.
 # 人気がない is にんき as often as ひとけ in plain text (この店は人気がない), so が/は + ない needs a cue.
-_HITOKE_PLACE = ('(?:' + words(VICINITY - {'近所', 'そこら', 'そこいら'}, GROUNDS, NIGHT, '他', 'ほか', '奥', '通り', '街', '町',
-                               '室', '館', '駅', '廊下', 'しんと')
+_HITOKE_PLACE = ('(?:' + words(VICINITY - {'近所', 'そこら', 'そこいら'}, GROUNDS, NIGHT, STREET - {'路地'}, SETTLEMENT - {'村', '島'},
+                               BUILDING - {'家', '屋敷', '城', 'ホテル', '学校', '会社'}, ROOM - {'部屋'}, '他', 'ほか', '奥', 'しんと')
                  + r'|(?<![国海])[内外]|(?<!海)道|(?<![長短])所)(?:に|には|は|も|では|、)?$')
 # 君 is ぎみ after a family or rank word (尼君, 姫君, 母君); Sudachi reads it くん there.
 _GIMI_BEFORE = words(KIN_TITLE)
@@ -88,7 +89,7 @@ _METAL = '(?:' + words(METAL) + r'|銀(?!行))'
 _CONTEXT_RULES = {
     '人気': [('にんき', None, r'の(?:な|無)(?:い|かった)(?:奴|やつ|者|人|キャラ|作品|商品|子(?!供|ども)|アイドル|作家|店)'),
              ('ひとけ', None, r'の(?:な[いくかけ]|無[いくかけ])|[がのはも]?(?:少な|絶え|途絶え)|も(?:な[いくかけ]|無)'),
-             ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:' + words(STREET, '場所', '所', 'ところ', '道', '廊下', '部屋', '時', 'とき')
+             ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:' + words(STREET, ROOM - {'室'}, '場所', '所', 'ところ', '道', '時', 'とき')
               + r'|のを確|ことを確|、?(?:静|しん|ひっそり))'),
              ('ひとけ', _HITOKE_PLACE, r'[がは](?:まったく|全く|ほとんど|全然|一切)?(?:な[いくかけ]|無[いくかけ])', 'and')],
     # 他 is ほか in plain text (DEFAULT_READINGS); た in その他, set phrases and as a prefix (他言語).
@@ -112,16 +113,16 @@ _CONTEXT_RULES = {
     # 十分: Sudachi's じゅうぶん where it keeps one token; minutes with a cue (counters.TEN_MINUTES_*).
     '十分': [('じゅっぷん', _TEN_MINUTES_BEFORE, _TEN_MINUTES_AFTER)],
     '中': [('じゅう', '(?:' + words(TIME_SPAN, REALM, SETTLEMENT, BUILDING - {'館', '駅'}, BODY,
-                                   VICINITY - {'周囲', '周り', '付近'}, '部屋', 'クラス')
+                                   VICINITY - {'周囲', '周り', '付近'}, ROOM - {'室', '廊下'}, 'クラス')
              + r'|(?<![十両数])[一１1]日|(?<![今来])年)$', None)],
     # 方: かた for a person (あの方, 素敵な方です, 学生の方は, 方がいらっしゃる); ほう in comparisons (やる方がいい).
     # Sudachi's reading otherwise: ほう after の or a verb (北の方, 来た方), かた after a stem (話し方).
     '方': [('かた', r'あの$', r'(?!が(?:いい|良|よ|まし|好|楽|早|上|得|便利|大き|小さ|多|少))', 'and'),
-           ('かた', r'(?:素敵|すてき|立派|りっぱ|有名|親切|優秀|上品|気さく|偉い|えらい|素晴らしい|すばらしい|優しい|やさしい)な?$',
+           ('かた', words(PRAISE) + r'な?$',
             r'(?:です|でし|だ|なの|なん|で、|でいらっしゃ)', 'and'),
            ('かた', r'どんな$', r'(?:です|でし|だ|なの|なん)', 'and'),
            ('かた', '(?:' + words(PERSON, ROLE)
-            + r'|[おご](?:希望|利用|来場|越し|持ち|住まい|参加|申し込み|申込み))の$', r'(?![がへに])', 'and'),
+            + r'|[おご]' + words(CUSTOMER_ACT) + r')の$', r'(?![がへに])', 'and'),
            ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし|だっ)', 'and'),  # ドイツの方ですか
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)')],
@@ -130,28 +131,28 @@ _CONTEXT_RULES = {
            ('あいだ', r'この$', None)],
     # 後 before a number is あと (後五分で); Sudachi says ご. Not after その/この or a kanji (その後, 五年後, 購入後２日).
     '後': [('あと', r'(?<!その)(?<!この)(?<![一-鿿々0-9０-９])$', r'[0-9０-９一二三四五六七八九十百千数幾]', 'and')],
-    '今日': [('こんにち', None, r'の(?:社会|日本|世界|経済|時代|状況|情勢|問題|課題|文明|科学|技術|教育|政治)'
-              r'|に(?:至|いた)る|では|において')],
+    '今日': [('こんにち', None, 'の' + words(REALM - {'国'}, SOCIETY - {'未来', '地球'}, ISSUE - {'急務', '懸案'})
+              + r'|に(?:至|いた)る|では|において')],
     # Sudachi says あす; books mostly say あした, except in formal phrases.
-    '明日': [('あした', None, r'(?!の(?:日本|社会|世界|未来|地球|国)|を担|にも)')],
+    '明日': [('あした', None, r'(?!の' + words(REALM, SOCIETY - {'経済', '時代', '文明', '科学', '技術', '教育', '政治'}) + '|を担|にも)')],
     '上手': [('かみて', r'舞台の?$', None), ('うわて', r'枚$', r'に出(?:る|た|て|ら|ま)')],
     # 下手 しもて: the stage's or a river's lower side; へた takes no へ (下手へ退く).
     '下手': [('しもて', r'(?:舞台|川|河)の?(?:ずっと|少し|やや|すぐ)?$', r'へ|から(?:登場|出|入|現)|向き|寄り'),
              ('したて', None, r'に出(?:る|た|て|ら|ま|れ)')],
     # 一足 いっそく: a pair of footwear; ひとあし (a step) otherwise.
     '一足': [('いっそく', words(FOOTWEAR) + '[をがはも]?$', 'の' + words(FOOTWEAR))],
-    '市場': [('いちば', r'(?:魚|青物|朝|築地|近所の|朝早く)$', r'.{0,8}?(?:魚|野菜|果物|八百屋|買い物|買[っうい]|売り子)')],
+    '市場': [('いちば', words(PRODUCE - {'野菜', '果物'}, '朝', '築地', '近所の', '朝早く') + '$',
+             r'.{0,8}?(?:' + words(PRODUCE - {'青物'}, '八百屋', '買い物', '売り子') + r'|買[っうい])')],
     '生物': [('なまもの', None, r'を(?:食べ|食[うっ]|召し上が)|.{0,8}?(?:冷蔵|早めに|腐[らりるっ]|扱いに注意)')],
     '最中': [('もなか', r'(?:アイス|栗|餡)の$|(?:餡|あんこ).{0,8}入[っり].{0,2}$',
               r'を(?:食べ|頬張|かじ|買)|と(?:お茶|緑茶)')],
     '方々': [('ほうぼう', None, r'を?(?:探|捜|歩|回|駆け|走り|尋ね|旅)|から(?:集ま|聞こえ|寄せ)|に(?:散|手を)')],
-    '目下': [('もっか', None, r'のところ|の(?:急務|課題|問題|状況|情勢|最大|懸案)|、|調査|検討|準備|交渉|捜査|審議|開発'
-              r'|建設|進行|継続|捜索|修理|工事'),
+    '目下': [('もっか', None, r'のところ|の' + words(ISSUE, '最大') + '|、|' + words(ACTIVITY)),
              ('めした', None, r'の(?:者|人)')],
     # なん before だ/です/で/の/と/て and counters (何年, 何冊): Sudachi's; なに before か, する, verbs and ？.
     '何': [('なに', None, r'[をがもかし]|より|す|[？?！!、」]'
              r'|や(?:ら|かや|[っりるれろ])|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
-             r'|(?![年冊日番時匹台杯分周段箱点画便号名回人度月週歳個枚本階倍頭泊足軒件通語十百千万億兆曜秒])[一-鿿]')],
+             r'|(?!' + words(COUNTER) + r')[一-鿿]')],
     '色紙': [('しきし', r'(?:サイン|寄せ書きの?)$', r'に(?:サイン|寄せ書き|書)|を(?:飾|贈)'),
              ('いろがみ', r'折り?$', r'.{0,6}?(?:折[っらりる]|鶴|切り抜)')],
     '寒気': [('かんき', r'(?:強い|上空の|大陸からの|冬型の|北からの)$', r'団|が(?:南下|流れ込|入)|の(?:影響|流れ込|南下)'),
@@ -161,16 +162,16 @@ _CONTEXT_RULES = {
     '大家': [('たいか', r'(?:画|学|界|道|楽|壇|芸)の$', r'として'), ('おおや', None, r'さん')],
     '分別': [('ふんべつ', r'(?:大人|年相応|思慮)(?:としての|の)$', r'が(?:な|つ|あ)|の(?:な|あ)|盛り|くさ|臭|を(?:わきまえ|失)')],
     '人事': [('ひとごと', None, r'(?:では|じゃ)な|とは思え|のよう|みたい|ながら')],
-    '気質': [('かたぎ', r'(?:職人|昔|江戸っ子|学生|商人|芸人|役者|書生)$', None)],
+    '気質': [('かたぎ', words(OCCUPATION, '昔', '江戸っ子') + '$', None)],
     '末期': [('まつご', None, r'の(?:水|言葉|際|願い|一言|息)')],
     '床': [('とこ', r'(?:病の|お)$', r'に(?:就|つ|伏|臥|入|はい)|から(?:起|出|離)|の(?:間|中)|を(?:上げ|敷|延べ|離|とっ|取)')],
-    '辛い': [('からい', r'(?:カレー|料理|スープ|ラーメン|味|唐辛子|わさび|キムチ|口)(?:は|が|も|の)?'
-              r'(?:少し|とても|すごく|かなり|ちょっと)?$', r'(?:料理|カレー|ラーメン|味付け|ソース)')],
-    '縁': [('ふち', r'(?:眼鏡|メガネ|めがね|カップ|グラス|コップ|池|崖|井戸|ベッド|茶碗|帽子|皿|鍋|器|机|窓)の$',
+    '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?'
+              r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'}))],
+    '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
     '一寸': [('いっすん', None, r'先|法師|の虫|刻み')],
-    '金': [('きん', r'(?:純|銀と|十八)$', r'の(?:ネックレス|指輪|延べ棒|メダル|装飾|粉|糸|髪|仮面|冠|像|鎖|腕輪|首飾り|ボタン|刺繍)'
-            r'|色|メダル|貨|銀|と銀|箔|髪|属|の?(?:くさり|モール)|のよう|の(?:値段|価格|相場)|を(?:塗|ぬ|着せ|きせ|かぶせ|掘|採)'
+    '金': [('きん', r'(?:純|銀と|十八)$', 'の' + words(JEWELRY, '延べ棒', '装飾', '粉', '糸', '髪', '仮面', '像', '鎖', 'ボタン', '刺繍')
+            + r'|色|メダル|貨|銀|と銀|箔|髪|属|の?(?:くさり|モール)|のよう|の(?:値段|価格|相場)|を(?:塗|ぬ|着せ|きせ|かぶせ|掘|採)'
             r'|に(?:等し|輝)|より(?:重|軽|高)|.{0,8}?' + _METAL),
            ('きん', _METAL + r'.{0,8}$', None),
            ('かね', None, r'を(?:貸|借|払|稼|返|出|使|積|ため|貯|盗|渡|持)|が(?:な[いく]|無|足り|か[かけ]|要|い[るり]|あ[るれっ])'
@@ -188,7 +189,7 @@ _CONTEXT_RULES = {
     '人': [('じん', r'[ァ-ヺー]$', None)],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
     '一日': [('ついたち', r'月の?$', None)],
-    '一行': [('いちぎょう', r'(?:最初の|最後の|文章の|冒頭の|手紙の|ほんの|たった)$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
+    '一行': [('いちぎょう', words(EDGE, FEW - {'わずか', '僅か', 'ものの'}, '文章の', '冒頭の', '手紙の') + '$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
@@ -219,12 +220,12 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('雪道', 'せつどう'): 'ゆきみち', ('卑怯者', 'ひきょうしゃ'): 'ひきょうもの',
                  ('無理強い', 'むりつよい'): 'むりじい', ('人手不足', 'ひとでふそく'): 'ひとでぶそく',
                  ('草冠', 'そうこう'): 'くさかんむり', ('大火事', 'だいかじ'): 'おおかじ',
-                 # 一X read ひと…/いち… (round 5e). 一日 as one token: Sudachi's ついたち (月一日: a rule).
+                 # 一X read ひと…/いち… (#24). 一日 as one token: Sudachi's ついたち (月一日: a rule).
                  # 一昨日, 一日中: Sudachi splits them 一昨|日 (いっさく|ひ, |にち), 一|日中, joined in Reader._compound.
                  ('一日', 'ついたち'): 'いちにち', ('一昨日', 'いっさくひ'): 'おととい', ('一昨日', 'いっさくにち'): 'おととい',
                  ('一日中', 'いちにっちゅう'): 'いちにちじゅう',  # 一|日中 (Sudachi), not 一|日|中
                  ('一塊', 'いっかい'): 'ひとかたまり',
-                 # 金 alone is money (かね) unless a rule finds the metal (T7).
+                 # 金 alone is money (かね) unless a rule finds the metal (TRADEOFFS T30).
                  ('金', 'きん'): 'かね',
                  # Sudachi dictionary bugs: a particle or extra kana in the reading (中宮 ちゅうぐうの).
                  ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',

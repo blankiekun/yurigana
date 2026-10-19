@@ -245,7 +245,10 @@ The word lists the rules look for are shared, named classes in `yurigana/cues.py
 (made of `REALM`, `SETTLEMENT`, `BUILDING`, `ROOM`, `GROUNDS`, `STREET`, `VICINITY`), `TIME_SPAN`,
 `NIGHT`, `BODY`, `PERSON`, `ROLE`, `SUPERIOR`, `ABSTRACT`, `INSTRUMENT`, `INSECT`, `FOOTWEAR`,
 `DURATION_BEFORE`, `DURATION_AFTER` (十分 as minutes, `counters.TEN_MINUTES_*`), `KIN_TITLE` (君 ぎみ), `TERM` (今 こん),
-`PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` (金 きん).
+`PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` and `JEWELRY` (金 きん), `FEW` and `EDGE`
+(ほんの/最初の: 十分 as minutes, 一行 いちぎょう), `SOCIETY`, `ISSUE` and `ACTIVITY` (今日 こんにち, 明日, 目下 もっか),
+`PRAISE` and `CUSTOMER_ACT` (方 かた), `OCCUPATION` (気質 かたぎ), `COUNTER` (何 なん), `DISH` (辛い からい),
+`PRODUCE` (市場 いちば), `VESSEL` (縁 ふち).
 A class is a frozenset of plain words; `cues.words(...)` turns classes (and single words) into a
 regex alternation for a rule:
 
