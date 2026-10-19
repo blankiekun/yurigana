@@ -20,7 +20,11 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            'プレハブ': ('プレハブ', 'プレハブ', '名詞'), '小屋': ('小屋', 'コヤ', '名詞'), 'この': ('この', 'コノ', '連体詞'),
            '箱': ('箱', 'バコ', '名詞'), '深い': ('深い', 'ブカイ', '形容詞'), '沿い': ('沿い', 'ソイ', '接尾辞'),
            '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞'), '泳げ': ('泳げる', 'オヨゲ', '動詞'),
-           '身体': ('身体', 'シンタイ', '名詞')}
+           '身体': ('身体', 'シンタイ', '名詞'), '鬼': ('鬼', 'キ', '名詞'), '善': ('善', 'ゼン', '名詞'),
+           '日本一': ('日本一', 'ニッポンイチ', '名詞'), '日本銀行': ('日本銀行', 'ニッポンギンコウ', '名詞'),
+           '日本の伝統': ('日本の伝統', 'ニッポンノデントウ', '名詞'), '気味': ('気味', 'キミ', '名詞'),
+           '風邪': ('風邪', 'カゼ', ('名詞', '普通名詞', '一般', '*', '*', '*')),
+           '太り': ('太る', 'フトリ', ('動詞', '一般', '*', '*', '五段-ラ行', '連用形-一般')), 'なる': ('なる', 'ナル', '動詞')}
 
 
 class ToyTokenizer:
@@ -30,7 +34,7 @@ class ToyTokenizer:
             word = next((w for w in sorted(LEXICON, key=len, reverse=True) if text.startswith(w, i)), text[i])
             form, reading, pos = LEXICON.get(word, (word, '', '助詞'))
             if word not in '。、\n':
-                yield Token(word, form, form, (pos,) + ('*',) * 5, reading, i)
+                yield Token(word, form, form, pos if isinstance(pos, tuple) else (pos,) + ('*',) * 5, reading, i)
             i += len(word)
 
 
@@ -83,6 +87,21 @@ class ReaderTest(unittest.TestCase):
         known = {('箱', 'はこ'), ('深い', 'ふかい'), ('沿い', 'ぞい')}
         words = self.reader(known).read('箱。深い。沿い。')
         self.assertEqual([w[3:5] for w in words], [('はこ', 'default'), ('ふかい', 'default'), ('ぞい', 'default')])
+
+    def test_oni_is_oni_alone_and_ki_glued(self):
+        words = self.reader({('鬼', 'おに'), ('善', 'ぜん')}).read('鬼。善鬼。')
+        self.assertEqual([w[3:5] for w in words if w.form == '鬼'], [('おに', 'default'), ('き', 'dictionary')])
+
+    def test_nippon_in_compounds_is_nihon_unless_listed_only_so(self):
+        known = {('日本一', 'にっぽんいち'), ('日本一', 'にほんいち'), ('日本銀行', 'にっぽんぎんこう')}
+        words = self.reader(known).read('日本一。日本銀行。日本の伝統。')
+        self.assertEqual([w[3:5] for w in words], [('にほんいち', 'default'), ('にっぽんぎんこう', 'only'),
+                                                   ('にほんのでんとう', 'default')])
+
+    def test_kimi_is_gimi_after_a_noun_or_a_verb_stem(self):
+        words = self.reader({('気味', 'きみ'), ('気味', 'ぎみ')}).read('風邪気味。太り気味。なる気味。気味。')
+        self.assertEqual([w[3:5] for w in words if w.form == '気味'], [('ぎみ', 'rule'), ('ぎみ', 'rule'), ('きみ', 'dictionary'),
+                                                                     ('きみ', 'dictionary')])
 
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):

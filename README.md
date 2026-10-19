@@ -139,6 +139,10 @@ reading wins:
    金 きん → かね: alone, 金 is money unless a rule finds the metal (銀 or 鉄 nearby, 金のくさり,
    金の値段). Four of Sudachi's dictionary entries carry a particle or extra kana in their
    reading and are cut back to the word: 中宮 ちゅうぐうの, 河原 かわらの, 甲斐 かいの, 土堤 どてい.
+   鬼 き → おに, but not glued to a kanji like the table's (善鬼 ぜんき). 日本 is にほん in
+   Sudachi's longer tokens too (日本一, 日本の伝統, 北日本), unless the reading list gives the
+   form only with にっぽん (日本銀行, 日本男児). 気味 is ぎみ right after a noun or a verb's 連用形
+   (風邪気味, 太り気味, a context rule).
 
 Then, for every reading but ruby, its voicing follows its place (rendaku, `_voicing`), with
 a reading list. Sudachi splits many compounds (プレハブ|小屋, 縮緬|細工) and gives the second
