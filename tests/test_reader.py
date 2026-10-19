@@ -24,7 +24,10 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            '日本一': ('日本一', 'ニッポンイチ', '名詞'), '日本銀行': ('日本銀行', 'ニッポンギンコウ', '名詞'),
            '日本の伝統': ('日本の伝統', 'ニッポンノデントウ', '名詞'), '気味': ('気味', 'キミ', '名詞'),
            '風邪': ('風邪', 'カゼ', ('名詞', '普通名詞', '一般', '*', '*', '*')),
-           '太り': ('太る', 'フトリ', ('動詞', '一般', '*', '*', '五段-ラ行', '連用形-一般')), 'なる': ('なる', 'ナル', '動詞')}
+           '太り': ('太る', 'フトリ', ('動詞', '一般', '*', '*', '五段-ラ行', '連用形-一般')), 'なる': ('なる', 'ナル', '動詞'),
+           '柚木': ('柚木', 'ユズキ', ('名詞', '固有名詞', '人名', '姓', '*', '*')),
+           '姫野': ('姫野', 'ヒメノ', ('名詞', '固有名詞', '人名', '姓', '*', '*')),
+           '芽衣': ('芽衣', 'ガイ', ('名詞', '固有名詞', '人名', '名', '*', '*'))}
 
 
 class ToyTokenizer:
@@ -102,6 +105,33 @@ class ReaderTest(unittest.TestCase):
         words = self.reader({('気味', 'きみ'), ('気味', 'ぎみ')}).read('風邪気味。太り気味。なる気味。気味。')
         self.assertEqual([w[3:5] for w in words if w.form == '気味'], [('ぎみ', 'rule'), ('ぎみ', 'rule'), ('きみ', 'dictionary'),
                                                                      ('きみ', 'dictionary')])
+
+    def test_a_names_ruby_is_carried_to_its_later_bare_occurrences(self):
+        def read(marked, carry, known=None):
+            hints = []
+            text = aozora_text(marked, None, hints)
+            return [w[3:5] for w in self.reader(known).read(text, hints, carry)]
+        self.assertEqual(read('柚木《ゆき》。柚木。', None), [('ゆき', 'ruby'), ('ゆずき', 'dictionary')])
+        self.assertEqual(read('柚木《ゆき》。柚木。', {}), [('ゆき', 'ruby'), ('ゆき', 'book')])
+        # a name's ruby is taken even when its kanji don't spell it (only with carry: no change otherwise)
+        self.assertEqual(read('柚木《ひなた》。柚木。', None)[0], ('ゆずき', 'dictionary'))
+        self.assertEqual(read('柚木《ひなた》。柚木。', {}), [('ひなた', 'ruby'), ('ひなた', 'book')])
+        carry = {}
+        read('柚木《ゆき》。', carry)
+        self.assertEqual(read('柚木。', carry), [('ゆき', 'book')])  # across a book's texts
+        # never a common word, nor after flavour or a second reading
+        self.assertEqual(read('宇宙《うちゅう》。宇宙。', {})[1], ('うちゅう', 'dictionary'))
+        self.assertEqual(read('柚木《ゆき》。柚木《ユキ》。柚木。', {})[2], ('ゆずき', 'dictionary'))
+        self.assertEqual(read('柚木《ゆき》。柚木《ゆず》。柚木。', {})[2], ('ゆずき', 'dictionary'))
+        self.assertEqual(read('柚木《あいつ》。柚木。', {}), [('ゆずき', 'dictionary')] * 2)
+        # ruby over a two-token full name, split where Sudachi's reading of one part fits
+        self.assertEqual(read('姫野芽衣《ひめのめい》。芽衣。姫野芽衣。', {}),
+                         [('ひめの', 'ruby'), ('めい', 'ruby'), ('めい', 'book'), ('ひめの', 'book'), ('めい', 'book')])
+        self.assertEqual(read('姫野芽衣《ひめのめい》。芽衣。', None)[1:], [('がい', 'dictionary')] * 2)
+        # a form the list doesn't know is read like a name; one it knows isn't
+        known = {('人気', 'にんき'), ('人気', 'ひとけ')}
+        self.assertEqual(read('人家《じんか》。人家。', {}, known), [('じんか', 'ruby'), ('じんか', 'book')])
+        self.assertEqual(read('人気《ひとけ》。人気。', {}, known)[1][1], 'dictionary')
 
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
