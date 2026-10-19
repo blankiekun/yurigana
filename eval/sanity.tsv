@@ -1,0 +1,892 @@
+# Regression list, see README "The sanity list". Tatoeba sentences CC BY 2.0 FR (see NOTICE).
+sentence	span	reading	alts	kind	status	note
+うまい事言うね。	事	こと		frequent		tatoeba 228110; JMdict; half a こと 204/209
+遠回しに言うな。	言う	いう		frequent		tatoeba 188664; majority; half a いう 1388/1389
+誰がそう思うの？	思う	おもう		frequent		tatoeba 137003; JMdict; half a おもう 1276/1276
+彼は私に親切だ。	私	わたし		frequent		tatoeba 106026; majority; half a わたし 4354/4355
+最近食欲が無い。	無い	ない		frequent		tatoeba 156873; JMdict; half a ない 47/49
+私は公園に行く。	行く	いく		frequent		tatoeba 157179; majority; half a いく 1752/1758
+父は今不在です。	今	いま		frequent	xfail	tatoeba 84575; JMdict; half a いま 564/568; 0.2.0.dev0 gives こん
+俺は知らないよ。	俺	おれ		frequent		tatoeba 188354; JMdict; half a おれ 373/373
+お前の物はどこ？	物	もの		frequent		tatoeba 10118065; JMdict; half a もの 90/91
+あなたは聞くべきだ。	聞く	きく		frequent		tatoeba 8579873; JMdict; half a きく 451/451
+自分で洗います。	自分	じぶん		frequent		tatoeba 1213056; JMdict; half a じぶん 585/585
+そんなこと知るか。	知る	しる		frequent		tatoeba 2902502; JMdict; half a しる 783/783
+前にもあったよ。	前	まえ		frequent		tatoeba 9795447; majority; half a まえ 512/512
+待つのは嫌いだ。	待つ	まつ		frequent		tatoeba 10330140; JMdict; half a まつ 349/350
+今日は風が強い。	今日	きょう		frequent		tatoeba 171505; majority; half a きょう 678/689
+話をそらすなよ。	話	はなし		frequent		tatoeba 77151; JMdict; half a はなし 291/296
+私は私の頭で考える。	考える	かんがえる		frequent		tatoeba 156487; JMdict; half a かんがえる 203/203
+袋は僕が持つよ。	持つ	もつ		frequent		tatoeba 9941412; JMdict; half a もつ 591/591
+彼らは同い年だ。	彼	かれ		frequent		tatoeba 96463; majority; half a かれ 4023/4023
+私は大丈夫です。	大丈夫	だいじょうぶ		frequent		tatoeba 155194; JMdict; half a だいじょうぶ 107/107
+僕はトムとは違う。	違う	ちがう		frequent		tatoeba 3366875; JMdict; half a ちがう 142/142
+窓に顔が現れた。	顔	かお		frequent		tatoeba 140407; JMdict; half a かお 131/135
+何時ごろ帰るの？	帰る	かえる		frequent		tatoeba 1751953; JMdict; half a かえる 260/263
+少し眠らなきゃ。	少し	すこし		frequent		tatoeba 146775; JMdict; half a すこし 252/252
+貴方には子供がいますか？	貴方	あなた		frequent		tatoeba 1645591; majority; half a あなた 12/12
+彼は機嫌が悪い。	悪い	わるい		frequent		tatoeba 108603; majority; half a わるい 275/285
+私の犬達は白い。	達	たち		frequent		tatoeba 163734; JMdict; half a たち 54/54
+私は同じ年齢です。	同じ	おなじ		frequent		tatoeba 154823; JMdict; half a おなじ 187/192
+彼女は誰ですか。	誰	だれ		frequent		tatoeba 87976; JMdict; half a だれ 816/819
+太って見えるよ。	見える	みえる		frequent		tatoeba 8603486; JMdict; half a みえる 259/260
+会うは別れの始め。	会う	あう		frequent		tatoeba 185457; JMdict; half a あう 387/387
+彼は会社を辞めると本気で言った。	辞める	やめる		frequent		tatoeba 109047; JMdict; half a やめる 22/22
+二度と顔を出すな。	出す	だす		frequent		tatoeba 123031; JMdict; half a だす 229/230
+私は魚が好きだ。	好き	すき		frequent		tatoeba 157640; JMdict; half a すき 979/988
+二枚舌を使うな。	使う	つかう		frequent		tatoeba 123007; JMdict; half a つかう 290/290
+僕は家にいるよ。	家	いえ		frequent		tatoeba 81982; majority; half a いえ 726/759
+今、何回の裏ですか。	裏	うら		frequent		tatoeba 172924; majority; half a うら 17/17
+ご苦労様でした。	様	さま		frequent		tatoeba 217173; majority; half a さま 40/44
+手を洗いなさい。	手	て		frequent		tatoeba 148622; JMdict; half a て 307/308
+この男の人、誰？	男	おとこ		frequent		tatoeba 2125116; JMdict; half a おとこ 173/173
+目を開けなさい。	目	め		frequent		tatoeba 79943; JMdict; half a め 330/330
+六時までに戻る。	戻る	もどる		frequent		tatoeba 152249; JMdict; half a もどる 162/162
+出発する時間だ。	時間	じかん		frequent		tatoeba 147706; JMdict; half a じかん 495/495
+ここで小麦を作る。	作る	つくる		frequent		tatoeba 527159; JMdict; half a つくる 231/234
+人は皆必ず死ぬ。	死ぬ	しぬ		frequent		tatoeba 144518; JMdict; half a しぬ 140/140
+君が話す番だよ。	話す	はなす		frequent		tatoeba 8733008; JMdict; half a はなす 496/507
+人間は動物です。	人間	にんげん		frequent		tatoeba 9149381; JMdict; half a にんげん 86/86
+凄い経験でした。	凄い	すごい		frequent		tatoeba 10837031; JMdict; half a すごい 11/11
+助けを呼ぶ声が聞こえた。	呼ぶ	よぶ		frequent		tatoeba 147371; JMdict; half a よぶ 111/111
+彼らは国の為に戦った。	為	ため		frequent		tatoeba 97155; JMdict; half a ため 21/21
+もうすぐ終わる？	終わる	おわる		frequent		tatoeba 8727067; JMdict; half a おわる 222/222
+大騒ぎする程でもない。	程	ほど		frequent		tatoeba 1631737; JMdict; half a ほど 11/11
+教室で食べるの？	食べる	たべる		frequent		tatoeba 500369; JMdict; half a たべる 865/865
+次は私の番です。	次	つぎ		frequent		tatoeba 150205; JMdict; half a つぎ 121/129
+火を消し忘れるなよ。	忘れる	わすれる		frequent		tatoeba 186725; JMdict; half a わすれる 324/324
+教える事は学ぶ事である。	教える	おしえる		frequent		tatoeba 180365; JMdict; half a おしえる 273/273
+僕は夜型なんだ。	僕	ぼく		frequent		tatoeba 81743; JMdict; half a ぼく 842/842
+トムの声がする。	声	こえ		frequent		tatoeba 2740725; JMdict; half a こえ 123/124
+仕事は済んだよ。	仕事	しごと		frequent		tatoeba 9817710; JMdict; half a しごと 493/493
+口添えを頼むよ。	頼む	たのむ		frequent		tatoeba 10327159; JMdict; half a たのむ 83/83
+今度は誰の番だい？	今度	こんど		frequent		tatoeba 217496; JMdict; half a こんど 58/58
+心配したんだぞ。	心配	しんぱい		frequent		tatoeba 8785909; JMdict; half a しんぱい 146/146
+親は子を愛する。	子	こ		frequent		tatoeba 144817; majority; half a こ 216/216
+その上に座るな。	上	うえ		frequent		tatoeba 208984; majority; half a うえ 211/226
+これは本当です。	本当	ほんとう		frequent		tatoeba 2349350; JMdict; half a ほんとう 436/440
+これ、気持ちいい！	気持ち	きもち		frequent		tatoeba 10497503; JMdict; half a きもち 86/86
+喜怒哀楽を見せるな。	見せる	みせる		frequent		tatoeba 183532; JMdict; half a みせる 119/119
+僕には相談相手がない。	相手	あいて		frequent		tatoeba 82286; JMdict; half a あいて 37/37
+生きる意味って何だろう？	生きる	いきる		frequent		tatoeba 1772512; JMdict; half a いきる 83/83
+駅はこのすぐ先だ。	先	さき		frequent		tatoeba 188898; majority; half a さき 48/48
+コーヒーに砂糖は入れる？	入れる	いれる		frequent		tatoeba 1614431; JMdict; half a いれる 219/233
+３に５を掛けると１５になる。	掛ける	かける		frequent		tatoeba 235342; JMdict; half a かける 25/25
+これで最後だよ。	最後	さいご		frequent		tatoeba 10183721; JMdict; half a さいご 79/79
+私の座る場所ある？	場所	ばしょ		frequent		tatoeba 10142813; JMdict; half a ばしょ 95/95
+時代が変われば風習も変わる。	変わる	かわる		frequent		tatoeba 150412; JMdict; half a かわる 89/89
+全部そこにある？	全部	ぜんぶ		frequent		tatoeba 8703094; JMdict; half a ぜんぶ 165/165
+君はどうするの？	君	きみ		frequent		tatoeba 177640; majority; half a きみ 647/667
+満点を取るつもりだ。	取る	とる		frequent		tatoeba 81071; JMdict; half a とる 179/179
+私は言葉に窮した。	言葉	ことば		frequent		tatoeba 157241; JMdict; half a ことば 137/137
+輸血が必要です。	必要	ひつよう		frequent		tatoeba 79445; JMdict; half a ひつよう 340/340
+逃げるすきはなかった。	逃げる	にげる		frequent		tatoeba 123887; JMdict; half a にげる 41/41
+女に聞いてみろ。	女	おんな		frequent		tatoeba 11136710; JMdict; half a おんな 44/45
+彼女は壁の花だ。	彼女	かのじょ		frequent		tatoeba 86816; JMdict; half a かのじょ 2045/2045
+続けるだけでも才能が必要。	続ける	つづける		frequent		tatoeba 11045115; JMdict; half a つづける 79/79
+あなたの名前は？	名前	なまえ		frequent		tatoeba 5061; JMdict; half a なまえ 265/265
+初めてではない。	初めて	はじめて		frequent		tatoeba 12957340; JMdict; half a はじめて 125/125
+彼女は気が強い。	気	き		frequent		tatoeba 90584; JMdict; half a き 500/500
+ここから動くな。	動く	うごく		frequent		tatoeba 650692; JMdict; half a うごく 44/44
+まあ無理ですな。	無理	むり		frequent		tatoeba 195802; JMdict; half a むり 81/81
+何時でしょうか。	何時	なんじ		frequent		tatoeba 187458; majority; half a なんじ 101/110
+大変な日だった。	大変	たいへん		frequent		tatoeba 12130425; JMdict; half a たいへん 91/91
+彼は頭が切れる。	頭	あたま		frequent		tatoeba 101704; majority; half a あたま 157/165
+君は世界の光だよ。	世界	せかい		frequent		tatoeba 8282091; JMdict; half a せかい 94/94
+人の顔覚えるのって得意？	覚える	おぼえる		frequent		tatoeba 8751995; JMdict; half a おぼえる 135/135
+部屋に入ります。	部屋	へや		frequent		tatoeba 6828175; JMdict; half a へや 342/347
+運動は体にいい。	体	からだ		frequent		tatoeba 7003418; JMdict; half a からだ 85/89
+心から同意します。	心	こころ		frequent		tatoeba 2370570; majority; half a こころ 104/107
+何の日か分かる？	分かる	わかる		frequent		tatoeba 11588808; JMdict; half a わかる 470/470
+腕の力を抜いて。	力	ちから		frequent		tatoeba 10651813; majority; half a ちから 44/47
+いい意味でだよ。	意味	いみ		frequent		tatoeba 10630248; JMdict; half a いみ 105/105
+すごく年を感じる。	感じる	かんじる		frequent		tatoeba 12662527; JMdict; half a かんじる 19/19
+そんな事を許すわけにはいきません。	許す	ゆるす		frequent		tatoeba 9828792; JMdict; half a ゆるす 41/41
+トムは何を買う？	買う	かう		frequent		tatoeba 7577218; JMdict; half a かう 625/625
+運命って信じる？	信じる	しんじる		frequent		tatoeba 3555720; JMdict; half a しんじる 19/19
+昔はそうだったよ。	昔	むかし		frequent		tatoeba 1788968; JMdict; half a むかし 83/83
+今日中に決めるべきよ。	決める	きめる		frequent		tatoeba 11029182; JMdict; half a きめる 87/87
+最初は難しいんだよ。	最初	さいしょ		frequent		tatoeba 10715899; JMdict; half a さいしょ 55/55
+君は新しい仕事を始める時期だ。	始める	はじめる		frequent		tatoeba 177127; JMdict; half a はじめる 218/218
+返金して欲しい。	欲しい	ほしい		frequent		tatoeba 83353; JMdict; half a ほしい 235/235
+乗るなら飲むな。	飲む	のむ		frequent		tatoeba 146169; JMdict; half a のむ 381/381
+楽しいご旅行を。	楽しい	たのしい		frequent		tatoeba 184182; JMdict; half a たのしい 131/131
+そうとも言えるね。	言える	いえる		frequent		tatoeba 213826; majority; half a いえる 41/41
+彼は約束を守る。	守る	まもる		frequent		tatoeba 99386; JMdict; half a まもる 50/50
+奴は僕の旧友だ。	奴	やつ		frequent		tatoeba 1643719; JMdict; half a やつ 56/56
+詩人は詩を書く。	書く	かく		frequent		tatoeba 151150; JMdict; half a かく 318/318
+噂話を真に受けるな。	受ける	うける		frequent		tatoeba 11257886; JMdict; half a うける 108/108
+健康は富以上だ。	以上	いじょう		frequent		tatoeba 175464; JMdict; half a いじょう 129/129
+お父さんは箔が付くからって言うけど、あたしとしちゃどうだっていいね。	付く	つく		frequent		tatoeba 11031512; JMdict; half a つく 28/28
+どうして笑うの？	笑う	わらう		frequent		tatoeba 8613529; JMdict; half a わらう 130/130
+私は七時に起きる。	起きる	おきる		frequent		tatoeba 992952; JMdict; half a おきる 176/176
+この曲、耳に残るね。	残る	のこる		frequent		tatoeba 12056179; JMdict; half a のこる 72/72
+俺の机には置くな。	置く	おく		frequent		tatoeba 188388; JMdict; half a おく 131/131
+ワインは消化を助ける。	助ける	たすける		frequent		tatoeba 192065; JMdict; half a たすける 50/51
+新潟は雪が多い。	多い	おおい		frequent		tatoeba 145299; JMdict; half a おおい 162/179
+先生と話します。	先生	せんせい		frequent		tatoeba 6828176; JMdict; half a せんせい 256/256
+変な感じがします。	変	へん		frequent		tatoeba 83384; JMdict; half a へん 53/53
+それは問題ない。	問題	もんだい		frequent		tatoeba 1487264; JMdict; half a もんだい 290/290
+どうやって区別付けるんです？	付ける	つける		frequent		tatoeba 2573155; JMdict; half a つける 56/57
+外は真っ暗だよ。	外	そと		frequent		tatoeba 3014633; majority; half a そと 145/151
+どれぐらい費用が掛かるかは、知ってます。	掛かる	かかる		frequent		tatoeba 13569168; JMdict; half a かかる 11/11
+夢を抱きしめて。	夢	ゆめ		frequent		tatoeba 1513599; JMdict; half a ゆめ 125/126
+探す人が、見つけるのだ。	見つける	みつける		frequent		tatoeba 182300; JMdict; half a みつける 114/114
+トムが一番強い。	一番	いちばん		frequent		tatoeba 2626290; JMdict; half a いちばん 233/233
+あいさつは大事だよ。	大事	だいじ		frequent		tatoeba 10899517; JMdict; half a だいじ 34/35
+そんな感じです。	感じ	かんじ		frequent		tatoeba 11574865; JMdict; half a かんじ 49/49
+音楽が聞こえる。	聞こえる	きこえる		frequent		tatoeba 188299; JMdict; half a きこえる 118/118
+トムは下着姿だった。	姿	すがた		frequent		tatoeba 2129962; JMdict; half a すがた 45/45
+仕事が決まるといいね。	決まる	きまる		frequent		tatoeba 11445922; JMdict; half a きまる 39/39
+全然痛くないよ。	全然	ぜんぜん		frequent		tatoeba 3357760; JMdict; half a ぜんぜん 78/78
+私は絶対諦めない。	絶対	ぜったい		frequent		tatoeba 3697556; JMdict; half a ぜったい 71/71
+私も元気ですよ。	元気	げんき		frequent		tatoeba 152193; JMdict; half a げんき 99/99
+夜が明け始めた。	夜	よる		frequent		tatoeba 79757; JMdict; half a よる 174/179
+いまさら遅いよ。	遅い	おそい		frequent		tatoeba 228551; JMdict; half a おそい 74/80
+彼に一度会ってるよ。	一度	いちど		frequent		tatoeba 10738726; JMdict; half a いちど 82/82
+頭が痛いんです。	痛い	いたい		frequent		tatoeba 123866; JMdict; half a いたい 125/127
+この卵は新しいよ。	新しい	あたらしい		frequent		tatoeba 219212; JMdict; half a あたらしい 289/289
+今日は波が高い。	高い	たかい		frequent		tatoeba 171519; JMdict; half a たかい 216/235
+秋になりました。	秋	あき		frequent		tatoeba 148220; majority; half a あき 32/32
+理由聞いてもいい？	理由	りゆう		frequent		tatoeba 3559174; JMdict; half a りゆう 79/80
+怠けていると君は困る事になるだろう。	困る	こまる		frequent		tatoeba 137919; JMdict; half a こまる 42/42
+黙っていなさい。	黙っ	だまる		frequent	xfail	tatoeba 80043; JMdict; half a だまる 53/53; 0.2.0.dev0 gives None
+空港まで送るよ。	送る	おくる		frequent		tatoeba 179328; JMdict; half a おくる 122/122
+あの人はすぐ怒る。	怒る	おこる		frequent		tatoeba 230740; JMdict; half a おこる 124/125
+ウサギは耳が長い。	長い	ながい		frequent		tatoeba 527274; JMdict; half a ながい 150/155
+昨日は雪だった。	昨日	きのう		frequent		tatoeba 2122009; majority; half a きのう 404/407
+他に質問はある？	他	ほか		frequent		tatoeba 2750248; majority; half a ほか 121/130
+太っては駄目ですよ。	駄目	だめ		frequent		tatoeba 1015819; JMdict; half a だめ 48/48
+明日は休日です。	明日	あした		frequent		tatoeba 1274027; majority; half a あした 414/430
+乗るなら飲むな。	乗る	のる		frequent		tatoeba 146169; JMdict; half a のる 162/162
+普通に呼吸して。	普通	ふつう		frequent		tatoeba 3366933; JMdict; half a ふつう 53/53
+彼女は明日東京に向かう。	向かう	むかう		frequent		tatoeba 8435578; JMdict; half a むかう 57/57
+家族といえども言葉で伝えるのは大事。	伝える	つたえる		frequent		tatoeba 10979956; JMdict; half a つたえる 60/60
+他の仕事を探すよ。	探す	さがす		frequent		tatoeba 10565448; JMdict; half a さがす 117/117
+最近食欲が無い。	最近	さいきん		frequent		tatoeba 156873; JMdict; half a さいきん 158/158
+トムを連れてきて。	連れ	つれる		frequent	xfail	tatoeba 3480363; JMdict; half a つれる 37/37; 0.2.0.dev0 gives None
+芝生の上を歩くな。	歩く	あるく		frequent		tatoeba 149265; JMdict; half a あるく 208/208
+とても大きいね。	大きい	おおきい		frequent		tatoeba 200577; JMdict; half a おおきい 133/133
+口を閉じなさい。	口	くち		frequent		tatoeba 173909; JMdict; half a くち 111/113
+今まで何してたの？	今まで	いままで		frequent		tatoeba 11241492; JMdict; half a いままで 65/65
+見つけ次第殺すぞ！	殺す	ころす		frequent		tatoeba 561944; JMdict; half a ころす 53/53
+この靴も嫌だな。	嫌	いや		frequent		tatoeba 10097826; JMdict; half a いや 74/74
+何故そう思うの？	何故	なぜ		frequent		tatoeba 3401625; majority; half a なぜ 13/13
+お金は明日返すよ。	返す	かえす		frequent		tatoeba 227236; JMdict; half a かえす 45/45
+慣れると軽視するようになる。	慣れる	なれる		frequent		tatoeba 183907; JMdict; half a なれる 54/54
+頑張る価値があるのか？	頑張る	がんばる		frequent		tatoeba 11842596; JMdict; half a がんばる 71/71
+米国は大きな国だ。	大きな	おおきな		frequent		tatoeba 13202200; JMdict; half a おおきな 130/130
+年齢は関係ない。	関係	かんけい		frequent		tatoeba 10181518; JMdict; half a かんけい 77/77
+一日たりとも英語から離れるな。	離れる	はなれる		frequent		tatoeba 190255; JMdict; half a はなれる 66/66
+作り方は簡単よ。	簡単	かんたん		frequent		tatoeba 10350479; JMdict; half a かんたん 101/101
+彼は約束を守る。	約束	やくそく		frequent		tatoeba 99386; JMdict; half a やくそく 100/100
+泣く価値さえない。	泣く	なく		frequent		tatoeba 182381; JMdict; half a なく 119/119
+バスケは上手いの？	上手い	うまい		frequent		tatoeba 9799300; JMdict; half a うまい 60/64
+エルニーニョはまだ続く。	続く	つづく		frequent		tatoeba 5748446; JMdict; half a つづく 77/77
+猿も木から落ちる。	落ちる	おちる		frequent		tatoeba 188721; JMdict; half a おちる 85/85
+水以外何も見えない。	以外	いがい		frequent		tatoeba 143702; JMdict; half a いがい 42/42
+彼は嫌な思い出が消えることを願っている。	消える	きえる		frequent		tatoeba 5304; JMdict; half a きえる 36/36
+早い者勝ちですよ。	早い	はやい		frequent		tatoeba 140582; JMdict; half a はやい 235/243
+君は選ぶ必要がある。	選ぶ	えらぶ		frequent		tatoeba 7577114; JMdict; half a えらぶ 72/72
+私たちは夫婦だ。	私たち	わたしたち		frequent		tatoeba 1003749; JMdict; half a わたしたち 576/576
+人は皆必ず死ぬ。	必ず	かならず		frequent		tatoeba 144518; JMdict; half a かならず 99/99
+私は結構ですよ。	結構	けっこう		frequent		tatoeba 157331; JMdict; half a けっこう 36/36
+今回が最後の試合だ。	今回	こんかい		frequent		tatoeba 172519; JMdict; half a こんかい 29/29
+役に立つはずだ。	立つ	たつ		frequent		tatoeba 8579887; JMdict; half a たつ 126/126
+家はこの近くなの？	近く	ちかく		frequent		tatoeba 8755530; JMdict; half a ちかく 118/118
+この箱は開けるな。	開ける	あける		frequent		tatoeba 10140809; majority; half a あける 206/207
+授業が始まるぞ。	始まる	はじまる		frequent		tatoeba 10911461; JMdict; half a はじまる 88/88
+練習は熟達の道。	道	みち		frequent		tatoeba 77422; JMdict; half a みち 123/124
+気持ちを変えるなよ。	変える	かえる		frequent		tatoeba 183192; JMdict; half a かえる 63/63
+それを下に置け。	下	した		frequent		tatoeba 204622; majority; half a した 84/88
+ここなら安心ね。	安心	あんしん		frequent		tatoeba 12180559; JMdict; half a あんしん 16/16
+最悪の場合を考えておこう。	場合	ばあい		frequent		tatoeba 4776; JMdict; half a ばあい 57/57
+幸せは何ですか。	幸せ	しあわせ		frequent		tatoeba 641944; JMdict; half a しあわせ 102/102
+そんな本読むな。	読む	よむ		frequent		tatoeba 204028; JMdict; half a よむ 368/368
+沢山の花が咲いているね。	沢山	たくさん		frequent		tatoeba 1364344; JMdict; half a たくさん 13/14
+彼は根が優しい。	優しい	やさしい		frequent		tatoeba 107023; JMdict; half a やさしい 40/40
+彼は結局正しかった。	結局	けっきょく		frequent		tatoeba 107802; JMdict; half a けっきょく 43/43
+朝は空気が新鮮だ。	朝	あさ		frequent		tatoeba 126225; JMdict; half a あさ 152/156
+答えて頂きたいです。	頂き	いただく		frequent	xfail	tatoeba 2000097; JMdict; half a いただく 16/16; 0.2.0.dev0 gives None
+一杯いかがですか。	一杯	いっぱい		frequent		tatoeba 190221; JMdict; half a いっぱい 88/88
+彼は存在しません。	存在	そんざい		frequent		tatoeba 1634737; JMdict; half a そんざい 38/38
+別のをください。	別	べつ		frequent		tatoeba 11156616; JMdict; half a べつ 60/60
+生活費は上がる一方だ。	上がる	あがる		frequent		tatoeba 11365397; JMdict; half a あがる 43/43
+馬鹿とは何だ？！	馬鹿	ばか		frequent		tatoeba 4870380; JMdict; half a ばか 47/47
+自分に負けるな。	負ける	まける		frequent		tatoeba 11377028; JMdict; half a まける 32/32
+このコードブックを敵の手に渡すんじゃないぞ。	渡す	わたす		frequent		tatoeba 11666694; JMdict; half a わたす 31/31
+能ある鷹は爪を隠す。	隠す	かくす		frequent		tatoeba 1801549; JMdict; half a かくす 37/37
+準備は万端です。	準備	じゅんび		frequent		tatoeba 1240911; JMdict; half a じゅんび 83/83
+足を洗いなさい。	足	あし		frequent		tatoeba 139852; JMdict; half a あし 112/115
+場所は簡単に見つかるって。	見つかる	みつかる		frequent		tatoeba 9971781; JMdict; half a みつかる 48/48
+この傘、幾らだった？	幾ら	いくら		frequent		tatoeba 9821550; JMdict; half a いくら 15/15
+なんで驚くんだよ？	驚く	おどろく		frequent		tatoeba 11145034; JMdict; half a おどろく 78/78
+彼の命が危ない。	危ない	あぶない		frequent		tatoeba 2432348; JMdict; half a あぶない 26/26
+あそこはゴミ捨てるとこ。	捨てる	すてる		frequent		tatoeba 11056541; JMdict; half a すてる 39/39
+音を大きくして。	音	おと		frequent		tatoeba 76314; majority; half a おと 101/106
+そう悪くないように思えるな。	思える	おもえる		frequent		tatoeba 1620952; majority; half a おもえる 32/32
+時間は任せるよ。	任せる	まかせる		frequent		tatoeba 9689449; JMdict; half a まかせる 30/30
+野暮用があるんだ。	用	よう		frequent		tatoeba 11127114; JMdict; half a よう 47/47
+二度確認しました。	確認	かくにん		frequent		tatoeba 2040907; JMdict; half a かくにん 40/40
+遊びは終わりだ。	終わり	おわり		frequent		tatoeba 79197; JMdict; half a おわり 26/26
+説明しましょうか。	説明	せつめい		frequent		tatoeba 142049; JMdict; half a せつめい 91/91
+そんなに速く走るな。	走る	はしる		frequent		tatoeba 204248; JMdict; half a はしる 111/111
+子供の声がした。	子供	こども		frequent		tatoeba 12593036; JMdict; half a こども 267/267
+連絡して下さい。	連絡	れんらく		frequent		tatoeba 77409; JMdict; half a れんらく 70/70
+難しい状況です。	状況	じょうきょう		frequent		tatoeba 123195; JMdict; half a じょうきょう 43/43
+用意はできてた？	用意	ようい		frequent		tatoeba 8697813; JMdict; half a ようい 24/24
+俺は邪魔だよな。	邪魔	じゃま		frequent		tatoeba 188360; JMdict; half a じゃま 25/25
+一緒に行かない？	一緒	いっしょ		frequent		tatoeba 190532; JMdict; half a いっしょ 306/306
+もうすぐ子供が生まれるんです。	生まれる	うまれる		frequent		tatoeba 11328061; JMdict; half a うまれる 94/94
+その上に座るな。	座る	すわる		frequent		tatoeba 208984; JMdict; half a すわる 162/162
+甲斐甲斐しく働く。	働く	はたらく		frequent		tatoeba 173521; JMdict; half a はたらく 195/195
+向こうの方で泳ごう。	向こう	むこう		frequent		tatoeba 173838; JMdict; half a むこう 18/18
+難しい状況です。	難しい	むずかしい		frequent		tatoeba 123195; JMdict; half a むずかしい 165/165
+彼はきっと勝つ。	勝つ	かつ		frequent		tatoeba 114008; JMdict; half a かつ 68/68
+ダビデ王の長男であり知恵に満ちたソロモン王はイスラエルの立派な指導者として後世に名を残すことに成功した。	残す	のこす		frequent		tatoeba 776035; JMdict; half a のこす 28/28
+トムと友達なの？	友達	ともだち		frequent		tatoeba 5185662; JMdict; half a ともだち 325/325
+僕のカードで遊ぶ？	遊ぶ	あそぶ		frequent		tatoeba 10586066; JMdict; half a あそぶ 157/157
+バグの修正が早くて助かる。	助かる	たすかる		frequent		tatoeba 11027726; JMdict; half a たすかる 21/21
+毎日、日は昇る。	毎日	まいにち		frequent		tatoeba 9392399; JMdict; half a まいにち 182/182
+何人家族ですか。	家族	かぞく		frequent		tatoeba 187368; JMdict; half a かぞく 117/117
+私には娘がいます。	娘	むすめ		frequent		tatoeba 152657; majority; half a むすめ 95/100
+あれ、喜ぶと思ったのに。	喜ぶ	よろこぶ		frequent		tatoeba 3576183; JMdict; half a よろこぶ 64/64
+彼女はどんな様子だった？	様子	ようす		frequent		tatoeba 2263561; JMdict; half a ようす 19/19
+止まることはない。	止まる	とまる		frequent		tatoeba 12091477; majority; half a とまる 45/45
+水は、熱かった。	水	みず		frequent		tatoeba 9083284; JMdict; half a みず 223/225
+君が答える必要はない。	答える	こたえる		frequent		tatoeba 8797649; JMdict; half a こたえる 94/95
+お話中失礼します。	失礼	しつれい		frequent		tatoeba 226501; JMdict; half a しつれい 49/49
+いいよ。手伝うよ。	手伝う	てつだう		frequent		tatoeba 9203154; JMdict; half a てつだう 182/182
+全く構いません。	全く	まったく		frequent		tatoeba 140908; JMdict; half a まったく 116/116
+自分が間違ってたって認めるよ。	認める	みとめる		frequent		tatoeba 9029173; JMdict; half a みとめる 34/34
+本を読み続けた。	本	ほん		frequent		tatoeba 123362; majority; half a ほん 647/699
+運も人生のうち。	人生	じんせい		frequent		tatoeba 2099810; JMdict; half a じんせい 93/93
+地図を調べる間、この鞄を持ってもらえる？	調べる	しらべる		frequent		tatoeba 11733781; JMdict; half a しらべる 46/46
+元の所へ戻しなさい。	元	もと		frequent		tatoeba 204598; JMdict; half a もと 17/18
+彼の命が危ない。	命	いのち		frequent		tatoeba 2432348; JMdict; half a いのち 39/39
+人間も動物の仲間です。	仲間	なかま		frequent		tatoeba 2353759; JMdict; half a なかま 11/11
+完全に忘れてたよ。	完全	かんぜん		frequent		tatoeba 9764357; JMdict; half a かんぜん 25/25
+全員乗ってますか？	全員	ぜんいん		frequent		tatoeba 8724606; JMdict; half a ぜんいん 37/37
+それは当然の報いだ。	当然	とうぜん		frequent		tatoeba 204967; JMdict; half a とうぜん 22/22
+大型車はガソリンを食う。	食う	くう		frequent		tatoeba 137572; JMdict; half a くう 29/29
+今は特に言うことはないよ。	特に	とくに		frequent		tatoeba 9700861; JMdict; half a とくに 22/22
+何度も言ったはずよ。	何度	なんど		frequent		tatoeba 11857921; JMdict; half a なんど 44/44
+それ本気だったの？	本気	ほんき		frequent		tatoeba 8823039; JMdict; half a ほんき 39/39
+携帯電話の電源を切るべきである。	切る	きる		frequent		tatoeba 176529; JMdict; half a きる 90/90
+その本は小さい。	小さい	ちいさい		frequent		tatoeba 633064; JMdict; half a ちいさい 97/97
+これ、可愛いな。	可愛い	かわいい		frequent		tatoeba 3400993; JMdict; half a かわいい 35/35
+光は音よりも速く進む。	進む	すすむ		frequent		tatoeba 174076; JMdict; half a すすむ 38/38
+一人で出来るよ。	一人	ひとり		frequent		tatoeba 418748; JMdict; half a ひとり 216/216
+あなたとは気が合うわ。	合う	あう		frequent		tatoeba 233858; JMdict; half a あう 62/62
+彼は突然出発した。	突然	とつぜん		frequent		tatoeba 101573; JMdict; half a とつぜん 46/46
+胸の痛みはありますか？	胸	むね		frequent		tatoeba 8738520; JMdict; half a むね 27/27
+もう１０時近い。	近い	ちかい		frequent		tatoeba 194562; JMdict; half a ちかい 36/36
+自分が恥ずかしいよ。	恥ずかしい	はずかしい		frequent		tatoeba 10019394; JMdict; half a はずかしい 29/30
+一体どうしたんだ。	一体	いったい		frequent		tatoeba 190365; JMdict; half a いったい 29/29
+それは確かです。	確か	たしか		frequent		tatoeba 1484700; JMdict; half a たしか 31/31
+彼は休む必要があった。	休む	やすむ		frequent		tatoeba 108496; JMdict; half a やすむ 63/63
+これを上げるの手伝って。	上げる	あげる		frequent		tatoeba 217629; JMdict; half a あげる 27/27
+トムは正直そうね。	正直	しょうじき		frequent		tatoeba 11053937; JMdict; half a しょうじき 32/32
+勉強が嫌いです。	嫌い	きらい		frequent		tatoeba 537022; JMdict; half a きらい 126/134
+色々ありがとう、トム。	色々	いろいろ		frequent		tatoeba 10128887; JMdict; half a いろいろ 11/11
+寝た子を起こすんじゃない。	起こす	おこす		frequent		tatoeba 12432432; JMdict; half a おこす 57/57
+気が済むまでやってみたら。	済む	すむ		frequent		tatoeba 183283; JMdict; half a すむ 36/36
+まだまだ若いなぁ。	若い	わかい		frequent		tatoeba 195476; JMdict; half a わかい 108/118
+親子で楽しむプラモデル講座に興味はないですか？	楽しむ	たのしむ		frequent		tatoeba 11029976; JMdict; half a たのしむ 71/71
+住む場所を探す必要がある。	住む	すむ		frequent		tatoeba 8400565; JMdict; half a すむ 334/334
+過程が大切です。	大切	たいせつ		frequent		tatoeba 705390; JMdict; half a たいせつ 83/83
+それは高過ぎる。	過ぎる	すぎる		frequent		tatoeba 1056471; JMdict; half a すぎる 67/67
+ここからでも声は届くよ。	届く	とどく		frequent		tatoeba 224786; JMdict; half a とどく 43/43
+結果は意外だった？	結果	けっか		frequent		tatoeba 8727211; JMdict; half a けっか 52/52
+彼は泥酔状態だった。	状態	じょうたい		frequent		tatoeba 9857731; JMdict; half a じょうたい 20/20
+今とても忙しい。	忙しい	いそがしい		frequent		tatoeba 172773; JMdict; half a いそがしい 138/138
+私は最高に幸せだ。	最高	さいこう		frequent		tatoeba 156866; JMdict; half a さいこう 38/38
+謝ることないよ。	謝る	あやまる		frequent		tatoeba 10802012; JMdict; half a あやまる 56/56
+僕はいい気分だ。	気分	きぶん		frequent		tatoeba 82128; JMdict; half a きぶん 80/80
+他に方法はない。	方法	ほうほう		frequent		tatoeba 8875581; JMdict; half a ほうほう 65/65
+具体的な情報が欲しい。	情報	じょうほう		frequent		tatoeba 1736638; JMdict; half a じょうほう 36/36
+腕の力を抜いて。	腕	うで		frequent		tatoeba 10651813; JMdict; half a うで 32/32
+ほんの冗談だよ。	冗談	じょうだん		frequent		tatoeba 195863; JMdict; half a じょうだん 68/68
+諦めるつもりなの？	諦める	あきらめる		frequent		tatoeba 8751975; JMdict; half a あきらめる 28/28
+失うものは何もない。	失う	うしなう		frequent		tatoeba 149626; JMdict; half a うしなう 49/49
+箱の形は普通四角です。	形	かたち		frequent		tatoeba 121370; JMdict; half a かたち 22/24
+二度と現れるな！	現れる	あらわれる		frequent		tatoeba 123030; JMdict; half a あらわれる 27/27
+不思議な夜でした。	不思議	ふしぎ		frequent		tatoeba 11069529; JMdict; half a ふしぎ 20/20
+死中に活を求める。	求める	もとめる		frequent		tatoeba 168119; JMdict; half a もとめる 55/55
+それが要るんだよ。	要る	いる		frequent		tatoeba 10614278; JMdict; half a いる 38/38
+あの店はやだな。	店	みせ		frequent		tatoeba 9032647; majority; half a みせ 103/111
+ニンニクは、2片で足りる？	足りる	たりる		frequent		tatoeba 11017919; JMdict; half a たりる 31/31
+無事で安心したよ。	無事	ぶじ		frequent		tatoeba 10932455; JMdict; half a ぶじ 12/12
+学校に遅刻した。	学校	がっこう		frequent		tatoeba 5249; JMdict; half a がっこう 373/373
+理解できません。	理解	りかい		frequent		tatoeba 13220997; JMdict; half a りかい 90/90
+他の可能性もあります。	可能性	かのうせい		frequent		tatoeba 9944509; JMdict; half a かのうせい 29/29
+果物は日に当たると腐る。	当たる	あたる		frequent		tatoeba 186801; JMdict; half a あたる 31/31
+それは残念だね。	残念	ざんねん		frequent		tatoeba 4591666; JMdict; half a ざんねん 39/39
+本当にあれ着るつもり？	着る	きる		frequent		tatoeba 8599712; JMdict; half a き 118/131
+家に帰る途中なの？	途中	とちゅう		frequent		tatoeba 8781726; JMdict; half a とちゅう 44/44
+トムは特別な子です。	特別	とくべつ		frequent		tatoeba 7577154; JMdict; half a とくべつ 19/19
+二度と俺の女に近づくなよ。	近づく	ちかづく		frequent		tatoeba 4147979; JMdict; half a ちかづく 39/39
+彼は女性に扮装した。	女性	じょせい		frequent		tatoeba 104222; JMdict; half a じょせい 101/101
+この写真大好き。	大好き	だいすき		frequent		tatoeba 221437; JMdict; half a だいすき 200/200
+この生活に疲れた。	生活	せいかつ		frequent		tatoeba 220917; JMdict; half a せいかつ 81/81
+二人は結婚した。	二人	ふたり		frequent		tatoeba 123072; JMdict; half a ふたり 203/205
+俺に感謝しろよ。	感謝	かんしゃ		frequent		tatoeba 10495637; JMdict; half a かんしゃ 34/34
+類は類をもって集まる。	集まる	あつまる		frequent		tatoeba 77724; JMdict; half a あつまる 22/22
+人は苦しみを与える存在だ。	与える	あたえる		frequent		tatoeba 12825102; JMdict; half a あたえる 62/62
+期待しないでね。	期待	きたい		frequent		tatoeba 10197571; JMdict; half a きたい 34/34
+すぐ後ろにいるよ。	後ろ	うしろ		frequent		tatoeba 8570995; JMdict; half a うしろ 43/43
+ジョンはあなたに出会う前は怠け者でした。	出会う	であう		frequent		tatoeba 215427; JMdict; half a であう 21/21
+本当に美味しい。	美味しい	おいしい		frequent		tatoeba 8635928; JMdict; half a おいしい 101/101
+親は子を愛する。	親	おや		frequent		tatoeba 144817; JMdict; half a おや 68/70
+目が回るほど忙しいよ。	回る	まわる		frequent		tatoeba 80015; majority; half a まわる 30/31
+これは大変珍しい例だ。	珍しい	めずらしい		frequent		tatoeba 1345576; JMdict; half a めずらしい 11/11
+何も急ぐ事はないよ。	急ぐ	いそぐ		frequent		tatoeba 187671; JMdict; half a いそぐ 92/92
+重いスマホで手が疲れる。	疲れる	つかれる		frequent		tatoeba 11027711; JMdict; half a つかれる 112/112
+それは意外だな。	意外	いがい		frequent		tatoeba 10028843; JMdict; half a いがい 21/21
+トムは天にも昇る思いだった。	思い	おもい		frequent		tatoeba 10505951; JMdict; half a おもい 28/28
+滞在目的は何ですか？	目的	もくてき		frequent		tatoeba 137894; JMdict; half a もくてき 26/26
+金を借りるのも貸すのも嫌だ。	借りる	かりる		frequent		tatoeba 179699; JMdict; half a かりる 85/85
+私は姉に相談した。	相談	そうだん		frequent		tatoeba 156583; JMdict; half a そうだん 24/24
+この瞬間を楽しみたい。	瞬間	しゅんかん		frequent		tatoeba 10776899; JMdict; half a しゅんかん 12/12
+私達は隣同士です。	隣	となり		frequent		tatoeba 151234; JMdict; half a となり 49/49
+パソコンは使える？	使える	つかえる		frequent		tatoeba 1158892; majority; half a つかえる 36/36
+演奏会がとても不安だ。	不安	ふあん		frequent		tatoeba 188768; JMdict; half a ふあん 25/25
+竜は想像上の動物だ。	想像	そうぞう		frequent		tatoeba 1125130; JMdict; half a そうぞう 17/17
+服を着ましたか。	服	ふく		frequent		tatoeba 83889; JMdict; half a ふく 115/116
+事業に失敗した。	失敗	しっぱい		frequent		tatoeba 150903; JMdict; half a しっぱい 68/68
+怒りは敵と思え。	敵	てき		frequent		tatoeba 124416; JMdict; half a てき 24/24
+私達は命を落とす危険がある。	落とす	おとす		frequent		tatoeba 151268; JMdict; half a おとす 42/42
+僕は周りを見回した。	周り	まわり		frequent		tatoeba 81858; JMdict; half a まわり 40/40
+火は常に危険だ。	危険	きけん		frequent		tatoeba 186733; JMdict; half a きけん 76/76
+毎晩電話するよ。	電話	でんわ		frequent		tatoeba 81225; JMdict; half a でんわ 338/338
+それは小さな問題だ。	小さな	ちいさな		frequent		tatoeba 7465226; JMdict; half a ちいさな 82/82
+歳をとると独り言が増えるよね。	増える	ふえる		frequent		tatoeba 10979859; JMdict; half a ふえる 37/37
+ツバメは飛ぶのが速い。	飛ぶ	とぶ		frequent		tatoeba 202567; JMdict; half a とぶ 36/36
+いい考えですね。	考え	かんがえ		frequent		tatoeba 229362; JMdict; half a かんがえ 94/94
+大きな事件が起こるだろう。	起こる	おこる		frequent		tatoeba 137724; JMdict; half a おこる 105/105
+全ては終わった。	全て	すべて		frequent		tatoeba 140844; JMdict; half a すべて 88/88
+自由になりたい。	自由	じゆう		frequent		tatoeba 5055280; JMdict; half a じゆう 50/50
+時代に乗り遅れるなよ。	時代	じだい		frequent		tatoeba 9826412; JMdict; half a じだい 28/28
+僕だったら、断るな。	断る	ことわる		frequent		tatoeba 10230338; JMdict; half a ことわる 33/33
+魚は水の中で暮らす。	暮らす	くらす		frequent		tatoeba 389693; JMdict; half a くらす 75/75
+賞が取れるといいですね。	取れる	とれる		frequent		tatoeba 146301; JMdict; half a とれる 34/34
+流行を追うのはやめたわ。	追う	おう		frequent		tatoeba 10774848; JMdict; half a おう 12/12
+日本では、３月３日は「桃の節句」と呼ばれ、女の子の成長と幸福を願う行事として、お雛様や桃の花などを飾ります。桃の花は、薄紅色のきれいな花です。花言葉は、「チャーミング」です。	願う	ねがう		frequent		tatoeba 8443403; JMdict; half a ねがう 196/196
+勉強が嫌いです。	勉強	べんきょう		frequent		tatoeba 537022; JMdict; half a べんきょう 336/336
+お久しぶりですね！	久しぶり	ひさしぶり		frequent		tatoeba 13194522; JMdict; half a ひさしぶり 34/34
+この椅子は軽い。	軽い	かるい		frequent		tatoeba 971354; JMdict; half a かるい 20/20
+血だらけだった。	血	ち		frequent		tatoeba 10135608; JMdict; half a ち 31/31
+彼は果物を売る。	売る	うる		frequent		tatoeba 6037346; JMdict; half a うる 57/57
+そのスープ熱いよ。	熱い	あつい		frequent		tatoeba 9032509; JMdict; half a あつい 28/29
+彼は行動が慎重だ。	行動	こうどう		frequent		tatoeba 107325; JMdict; half a こうどう 39/39
+トムに金を貸すのは嫌だ。	貸す	かす		frequent		tatoeba 1484845; JMdict; half a かす 93/93
+風邪はよく引くの？	引く	ひく		frequent		tatoeba 9958273; JMdict; half a ひく 54/54
+かわいいは世界を救う。	救う	すくう		frequent		tatoeba 9665673; JMdict; half a すくう 10/10
+トムは記憶を失った。	記憶	きおく		frequent		tatoeba 2706815; JMdict; half a きおく 14/14
+指示を注意深く読めば、間違うことはありません。	間違う	まちがう		frequent		tatoeba 168234; JMdict; half a まちがう 83/83
+その件は検討中だ。	件	けん		frequent		tatoeba 211062; JMdict; half a けん 42/43
+太陽は光を放つ。	光	ひかり		frequent		tatoeba 138107; JMdict; half a ひかり 25/25
+彼女は先輩を追い越して昇進した。	先輩	せんぱい		frequent		tatoeba 88233; JMdict; half a せんぱい 10/10
+予定通りですよ。	予定	よてい		frequent		tatoeba 12254399; JMdict; half a よてい 94/94
+風は種を遠くへ運ぶ。	運ぶ	はこぶ		frequent		tatoeba 84010; JMdict; half a はこぶ 21/21
+我慢できません。	我慢	がまん		frequent		tatoeba 11252743; JMdict; half a がまん 54/54
+機械は仕事から創造的な興味を奪う。	奪う	うばう		frequent		tatoeba 183358; JMdict; half a うばう 18/18
+二人は結婚した。	結婚	けっこん		frequent		tatoeba 123072; JMdict; half a けっこん 217/217
+海が見えてきた。	海	うみ		frequent		tatoeba 185133; JMdict; half a うみ 71/71
+彼、自信があるね。	自信	じしん		frequent		tatoeba 121147; JMdict; half a じしん 21/21
+トムをパーティーに誘うつもりなの？	誘う	さそう		frequent		tatoeba 8738101; JMdict; half a さそう 33/33
+それ、いい色ね。	色	いろ		frequent		tatoeba 12039566; JMdict; half a いろ 46/47
+趣味は昆虫を集めることです。	集める	あつめる		frequent		tatoeba 163369; JMdict; half a あつめる 31/31
+触るとかぶれるよ。	触る	さわる		frequent		tatoeba 11029607; JMdict; half a さわる 25/25
+彼は彼女に気づくことなく走り過ぎた。	気づく	きづく		frequent		tatoeba 101042; JMdict; half a きづく 48/48
+相変わらずよね。	相変わらず	あいかわらず		frequent		tatoeba 13281740; JMdict; half a あいかわらず 15/15
+以前はこの教会にいました。	以前	いぜん		frequent		tatoeba 191181; JMdict; half a いぜん 49/49
+肺に溜まった煙を吐き出し、暗い公園に視線を向ける。	向ける	むける		frequent		tatoeba 11028034; JMdict; half a むける 27/27
+いつも笑顔でね。	笑顔	えがお		frequent		tatoeba 1278406; JMdict; half a えがお 31/31
+親は子を愛する。	愛する	あいする		frequent		tatoeba 144817; JMdict; half a あいする 81/82
+意識がありません。	意識	いしき		frequent		tatoeba 191047; JMdict; half a いしき 16/16
+トムは胃腸が弱い。	弱い	よわい		frequent		tatoeba 2275612; JMdict; half a よわい 19/21
+この写真大好き。	写真	しゃしん		frequent		tatoeba 221437; JMdict; half a しゃしん 157/157
+何かが足に触れるのを感じた。	触れる	ふれる		frequent		tatoeba 188117; JMdict; half a ふれる 22/22
+トムはあと30分で着く。	着く	つく		frequent		tatoeba 12211401; majority; half a つく 139/139
+トムはパソコンに詳しい。	詳しい	くわしい		frequent		tatoeba 2734438; JMdict; half a くわしい 29/29
+どうぞご勝手に。	勝手	かって		frequent		tatoeba 11919529; JMdict; half a かって 11/12
+彼本人がやってきた。	本人	ほんにん		frequent		tatoeba 85984; JMdict; half a ほんにん 10/10
+クリスマスは誰と過ごすの？	過ごす	すごす		frequent		tatoeba 3689547; JMdict; half a すごす 69/69
+紹介させてください。	紹介	しょうかい		frequent		tatoeba 146348; JMdict; half a しょうかい 16/16
+それは事実とは違う。	事実	じじつ		frequent		tatoeba 205108; JMdict; half a じじつ 39/39
+音楽に興味ある？	興味	きょうみ		frequent		tatoeba 9096671; JMdict; half a きょうみ 96/96
+ご協力に感謝致します。	協力	きょうりょく		frequent		tatoeba 217179; JMdict; half a きょうりょく 15/15
+嘘は決してつくな！	決して	けっして		frequent		tatoeba 189506; JMdict; half a けっして 51/51
+トムは外向的だ。	的	てき		frequent		tatoeba 8634683; majority; half a てき 32/35
+トムから返事来た？	返事	へんじ		frequent		tatoeba 3395376; JMdict; half a へんじ 57/57
+悪銭身につかず。	身	み		frequent		tatoeba 473849; majority; half a み 38/38
+足の向くままに歩いた。	向く	むく		frequent		tatoeba 139865; JMdict; half a むく 14/14
+トムに迷惑をかけるな。	迷惑	めいわく		frequent		tatoeba 9988874; JMdict; half a めいわく 25/25
+朝は空気が新鮮だ。	空気	くうき		frequent		tatoeba 126225; JMdict; half a くうき 41/41
+その事件は調査中です。	事件	じけん		frequent		tatoeba 209955; JMdict; half a じけん 27/27
+私は必死になって逃げた。	必死	ひっし		frequent		tatoeba 153100; JMdict; half a ひっし 10/10
+我々は辞任します。	我々	われわれ		frequent		tatoeba 10309086; JMdict; half a われわれ 147/147
+日本は狭い国です。	国	くに		frequent		tatoeba 10901739; JMdict; half a くに 117/120
+彼は楽に英語が読める。	楽	らく		frequent		tatoeba 108815; JMdict; half a らく 23/24
+誰もが自分にないものを望む。	望む	のぞむ		frequent		tatoeba 4216120; JMdict; half a のぞむ 20/20
+他人に合わせることも大事だ。	合わせる	あわせる		frequent		tatoeba 11003484; JMdict; half a あわせる 16/16
+氷のように冷たい。	冷たい	つめたい		frequent		tatoeba 85392; JMdict; half a つめたい 37/37
+一週間程度で治りますよ。	程度	ていど		frequent		tatoeba 10868555; JMdict; half a ていど 21/21
+直接電話できますか。	直接	ちょくせつ		frequent		tatoeba 125741; JMdict; half a ちょくせつ 15/15
+その品物は本物だ。	本物	ほんもの		frequent		tatoeba 207048; JMdict; half a ほんもの 22/22
+男は一生、子供である。	一生	いっしょう		frequent		tatoeba 1333425; JMdict; half a いっしょう 23/23
+この弁当は量が少ないよ。	少ない	すくない		frequent		tatoeba 10990280; JMdict; half a すくない 63/63
+暑さで倒れるランナーが多かった。	倒れる	たおれる		frequent		tatoeba 10747910; JMdict; half a たおれる 25/26
+彼は立派な青年だ。	立派	りっぱ		frequent		tatoeba 2138423; JMdict; half a りっぱ 16/16
+人混みを抜けるまで私にくっついていなさい。	抜ける	ぬける		frequent		tatoeba 144203; JMdict; half a ぬける 18/18
+人口は過去五年で二倍になった。	過去	かこ		frequent		tatoeba 144217; JMdict; half a かこ 15/15
+富士山は美しい。	美しい	うつくしい		frequent		tatoeba 8768433; JMdict; half a うつくしい 89/89
+大人っぽくなりたい。	大人	おとな		frequent		tatoeba 3710895; JMdict; half a おとな 30/30
+水のお代わりを下さい。	代わり	かわり		frequent		tatoeba 143796; JMdict; half a かわり 33/35
+機会は利用すべきだ。	利用	りよう		frequent		tatoeba 183366; JMdict; half a りよう 29/29
+彼は今食事中です。	食事	しょくじ		frequent		tatoeba 107127; JMdict; half a しょくじ 86/86
+これは実際の出来事です。	実際	じっさい		frequent		tatoeba 218281; JMdict; half a じっさい 36/36
+彼は正しいと思う。	正しい	ただしい		frequent		tatoeba 103320; JMdict; half a ただしい 98/99
+トムは料理する。	料理	りょうり		frequent		tatoeba 7462002; JMdict; half a りょうり 106/106
+私は水で火を消す。	消す	けす		frequent		tatoeba 2116610; JMdict; half a けす 64/64
+すごく寂しいです。	寂しい	さびしい		frequent		tatoeba 11056005; majority; half a さびしい 27/28
+彼女の責任ではない。	責任	せきにん		frequent		tatoeba 94188; JMdict; half a せきにん 36/36
+旅行が楽しみです。	楽しみ	たのしみ		frequent		tatoeba 152338; JMdict; half a たのしみ 51/51
+車が壊れていた。	車	くるま		frequent		tatoeba 149128; JMdict; half a くるま 471/485
+厳しい冬だった。	厳しい	きびしい		frequent		tatoeba 11162317; JMdict; half a きびしい 23/23
+腹を立てるだけ損よ。	立てる	たてる		frequent		tatoeba 9689437; JMdict; half a たてる 61/61
+父は今不在です。	父	ちち		frequent		tatoeba 84575; JMdict; half a ちち 240/242
+会えて嬉しいよ。	嬉しい	うれしい		frequent		tatoeba 185455; JMdict; half a うれしい 73/73
+納得いかないな。	納得	なっとく		frequent		tatoeba 8905449; JMdict; half a なっとく 17/17
+私たちの秘密ね。	秘密	ひみつ		frequent		tatoeba 9847462; JMdict; half a ひみつ 42/42
+眠ることができなかった。	眠る	ねむる		frequent		tatoeba 80979; JMdict; half a ねむる 57/57
+それはいい答えだ。	答え	こたえ		frequent		tatoeba 205543; JMdict; half a こたえ 42/42
+この服、私に似合う？	似合う	にあう		frequent		tatoeba 3460798; JMdict; half a にあう 27/27
+遠くに家が見えた。	遠く	とおく		frequent		tatoeba 188672; JMdict; half a とおく 41/41
+現金で払うと喜ばれる。	払う	はらう		frequent		tatoeba 11027681; JMdict; half a はらう 62/62
+自分は他人である。	他人	たにん		frequent		tatoeba 398124; JMdict; half a たにん 35/35
+その計画に対する興味が半減した。	対する	たいする		frequent		tatoeba 211275; JMdict; half a たいする 56/56
+スタジオはとても狭くて、隠れる場所はない。	隠れる	かくれる		frequent		tatoeba 1721173; JMdict; half a かくれる 33/33
+雲がゆっくり流れるのをぼーっと見てる。	流れる	ながれる		frequent		tatoeba 11056597; JMdict; half a ながれる 20/20
+私は山にいました。	山	やま		frequent		tatoeba 4715; JMdict; half a やま 89/91
+トムは首になった。	首	くび		frequent		tatoeba 199895; JMdict; half a くび 28/28
+爆発の原因は何だったの？	原因	げんいん		frequent		tatoeba 121378; JMdict; half a げんいん 21/21
+日曜日は暇です。	暇	ひま		frequent		tatoeba 1054565; JMdict; half a ひま 58/60
+今夜電話します。	今夜	こんや		frequent		tatoeba 171062; JMdict; half a こんや 101/101
+勤勉は成功の母。	成功	せいこう		frequent		tatoeba 179974; JMdict; half a せいこう 81/81
+やあ、調子どう？	調子	ちょうし		frequent		tatoeba 3070023; JMdict; half a ちょうし 44/44
+トムの顔が赤い。	赤い	あかい		frequent		tatoeba 1099146; JMdict; half a あかい 61/61
+足を動かすと、激痛が走る。	動かす	うごかす		frequent		tatoeba 11023047; JMdict; half a うごかす 22/22
+おそらく遅れる。	遅れる	おくれる		frequent		tatoeba 8724583; JMdict; half a おくれる 151/151
+金魚すくっても飼うか迷うな。	迷う	まよう		frequent		tatoeba 10990603; JMdict; half a まよう 32/32
+少し緊張してます。	緊張	きんちょう		frequent		tatoeba 8604660; JMdict; half a きんちょう 22/22
+指を広げてみて。	指	ゆび		frequent		tatoeba 9857358; JMdict; half a ゆび 33/33
+そんな余裕あるの？	余裕	よゆう		frequent		tatoeba 11545919; JMdict; half a よゆう 27/27
+質問があります。	質問	しつもん		frequent		tatoeba 149535; JMdict; half a しつもん 148/148
+これは現実です。	現実	げんじつ		frequent		tatoeba 3225625; JMdict; half a げんじつ 16/16
+後悔したくない。	後悔	こうかい		frequent		tatoeba 174296; JMdict; half a こうかい 41/41
+凄い経験でした。	経験	けいけん		frequent		tatoeba 10837031; JMdict; half a けいけん 38/38
+暗い嵐の夜だった。	暗い	くらい		frequent		tatoeba 630555; JMdict; half a くらい 73/81
+味はいかがですか。	味	あじ		frequent		tatoeba 81065; JMdict; half a あじ 53/53
+今でもまだ悲しい？	悲しい	かなしい		frequent		tatoeba 8777776; JMdict; half a かなしい 31/31
+トムは犬に襲われた。	襲わ	おそう		frequent	xfail	tatoeba 8762337; JMdict; half a おそう 15/15; 0.2.0.dev0 gives None
+彼の愛は冷めていった。	愛	あい		frequent		tatoeba 118192; JMdict; half a あい 31/31
+押すとジャリジャリする。	押す	おす		frequent		tatoeba 10979942; JMdict; half a おす 37/37
+それが重要な点です。	点	てん		frequent		tatoeba 205871; JMdict; half a てん 52/52
+トムは値札を外すのを忘れていた。	外す	はずす		frequent		tatoeba 8652641; JMdict; half a はずす 19/19
+背中を蹴られた。	背中	せなか		frequent		tatoeba 121538; JMdict; half a せなか 17/17
+髪を整えないと。	髪	かみ		frequent		tatoeba 121288; JMdict; half a かみ 79/79
+母は早起きです。	母	はは		frequent		tatoeba 82899; JMdict; half a はは 168/168
+彼は頭が切れる。	切れる	きれる		frequent		tatoeba 101704; JMdict; half a きれる 37/37
+壁にもたれるな。	壁	かべ		frequent		tatoeba 83468; JMdict; half a かべ 41/41
+鉛筆を一本買った。	一本	いっぽん		counter	xfail	0.2.0.dev0 gives いちほん
+鉛筆を二本買った。	二本	にほん		counter		
+鉛筆を三本買った。	三本	さんぼん		counter	xfail	0.2.0.dev0 gives さんほん
+鉛筆を四本買った。	四本	よんほん		counter		
+鉛筆を五本買った。	五本	ごほん		counter		
+鉛筆を六本買った。	六本	ろっぽん		counter	xfail	0.2.0.dev0 gives ろくほん
+鉛筆を七本買った。	七本	ななほん	しちほん	counter		
+鉛筆を八本買った。	八本	はっぽん	はちほん	counter		
+鉛筆を九本買った。	九本	きゅうほん		counter		
+鉛筆を十本買った。	十本	じゅっぽん	じっぽん	counter	xfail	0.2.0.dev0 gives じゅうほん
+鉛筆を百本買った。	百本	ひゃっぽん		counter	xfail	0.2.0.dev0 gives ひゃくほん
+鉛筆を千本買った。	千本	せんぼん		counter	xfail	0.2.0.dev0 gives せんほん
+鉛筆を何本買った。	何本	なんぼん		counter		
+庭に猫が一匹いる。	一匹	いっぴき		counter	xfail	0.2.0.dev0 gives いちひき
+庭に猫が二匹いる。	二匹	にひき		counter		
+庭に猫が三匹いる。	三匹	さんびき		counter	xfail	0.2.0.dev0 gives さんひき
+庭に猫が四匹いる。	四匹	よんひき		counter		
+庭に猫が五匹いる。	五匹	ごひき		counter		
+庭に猫が六匹いる。	六匹	ろっぴき		counter	xfail	0.2.0.dev0 gives ろくひき
+庭に猫が七匹いる。	七匹	ななひき	しちひき	counter		
+庭に猫が八匹いる。	八匹	はっぴき	はちひき	counter		
+庭に猫が九匹いる。	九匹	きゅうひき		counter		
+庭に猫が十匹いる。	十匹	じゅっぴき	じっぴき	counter	xfail	0.2.0.dev0 gives じゅうひき
+庭に猫が百匹いる。	百匹	ひゃっぴき		counter	xfail	0.2.0.dev0 gives ひゃくひき
+庭に猫が千匹いる。	千匹	せんびき		counter	xfail	0.2.0.dev0 gives せんひき
+庭に猫が何匹いる。	何匹	なんびき		counter	xfail	0.2.0.dev0 gives なんひき
+コーヒーを一杯飲んだ。	一杯	いっぱい		counter		
+コーヒーを二杯飲んだ。	二杯	にはい		counter	xfail	0.2.0.dev0 gives にばい
+コーヒーを三杯飲んだ。	三杯	さんばい		counter		
+コーヒーを四杯飲んだ。	四杯	よんはい		counter	xfail	0.2.0.dev0 gives よんばい
+コーヒーを五杯飲んだ。	五杯	ごはい		counter	xfail	0.2.0.dev0 gives ごばい
+コーヒーを六杯飲んだ。	六杯	ろっぱい		counter	xfail	0.2.0.dev0 gives ろくばい
+コーヒーを七杯飲んだ。	七杯	ななはい	しちはい	counter	xfail	0.2.0.dev0 gives しちばい
+コーヒーを八杯飲んだ。	八杯	はっぱい	はちはい	counter	xfail	0.2.0.dev0 gives はちばい
+コーヒーを九杯飲んだ。	九杯	きゅうはい		counter	xfail	0.2.0.dev0 gives きゅうばい
+コーヒーを十杯飲んだ。	十杯	じゅっぱい	じっぱい	counter	xfail	0.2.0.dev0 gives じゅうばい
+コーヒーを百杯飲んだ。	百杯	ひゃっぱい		counter	xfail	0.2.0.dev0 gives ひゃくばい
+コーヒーを千杯飲んだ。	千杯	せんばい		counter		
+コーヒーを何杯飲んだ。	何杯	なんばい		counter		
+事務所はビルの一階にある。	一階	いっかい		counter	xfail	0.2.0.dev0 gives いちかい
+事務所はビルの二階にある。	二階	にかい		counter		
+事務所はビルの三階にある。	三階	さんがい	さんかい	counter		
+事務所はビルの四階にある。	四階	よんかい		counter		
+事務所はビルの五階にある。	五階	ごかい		counter		
+事務所はビルの六階にある。	六階	ろっかい		counter	xfail	0.2.0.dev0 gives ろくかい
+事務所はビルの七階にある。	七階	ななかい	しちかい	counter		
+事務所はビルの八階にある。	八階	はっかい	はちかい	counter		
+事務所はビルの九階にある。	九階	きゅうかい		counter		
+事務所はビルの十階にある。	十階	じゅっかい	じっかい	counter	xfail	0.2.0.dev0 gives じゅうかい
+事務所はビルの百階にある。	百階	ひゃっかい		counter	xfail	0.2.0.dev0 gives ひゃくかい
+事務所はビルの千階にある。	千階	せんかい	せんがい	counter		
+事務所はビルの何階にある。	何階	なんがい	なんかい	counter		
+りんごを一個食べた。	一個	いっこ		counter	xfail	0.2.0.dev0 gives いちこ
+りんごを二個食べた。	二個	にこ		counter		
+りんごを三個食べた。	三個	さんこ		counter		
+りんごを四個食べた。	四個	よんこ		counter		
+りんごを五個食べた。	五個	ごこ		counter		
+りんごを六個食べた。	六個	ろっこ		counter	xfail	0.2.0.dev0 gives ろくこ
+りんごを七個食べた。	七個	ななこ	しちこ	counter		
+りんごを八個食べた。	八個	はっこ	はちこ	counter		
+りんごを九個食べた。	九個	きゅうこ		counter		
+りんごを十個食べた。	十個	じゅっこ	じっこ	counter	xfail	0.2.0.dev0 gives じゅうこ
+りんごを百個食べた。	百個	ひゃっこ		counter	xfail	0.2.0.dev0 gives ひゃくこ
+りんごを千個食べた。	千個	せんこ		counter		
+りんごを何個食べた。	何個	なんこ		counter		
+その映画を一回見た。	一回	いっかい		counter	xfail	0.2.0.dev0 gives いちかい
+その映画を二回見た。	二回	にかい		counter		
+その映画を三回見た。	三回	さんかい		counter		
+その映画を四回見た。	四回	よんかい		counter		
+その映画を五回見た。	五回	ごかい		counter		
+その映画を六回見た。	六回	ろっかい		counter	xfail	0.2.0.dev0 gives ろくかい
+その映画を七回見た。	七回	ななかい	しちかい	counter		
+その映画を八回見た。	八回	はっかい	はちかい	counter		
+その映画を九回見た。	九回	きゅうかい		counter		
+その映画を十回見た。	十回	じゅっかい	じっかい	counter	xfail	0.2.0.dev0 gives じゅうかい
+その映画を百回見た。	百回	ひゃっかい		counter	xfail	0.2.0.dev0 gives ひゃくかい
+その映画を千回見た。	千回	せんかい		counter		
+その映画を何回見た。	何回	なんかい		counter		
+図書館で一冊借りた。	一冊	いっさつ		counter	xfail	0.2.0.dev0 gives いちさつ
+図書館で二冊借りた。	二冊	にさつ		counter		
+図書館で三冊借りた。	三冊	さんさつ		counter		
+図書館で四冊借りた。	四冊	よんさつ		counter		
+図書館で五冊借りた。	五冊	ごさつ		counter		
+図書館で六冊借りた。	六冊	ろくさつ		counter		
+図書館で七冊借りた。	七冊	ななさつ	しちさつ	counter		
+図書館で八冊借りた。	八冊	はっさつ	はちさつ	counter		
+図書館で九冊借りた。	九冊	きゅうさつ		counter		
+図書館で十冊借りた。	十冊	じゅっさつ	じっさつ	counter	xfail	0.2.0.dev0 gives じゅうさつ
+図書館で百冊借りた。	百冊	ひゃくさつ	ひゃっさつ	counter		
+図書館で千冊借りた。	千冊	せんさつ		counter		
+図書館で何冊借りた。	何冊	なんさつ		counter		
+息子は一歳になった。	一歳	いっさい		counter	xfail	0.2.0.dev0 gives いちさい
+息子は二歳になった。	二歳	にさい		counter		
+息子は三歳になった。	三歳	さんさい		counter		
+息子は四歳になった。	四歳	よんさい		counter		
+息子は五歳になった。	五歳	ごさい		counter		
+息子は六歳になった。	六歳	ろくさい		counter		
+息子は七歳になった。	七歳	ななさい	しちさい	counter		
+息子は八歳になった。	八歳	はっさい		counter	xfail	0.2.0.dev0 gives はちさい
+息子は九歳になった。	九歳	きゅうさい		counter		
+息子は十歳になった。	十歳	じゅっさい	じっさい	counter	xfail	0.2.0.dev0 gives じゅうさい
+息子は百歳になった。	百歳	ひゃくさい		counter		
+息子は何歳になった。	何歳	なんさい		counter		
+駅まで一分かかった。	一分	いっぷん		counter	xfail	0.2.0.dev0 gives いちふん
+駅まで二分かかった。	二分	にふん		counter		
+駅まで三分かかった。	三分	さんぷん		counter	xfail	0.2.0.dev0 gives さんふん
+駅まで四分かかった。	四分	よんぷん		counter	xfail	0.2.0.dev0 gives よんふん
+駅まで五分かかった。	五分	ごふん		counter		
+駅まで六分かかった。	六分	ろっぷん		counter	xfail	0.2.0.dev0 gives ろくふん
+駅まで七分かかった。	七分	ななふん	しちふん	counter		
+駅まで八分かかった。	八分	はっぷん	はちふん	counter		
+駅まで九分かかった。	九分	きゅうふん		counter		
+駅まで十分かかった。	十分	じゅっぷん	じっぷん	counter	xfail	0.2.0.dev0 gives じゅうぶん
+駅まで百分かかった。	百分	ひゃっぷん		counter	xfail	0.2.0.dev0 gives ひゃくぶん
+駅まで千分かかった。	千分	せんぷん		counter	xfail	0.2.0.dev0 gives せんふん
+駅まで何分かかった。	何分	なんぷん		counter	xfail	0.2.0.dev0 gives なにぶん
+部屋に一人いた。	一人	ひとり		counter		
+部屋に二人いた。	二人	ふたり		counter		
+部屋に三人いた。	三人	さんにん		counter		
+部屋に四人いた。	四人	よにん		counter	xfail	0.2.0.dev0 gives よんにん
+部屋に五人いた。	五人	ごにん		counter		
+部屋に六人いた。	六人	ろくにん		counter		
+部屋に七人いた。	七人	ななにん	しちにん	counter		
+部屋に八人いた。	八人	はちにん		counter		
+部屋に九人いた。	九人	きゅうにん	くにん	counter		
+部屋に十人いた。	十人	じゅうにん		counter		
+部屋に百人いた。	百人	ひゃくにん		counter		
+部屋に千人いた。	千人	せんにん		counter		
+部屋に何人いた。	何人	なんにん		counter		
+来月の一日に会おう。	一日	ついたち		counter		
+来月の二日に会おう。	二日	ふつか		counter	xfail	0.2.0.dev0 gives ふたか
+来月の三日に会おう。	三日	みっか		counter		
+来月の四日に会おう。	四日	よっか		counter	xfail	0.2.0.dev0 gives よんか
+来月の五日に会おう。	五日	いつか		counter		
+来月の六日に会おう。	六日	むいか		counter		
+来月の七日に会おう。	七日	なのか	なぬか	counter	xfail	0.2.0.dev0 gives ななにち
+来月の八日に会おう。	八日	ようか		counter		
+来月の九日に会おう。	九日	ここのか		counter		
+来月の十日に会おう。	十日	とおか		counter	xfail	0.2.0.dev0 gives とうか
+来月の何日に会おう。	何日	なんにち		counter		
+弟は一月に生まれた。	一月	いちがつ		counter		
+弟は二月に生まれた。	二月	にがつ		counter		
+弟は三月に生まれた。	三月	さんがつ		counter		
+弟は四月に生まれた。	四月	しがつ		counter	xfail	0.2.0.dev0 gives よんがつ
+弟は五月に生まれた。	五月	ごがつ		counter		
+弟は六月に生まれた。	六月	ろくがつ		counter		
+弟は七月に生まれた。	七月	しちがつ		counter	xfail	0.2.0.dev0 gives なながつ
+弟は八月に生まれた。	八月	はちがつ		counter		
+弟は九月に生まれた。	九月	くがつ		counter	xfail	0.2.0.dev0 gives きゅうがつ
+弟は十月に生まれた。	十月	じゅうがつ		counter		
+弟は何月に生まれた。	何月	なんがつ		counter		
+毎朝一時に起きる。	一時	いちじ		counter		
+毎朝二時に起きる。	二時	にじ		counter		
+毎朝三時に起きる。	三時	さんじ		counter		
+毎朝四時に起きる。	四時	よじ		counter	xfail	0.2.0.dev0 gives よんじ
+毎朝五時に起きる。	五時	ごじ		counter		
+毎朝六時に起きる。	六時	ろくじ		counter		
+毎朝七時に起きる。	七時	しちじ	ななじ	counter		
+毎朝八時に起きる。	八時	はちじ		counter		
+毎朝九時に起きる。	九時	くじ		counter	xfail	0.2.0.dev0 gives きゅうじ
+毎朝十時に起きる。	十時	じゅうじ		counter		
+毎朝何時に起きる。	何時	なんじ		counter		
+紙を一枚使った。	一枚	いちまい		counter		
+紙を二枚使った。	二枚	にまい		counter		
+紙を三枚使った。	三枚	さんまい		counter		
+紙を四枚使った。	四枚	よんまい		counter		
+紙を五枚使った。	五枚	ごまい		counter		
+紙を六枚使った。	六枚	ろくまい		counter		
+紙を七枚使った。	七枚	ななまい	しちまい	counter		
+紙を八枚使った。	八枚	はちまい		counter		
+紙を九枚使った。	九枚	きゅうまい		counter		
+紙を十枚使った。	十枚	じゅうまい		counter		
+紙を百枚使った。	百枚	ひゃくまい		counter		
+紙を千枚使った。	千枚	せんまい		counter		
+紙を何枚使った。	何枚	なんまい		counter		
+駐車場に車が一台ある。	一台	いちだい		counter		
+駐車場に車が二台ある。	二台	にだい		counter		
+駐車場に車が三台ある。	三台	さんだい		counter		
+駐車場に車が四台ある。	四台	よんだい		counter		
+駐車場に車が五台ある。	五台	ごだい		counter		
+駐車場に車が六台ある。	六台	ろくだい		counter		
+駐車場に車が七台ある。	七台	ななだい	しちだい	counter		
+駐車場に車が八台ある。	八台	はちだい		counter		
+駐車場に車が九台ある。	九台	きゅうだい		counter		
+駐車場に車が十台ある。	十台	じゅうだい		counter		
+駐車場に車が百台ある。	百台	ひゃくだい		counter		
+駐車場に車が千台ある。	千台	せんだい		counter		
+駐車場に車が何台ある。	何台	なんだい		counter		
+靴を一足買った。	一足	いっそく		counter	xfail	0.2.0.dev0 gives ひとあし
+靴を二足買った。	二足	にそく		counter		
+靴を三足買った。	三足	さんぞく	さんそく	counter		
+靴を四足買った。	四足	よんそく		counter		
+靴を五足買った。	五足	ごそく		counter		
+靴を六足買った。	六足	ろくそく		counter		
+靴を七足買った。	七足	ななそく	しちそく	counter		
+靴を八足買った。	八足	はっそく	はちそく	counter		
+靴を九足買った。	九足	きゅうそく		counter		
+靴を十足買った。	十足	じゅっそく	じっそく	counter	xfail	0.2.0.dev0 gives じゅうそく
+靴を百足買った。	百足	ひゃくそく		counter	xfail	0.2.0.dev0 gives むかで
+靴を千足買った。	千足	せんぞく	せんそく	counter		
+靴を何足買った。	何足	なんぞく	なんそく	counter		
+通りに家が一軒ある。	一軒	いっけん		counter	xfail	0.2.0.dev0 gives いちけん
+通りに家が二軒ある。	二軒	にけん		counter		
+通りに家が三軒ある。	三軒	さんげん	さんけん	counter		
+通りに家が四軒ある。	四軒	よんけん		counter	xfail	0.2.0.dev0 gives しけん
+通りに家が五軒ある。	五軒	ごけん		counter		
+通りに家が六軒ある。	六軒	ろっけん		counter	xfail	0.2.0.dev0 gives ろくけん
+通りに家が七軒ある。	七軒	ななけん	しちけん	counter		
+通りに家が八軒ある。	八軒	はっけん	はちけん	counter		
+通りに家が九軒ある。	九軒	きゅうけん		counter		
+通りに家が十軒ある。	十軒	じゅっけん	じっけん	counter	xfail	0.2.0.dev0 gives じゅうけん
+通りに家が百軒ある。	百軒	ひゃっけん		counter	xfail	0.2.0.dev0 gives ひゃくけん
+通りに家が千軒ある。	千軒	せんげん	せんけん	counter		
+通りに家が何軒ある。	何軒	なんげん	なんけん	counter		
+シャツを一着買った。	一着	いっちゃく		counter	xfail	0.2.0.dev0 gives いちちゃく
+シャツを二着買った。	二着	にちゃく		counter		
+シャツを三着買った。	三着	さんちゃく		counter		
+シャツを四着買った。	四着	よんちゃく		counter		
+シャツを五着買った。	五着	ごちゃく		counter		
+シャツを六着買った。	六着	ろくちゃく		counter		
+シャツを七着買った。	七着	ななちゃく	しちちゃく	counter		
+シャツを八着買った。	八着	はっちゃく	はちちゃく	counter		
+シャツを九着買った。	九着	きゅうちゃく		counter		
+シャツを十着買った。	十着	じゅっちゃく	じっちゃく	counter	xfail	0.2.0.dev0 gives じゅうちゃく
+シャツを百着買った。	百着	ひゃくちゃく		counter		
+シャツを千着買った。	千着	せんちゃく		counter		
+シャツを何着買った。	何着	なんちゃく		counter	xfail	0.2.0.dev0 gives なにちゃく
+テストで一点取った。	一点	いってん		counter	xfail	0.2.0.dev0 gives いちてん
+テストで二点取った。	二点	にてん		counter		
+テストで三点取った。	三点	さんてん		counter		
+テストで四点取った。	四点	よんてん		counter		
+テストで五点取った。	五点	ごてん		counter		
+テストで六点取った。	六点	ろくてん		counter		
+テストで七点取った。	七点	ななてん	しちてん	counter		
+テストで八点取った。	八点	はってん	はちてん	counter		
+テストで九点取った。	九点	きゅうてん		counter		
+テストで十点取った。	十点	じゅってん	じってん	counter	xfail	0.2.0.dev0 gives じゅうてん
+テストで百点取った。	百点	ひゃくてん		counter		
+テストで千点取った。	千点	せんてん		counter		
+テストで何点取った。	何点	なんてん		counter		
+牧場に牛が一頭いる。	一頭	いっとう		counter	xfail	0.2.0.dev0 gives いちとう
+牧場に牛が二頭いる。	二頭	にとう		counter		
+牧場に牛が三頭いる。	三頭	さんとう		counter		
+牧場に牛が四頭いる。	四頭	よんとう		counter		
+牧場に牛が五頭いる。	五頭	ごとう		counter		
+牧場に牛が六頭いる。	六頭	ろくとう		counter		
+牧場に牛が七頭いる。	七頭	ななとう	しちとう	counter		
+牧場に牛が八頭いる。	八頭	はっとう	はちとう	counter		
+牧場に牛が九頭いる。	九頭	きゅうとう		counter		
+牧場に牛が十頭いる。	十頭	じゅっとう	じっとう	counter	xfail	0.2.0.dev0 gives じゅうとう
+牧場に牛が百頭いる。	百頭	ひゃくとう		counter		
+牧場に牛が千頭いる。	千頭	せんとう		counter		
+牧場に牛が何頭いる。	何頭	なんとう		counter		
+空を鳥が一羽飛んでいる。	一羽	いちわ		counter	xfail	0.2.0.dev0 gives ひとわ
+空を鳥が二羽飛んでいる。	二羽	にわ		counter	xfail	0.2.0.dev0 gives ふたわ
+空を鳥が三羽飛んでいる。	三羽	さんわ	さんば	counter	xfail	0.2.0.dev0 gives みっわ
+空を鳥が四羽飛んでいる。	四羽	よんわ	よんば	counter		
+空を鳥が五羽飛んでいる。	五羽	ごわ		counter	xfail	0.2.0.dev0 gives いつわ
+空を鳥が六羽飛んでいる。	六羽	ろくわ	ろっぱ	counter	xfail	0.2.0.dev0 gives むいわ
+空を鳥が七羽飛んでいる。	七羽	ななわ	しちわ	counter		
+空を鳥が八羽飛んでいる。	八羽	はちわ	はっぱ	counter	xfail	0.2.0.dev0 gives ようわ
+空を鳥が九羽飛んでいる。	九羽	きゅうわ		counter	xfail	0.2.0.dev0 gives ここのわ
+空を鳥が十羽飛んでいる。	十羽	じゅうわ	じゅっぱ|じっぱ	counter	xfail	0.2.0.dev0 gives とうわ
+空を鳥が百羽飛んでいる。	百羽	ひゃくわ	ひゃっぱ	counter		
+空を鳥が千羽飛んでいる。	千羽	せんわ	せんば	counter		
+空を鳥が何羽飛んでいる。	何羽	なんわ	なんば	counter	xfail	0.2.0.dev0 gives なにわ
+旅行は一週間続いた。	一週間	いっしゅうかん		counter	xfail	0.2.0.dev0 gives いちしゅうかん
+旅行は二週間続いた。	二週間	にしゅうかん		counter		
+旅行は三週間続いた。	三週間	さんしゅうかん		counter		
+旅行は四週間続いた。	四週間	よんしゅうかん		counter		
+旅行は五週間続いた。	五週間	ごしゅうかん		counter		
+旅行は六週間続いた。	六週間	ろくしゅうかん		counter		
+旅行は七週間続いた。	七週間	ななしゅうかん	しちしゅうかん	counter		
+旅行は八週間続いた。	八週間	はっしゅうかん	はちしゅうかん	counter		
+旅行は九週間続いた。	九週間	きゅうしゅうかん		counter		
+旅行は十週間続いた。	十週間	じゅっしゅうかん	じっしゅうかん	counter	xfail	0.2.0.dev0 gives じゅうしゅうかん
+旅行は百週間続いた。	百週間	ひゃくしゅうかん		counter		
+旅行は千週間続いた。	千週間	せんしゅうかん		counter		
+旅行は何週間続いた。	何週間	なんしゅうかん		counter		
+東京に一年住んだ。	一年	いちねん		counter		
+東京に二年住んだ。	二年	にねん		counter		
+東京に三年住んだ。	三年	さんねん		counter		
+東京に四年住んだ。	四年	よねん		counter	xfail	0.2.0.dev0 gives よんねん
+東京に五年住んだ。	五年	ごねん		counter		
+東京に六年住んだ。	六年	ろくねん		counter		
+東京に七年住んだ。	七年	ななねん	しちねん	counter		
+東京に八年住んだ。	八年	はちねん		counter		
+東京に九年住んだ。	九年	きゅうねん	くねん	counter		
+東京に十年住んだ。	十年	じゅうねん		counter		
+東京に百年住んだ。	百年	ひゃくねん		counter		
+東京に千年住んだ。	千年	せんねん		counter		
+東京に何年住んだ。	何年	なんねん		counter		
+全部で一円だった。	一円	いちえん		counter		
+全部で二円だった。	二円	にえん		counter		
+全部で三円だった。	三円	さんえん		counter		
+全部で四円だった。	四円	よえん		counter	xfail	0.2.0.dev0 gives よんえん
+全部で五円だった。	五円	ごえん		counter		
+全部で六円だった。	六円	ろくえん		counter		
+全部で七円だった。	七円	ななえん	しちえん	counter		
+全部で八円だった。	八円	はちえん		counter		
+全部で九円だった。	九円	きゅうえん		counter		
+全部で十円だった。	十円	じゅうえん		counter		
+全部で百円だった。	百円	ひゃくえん		counter		
+全部で千円だった。	千円	せんえん		counter		
+全部で何円だった。	何円	なんえん		counter		
+彼には一度言った。	一度	いちど		counter		
+彼には二度言った。	二度	にど		counter		
+彼には三度言った。	三度	さんど		counter		
+彼には四度言った。	四度	よんど		counter		
+彼には五度言った。	五度	ごど		counter		
+彼には六度言った。	六度	ろくど		counter		
+彼には七度言った。	七度	ななど	しちど	counter		
+彼には八度言った。	八度	はちど		counter		
+彼には九度言った。	九度	きゅうど		counter		
+彼には十度言った。	十度	じゅうど		counter		
+彼には百度言った。	百度	ひゃくど		counter		
+彼には千度言った。	千度	せんど		counter		
+彼には何度言った。	何度	なんど		counter		
+来月の二十日に会おう。	二十日	はつか		counter	xfail	0.2.0.dev0 gives にとうか
+来月の十四日に会おう。	十四日	じゅうよっか		counter	xfail	0.2.0.dev0 gives じゅうよんか
+仕事に一日かかった。	一日	いちにち		counter	xfail	0.2.0.dev0 gives ついたち
+仕事に百日かかった。	百日	ひゃくにち		counter		
+娘は二十歳になった。	二十歳	はたち	にじゅっさい|にじっさい	counter		
+一つください。	一つ	ひとつ		counter		
+二つください。	二つ	ふたつ		counter		
+九つください。	九つ	ここのつ		counter		
+明日は雨が降るだろう。	明日	あした	あす	convention		
+明日また来ます。	明日	あした	あす	convention		
+今日はとても暑い。	今日	きょう		convention		
+今日の日本では珍しくない。	今日	こんにち	きょう	convention		
+日本に行きたい。	日本	にほん	にっぽん	convention		
+日本の夏は暑い。	日本	にほん	にっぽん	convention		
+昨日は忙しかった。	昨日	きのう	さくじつ	convention		
+昨日、駅で彼に会った。	昨日	きのう	さくじつ	convention		
+今年の冬は寒い。	今年	ことし	こんねん	convention		
+今年は海外へ行くつもりだ。	今年	ことし	こんねん	convention		
+一昨日、雨が降った。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	0.2.0.dev0 gives いっさくひ
+一昨日の新聞を読んだ。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	0.2.0.dev0 gives いっさくひ
+皆、元気です。	皆	みんな	みな	convention		
+皆で歌を歌った。	皆	みんな	みな	convention		
+家に帰りたい。	家	いえ	うち	convention		
+彼の家は大きい。	家	いえ	うち	convention		
+他に質問はありますか。	他	ほか	た	convention		
+他の人に聞いてください。	他	ほか	た	convention		
+私は学生です。	私	わたし	わたくし	convention		
+私の名前は田中です。	私	わたし	わたくし	convention		
+何人に話した？	何人	なんにん		probe		tatoeba 2912714
+妹が三人いる。	三人	さんにん		probe		tatoeba 6705562
+今日、一人で来たの？	一人	ひとり		probe		tatoeba 430408
+二人は結婚した。	二人	ふたり		probe		tatoeba 123072
+私は四人姉妹ではありません。	四人	よにん		probe	xfail	tatoeba 2349192; 0.2.0.dev0 gives よんにん
+彼女には兄が五人いる。	五人	ごにん		probe		tatoeba 2520543
+本が一冊棚から落ちた。	一冊	いっさつ		probe	xfail	tatoeba 81671; 0.2.0.dev0 gives いちさつ
+私は図書館から本を三冊借りました。	三冊	さんさつ		probe		tatoeba 2062302
+彼は家に帰ると本を十冊読む。	十冊	じゅっさつ	じっさつ	probe	xfail	tatoeba 109290; 0.2.0.dev0 gives じゅうさつ
+彼女はピアノの上に本が何冊かあるのを見た。	何冊	なんさつ		probe		tatoeba 91679
+電車はあと五分で到着の予定です。	五分	ごふん		probe		tatoeba 124790
+三分間目を閉じなさい。	三分	さんぷん		probe	xfail	tatoeba 169479; 0.2.0.dev0 gives None
+これ何分チンしたらいい？	何分	なんぷん		probe	xfail	tatoeba 3162657; 0.2.0.dev0 gives なにぶん
+今朝リスを一匹見かけた。	一匹	いっぴき		probe	xfail	tatoeba 5021684; 0.2.0.dev0 gives いちひき
+犬を二匹飼っています。一匹は白くてもう一匹は黒です。	二匹	にひき		probe		tatoeba 1037828
+彼は犬を三匹飼っていたが交通事故で一匹失った。	三匹	さんびき		probe	xfail	tatoeba 107712; 0.2.0.dev0 gives さんひき
+何匹かのサルが木に登っているのを見た。	何匹	なんびき		probe	xfail	tatoeba 187316; 0.2.0.dev0 gives なんひき
+車が一台こちらのほうへ近づいてきた。	一台	いちだい		probe		tatoeba 149134
+うちにはテレビが三台あります。	三台	さんだい		probe		tatoeba 10984813
+もう一回挑戦してみたいです。	一回	いっかい		probe	xfail	tatoeba 2976139; 0.2.0.dev0 gives いちかい
+週に何回そのサッカーチームは練習するんですか。	何回	なんかい		probe		tatoeba 148147
+この曲、千回以上は聴いてる。	千回	せんかい		probe		tatoeba 11027758
+私は酒屋でビールを一本買った。	一本	いっぽん		probe	xfail	tatoeba 148437; 0.2.0.dev0 gives いちほん
+チョークを三本ください。	三本	さんぼん		probe	xfail	tatoeba 202876; 0.2.0.dev0 gives さんほん
+あなたは何本の鉛筆をもってますか。	何本	なんぼん		probe		tatoeba 232190
+二本の道はそこでクロスしている。	二本	にほん		probe		tatoeba 75827
+十進法は、両手の十本の指を数えることから起こった。	十本	じゅっぽん	じっぽん	probe	xfail	tatoeba 11014036; 0.2.0.dev0 gives じゅうほん
+今夜は何杯飲んだの？	何杯	なんばい		probe		tatoeba 10138169
+私は彼らにチケットをもう一枚送ってくれるように頼んだ。	一枚	いちまい		probe		tatoeba 4740
+鉛筆１本と紙を何枚か下さい。	何枚	なんまい		probe		tatoeba 188631
+息子は十歳です。	十歳	じゅっさい	じっさい	probe	xfail	tatoeba 935927; 0.2.0.dev0 gives じゅうさい
+彼は彼女より三歳年上です。	三歳	さんさい		probe		tatoeba 1116409
+何歳ですか。	何歳	なんさい		probe		tatoeba 5325
+私の妹は四歳です。	四歳	よんさい		probe		tatoeba 10979890
+彼女は私に素晴らしいくつを一足くれた。	一足	いっそく		probe	xfail	tatoeba 89482; 0.2.0.dev0 gives ひとあし
+靴って、何足持ってる？	何足	なんそく	なんぞく	probe		tatoeba 11502811
+私の事務所は五階にある。	五階	ごかい		probe		tatoeba 163509
+彼らは二階の部屋を学生に貸した。	二階	にかい		probe		tatoeba 1749320
+皆さんの教室は三階です。	三階	さんがい	さんかい	probe		tatoeba 10901816
+靴下の売り場は一階にあります。	一階	いっかい		probe	xfail	tatoeba 11013892; 0.2.0.dev0 gives いちかい
+部屋は何階ですか？	何階	なんがい	なんかい	probe		tatoeba 11065678
+野原には六頭の羊がいた。	六頭	ろくとう		probe		tatoeba 79611
+牛は何頭飼ってるんですか？	何頭	なんとう		probe		tatoeba 12146470
+うちの息子は、再来年二十歳になります。	二十歳	はたち		probe		tatoeba 10682237
