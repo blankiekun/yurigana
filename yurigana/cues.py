@@ -41,8 +41,10 @@ METAL = frozenset({'鉄', '銅', '鉛', '錫', 'プラチナ', '白金', '金属
 
 # Words around a length of time, before it (あと十分, 約十分) and after it (十分後, 十分ほど, 十分おき):
 # they make 十分 minutes, not じゅうぶん. 前, 間 and あまり need guards (前後, 間に合う, あまりに) and stay in rules.
-DURATION_BEFORE = frozenset({'あと', '後', '残り', '約', 'およそ', '最初の', '最後の', 'わずか', '僅か', 'ほんの', 'たった',
-                             'ものの'})
+# Few and only (ほんの十分, たった一行), and the first or last one (最初の十分, 最後の一行).
+FEW = frozenset({'わずか', '僅か', 'ほんの', 'たった', 'ものの'})
+EDGE = frozenset({'最初の', '最後の'})
+DURATION_BEFORE = frozenset({'あと', '後', '残り', '約', 'およそ'}) | FEW | EDGE
 DURATION_AFTER = frozenset({'後', 'おき', '置き', 'ごと', '毎', '以内', '足らず', 'たらず', '弱', 'ほど', '程', 'くらい', 'ぐらい',
                             'ばかり', '近く', 'ちかく', '余り', '経', 'たっ', 'たた', 'たつ', '遅れ', 'おくれ', 'かか', 'かけ', '掛'})
 
@@ -59,6 +61,31 @@ ABSTRACT = frozenset({'指導', '監督', '支配', '管理', '統治', '指揮'
 # Sound makers whose sound is ね (琴の音, 虫の音). 笛 needs a guard (汽笛, 霧笛, 警笛) and stays in rules.
 INSTRUMENT = frozenset({'琴', '箏', '筝', '琵琶', '三味線', '尺八', '胡弓', '弦', '絃'})
 INSECT = frozenset({'虫'})
+
+# Society and the age: 今日の社会 (こんにち), 明日の日本 (あす); issues of the moment: 目下の課題 (もっか).
+SOCIETY = frozenset({'社会', '経済', '時代', '文明', '科学', '技術', '教育', '政治', '未来', '地球'})
+ISSUE = frozenset({'状況', '情勢', '問題', '課題', '急務', '懸案'})
+# Work under way: 目下調査中, 目下検討 (もっか).
+ACTIVITY = frozenset({'調査', '検討', '準備', '交渉', '捜査', '審議', '開発', '建設', '進行', '継続', '捜索', '修理', '工事'})
+
+# Praise for a person: 素敵な方です, 立派な方 (方 かた).
+PRAISE = frozenset({'素敵', 'すてき', '立派', 'りっぱ', '有名', '親切', '優秀', '上品', '気さく', '偉い', 'えらい', '素晴らしい',
+                    'すばらしい', '優しい', 'やさしい'})
+# What a customer or visitor does, after お/ご: ご利用の方, お越しの方 (方 かた).
+CUSTOMER_ACT = frozenset({'希望', '利用', '来場', '越し', '持ち', '住まい', '参加', '申し込み', '申込み'})
+# Trades and walks of life whose temperament 気質 is, かたぎ: 職人気質, 学生気質.
+OCCUPATION = frozenset({'職人', '商人', '芸人', '役者', '書生', '学生'})
+
+# Counters 何 is なん before (何年, 何冊, 何曜). counters.COUNTERS reads number + counter; the two lists differ (TRADEOFFS T1).
+COUNTER = frozenset('年冊日番時匹台杯分周段箱点画便号名回人度月週歳個枚本階倍頭泊足軒件通語十百千万億兆曜秒')
+
+# Food: spicy dishes (カレーが辛い: からい), fresh produce sold at a market (魚の市場: いちば).
+DISH = frozenset({'カレー', '料理', 'スープ', 'ラーメン', '唐辛子', 'わさび', 'キムチ', '味', '味付け', 'ソース'})
+PRODUCE = frozenset({'魚', '青物', '野菜', '果物'})
+# Things with a rim (縁 ふち): カップの縁, 皿の縁.
+VESSEL = frozenset({'カップ', 'グラス', 'コップ', '茶碗', '皿', '鍋', '器'})
+# Jewellery and medals made of gold: 金の指輪 (金 きん).
+JEWELRY = frozenset({'ネックレス', '指輪', '腕輪', '首飾り', '冠', 'メダル'})
 
 FOOTWEAR = frozenset({'靴', 'くつ', 'クツ', '靴下', '草鞋', 'わらじ', '下駄', '足袋', 'スニーカー', 'ブーツ', 'サンダル',
                       'スリッパ', '草履'})
