@@ -22,7 +22,8 @@ Scoring is by union span: the smallest stretch where the gold spans and the syst
 both start and end (何度 as one token against gold 何 + 度 is scored as なんど). The gold
 reading of that stretch is its spans' readings with the kana between them; the system's is
 its tokens' readings. An item fails alignment when the stretch holds a kanji or other
-non-kana character no gold span reads (a token swallowed an unlabelled kanji). Small kana are
+non-kana character no gold span reads (a token swallowed an unlabelled kanji), except kanji
+numerals, which match any reading (NDL gives 漢数字 no kana: 三人 is scored on 人). Small kana are
 folded everywhere (ゃ = や); `display` is strict about voicing (さんぼん ≠ さんほん: furigana
 must be right), the other metrics fold it, as word lists do.
 
@@ -76,6 +77,7 @@ TATOEBA_NOTE = ("Tatoeba's gold is machine furigana made with MeCab + IPAdic, mo
                 "so MeCab + IPAdic's lead there is partly an artefact.")
 
 _KANA = re.compile(r'^[ぁ-ゖァ-ヺーゝゞヽヾ]+$')
+_NUMERALS = frozenset('〇一二三四五六七八九十百千万億兆')
 _SMALL = str.maketrans('ぁぃぅぇぉっゃゅょゎゕゖ', 'あいうえおつやゆよわかけ')
 _VOICING = str.maketrans('がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゔ', 'かきくけこさしすせそたちつてとはひふへほはひふへほう')
 
@@ -193,9 +195,18 @@ def _gold_readings(text, b, e, spans_at):
         elif _KANA.match(text[i]):
             parts.append([text[i]])
             i += 1
+        elif text[i] in _NUMERALS:
+            parts.append(['*'])  # any reading
+            i += 1
         else:
             return None
     return [''.join(p) for p in itertools.islice(itertools.product(*parts), 64)]
+
+
+def _reads(reading, gold, voicing):
+    """Whether reading is one of the gold readings, folded; a * there stands for any reading."""
+    reading = fold(reading, voicing)
+    return any(re.fullmatch('.+'.join(map(re.escape, fold(g, voicing).split('*'))), reading) for g in gold)
 
 
 def _system_reading(text, b, e, tokens_at):
@@ -244,8 +255,7 @@ def score_sentence(sentence, tokens, misses=None):
         elif reading is None:
             result = ('none', False, False, shown)
         else:
-            result = ('ok', fold(reading, False) in {fold(g, False) for g in gold},
-                      fold(reading, True) in {fold(g, True) for g in gold}, shown)
+            result = ('ok', _reads(reading, gold, False), _reads(reading, gold, True), shown)
         if misses is not None and not result[2]:
             misses.append((sentence.get('id', ''), text[b:e], '/'.join(gold or ()), reading or '', ','.join(sources)))
         for s in inside:

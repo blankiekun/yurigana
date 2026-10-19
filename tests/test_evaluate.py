@@ -27,6 +27,14 @@ class ScoreTest(unittest.TestCase):
         self.assertEqual(score_sentence(sentence, [(0, 2, 'こども', None), (2, 3, 'たち', None)]), [('ok', True, True, False)])
         self.assertEqual(score_sentence(sentence, [(0, 2, None, None)])[0][0], 'none')
 
+    def test_unlabelled_numerals(self):
+        # NDL gives 三 no reading: 三人 as one token is scored on 人, other unlabelled kanji still fail
+        sentence = {'text': '三人', 'spans': [span(1, 2, '人', 'にん')]}
+        self.assertEqual(score_sentence(sentence, [(0, 2, 'さんにん', None)]), [('ok', True, True, False)])
+        self.assertEqual(score_sentence(sentence, [(0, 2, 'みたり', None)]), [('ok', False, False, False)])
+        sentence = {'text': '達人', 'spans': [span(1, 2, '人', 'じん')]}
+        self.assertEqual(score_sentence(sentence, [(0, 2, 'たつじん', None)]), [('align', False, False, False)])
+
     def test_alts_small_kana_and_voicing(self):
         sentence = {'text': '明日', 'spans': [span(0, 2, '明日', 'あした', ['あす'])]}
         self.assertEqual(score_sentence(sentence, [(0, 2, 'アス', None)]), [('ok', True, True, False)])
