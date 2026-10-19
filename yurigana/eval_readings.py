@@ -33,7 +33,7 @@ def score(results, label):
 
 
 def main(path, dictionary=None, model_path=None):
-    from .readings import context_reading, ruby_reading, to_hiragana
+    from .readings import DEFAULT_READINGS, context_reading, ruby_reading, to_hiragana
     from .reading_model import ReadingModel
     from .text import aozora_text
     from .tokens import SudachiTokenizer
@@ -54,6 +54,8 @@ def main(path, dictionary=None, model_path=None):
             token = next(m for m in tokenizer.tokenize(sentence) if m.begin() <= offset < m.end())
             # Sudachi's reading: only for whole, unconjugated words.
             sudachi = to_hiragana(token.reading_form()) if token.surface() == token.dictionary_form() else None
+            default = dictionary and DEFAULT_READINGS.get((token.dictionary_form(), sudachi))
+            sudachi = default if default and (token.dictionary_form(), default) in known else sudachi
             ruby = ruby_reading({s: (e, r) for s, e, r in hints}, token.begin(), token.surface(),
                                 token.dictionary_form(), known)
             rule = context_reading(sentence, token.begin(), token.surface(), token.dictionary_form(), known)

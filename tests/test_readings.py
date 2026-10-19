@@ -46,7 +46,7 @@ class RubyReadingTest(unittest.TestCase):
 
 class ContextReadingTest(unittest.TestCase):
     known = {('人気', 'ひとけ'), ('人気', 'にんき'), ('明日', 'あした'), ('明日', 'あす'), ('上手', 'かみて'),
-             ('今日', 'こんにち'), ('他', 'た')}
+             ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん')}
 
     def reading(self, text, form, surface=None, known=None):
         return context_reading(text, text.index(form), surface or form, form, self.known if known is None else known)
@@ -60,6 +60,12 @@ class ContextReadingTest(unittest.TestCase):
         self.assertEqual(self.reading('明日は雨だ。', '明日'), 'あした')
         self.assertIsNone(self.reading('明日の日本を担う', '明日'))
         self.assertIsNone(self.reading('料理が上手だ', '上手'))
+
+    def test_nani_before_ka_suru_and_verbs_nan_before_counters(self):
+        for text in ('何か食べたい。', '何してるの？', '何？', '何食べる？'):
+            self.assertEqual(self.reading(text, '何'), 'なに', text)
+        for text in ('何ですか。', '何の話だ。', '何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
+            self.assertIsNone(self.reading(text, '何'), text)  # Sudachi's なん stays
 
     def test_hitoke_needs_a_cue(self):
         for text in ('人気のない路地', '人気も無い', '人気が少ない', '人気が絶えた', '周囲に人気がない', '人気がない場所に',

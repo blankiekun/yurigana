@@ -78,6 +78,10 @@ The first step that gives a reading wins:
    line. It answers only when its best reading's posterior is at least 0.7, and never for a
    form that has rules.
 4. **Sudachi's reading** of the token, for an unconjugated word.
+   A few of Sudachi's readings that are almost always wrong in modern text are replaced
+   (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
+   富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
+   each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
 
 ### The flavour rule
 
@@ -98,6 +102,7 @@ over 宇宙. Such ruby is never a reading:
 |---|---|
 | `ruby`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
+| `default` | None |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule
@@ -137,6 +142,13 @@ sentences in `readings-test.tsv`; add rows with every new rule.
 ## Accuracy
 
 Measured with Jiten's frequency list as the reading list (2026-10-18).
+
+The tables below are for 0.1. Since then, the default readings above and a wider 何 rule
+(なに before か, する, verbs and ？) give, on all of Tatoeba's half b with no ruby (72,838
+occurrences, scored on spans as the sentences mark them), micro 79.4% → 86.3%, macro
+79.7% → 80.2%, micro over forms with 2+ gold readings 81.4% → 82.6% (私 alone is 4,422 of
+the 5,086 occurrences fixed; 32 got worse, all 何). The hand-written sentences, now 200 of
+43 forms: 95.4% with ruby, 81.7% without.
 
 Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
 
