@@ -87,6 +87,10 @@ _HOKA_OF = words(PEOPLE, THINGS)
 _IRU_STEM = '(?:' + words(IRU_STEM) + r'|[一-鿿](?<!少)[きぎしちびみりめれけせえね])'
 # Metals and the like near 金 make it the metal, きん (金は銀より重い); 銀行 is money.
 _METAL = '(?:' + words(METAL) + r'|銀(?!行))'
+# A counter kanji that starts a verb after 何, followed by its okurigana (何着てる, 何話してる, 何間違えてる,
+# 何歩いてる): 何 is なに; the counter (何着か, 何話しか, 何歩くらい) stays なん.
+_VERB_AFTER_NANI = (r'(?:着[てたなられるろよせまさ]|話(?:し(?!か(?!け))|[さすせそ])|間(?:違|ちが|に合|にあ|抜)'
+                    r'|曲(?:げ|が[らりるれろっ])|[歩巻](?:い[てたち]|き|く(?!らい|ぐらい)|け|こ)|発(?:し(?!か)|す|せ))')
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -180,8 +184,9 @@ _CONTEXT_RULES = {
     '目下': [('もっか', None, r'のところ|の' + words(ISSUE, '最大') + '|、|' + words(ACTIVITY)),
              ('めした', None, r'の(?:者|人)')],
     # なん before だ/です/で/の/と/て and counters (何年, 何冊): Sudachi's; なに before か, する, verbs and ？.
-    '何': [('なに', None, r'[をがもかし]|より|す|[？?！!、」]'
-             r'|や(?:ら|かや|[っりるれろ])|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
+    '何': [('なん', r'やら$', r'やら', 'and'),  # 雪かきやら何やら
+          ('なに', None, r'[をがもかし]|より|す|[？?！!、」]'
+             r'|や(?:ら|かや|[っりるれろ])|' + _VERB_AFTER_NANI + r'|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
              r'|(?!' + words(COUNTER) + r')[一-鿿]')],
     '色紙': [('しきし', r'(?:サイン|寄せ書きの?)$', r'に(?:サイン|寄せ書き|書)|を(?:飾|贈)'),
              ('いろがみ', r'折り?$', r'.{0,6}?(?:折[っらりる]|鶴|切り抜)')],
@@ -190,7 +195,10 @@ _CONTEXT_RULES = {
     '心中': [('しんじゅう', r'(?:無理|一家|親子)$', r'を(?:図|遂げ|はか)|する|した|して|しよう|未遂|事件|物'),
              ('しんちゅう', None, r'を(?:察|お察|推し量|思|吐露|明か|語)|穏やか|は(?:穏やか|複雑)|お察し')],
     '大家': [('たいか', r'(?:画|学|界|道|楽|壇|芸)の$', r'として'), ('おおや', None, r'さん')],
-    '分別': [('ふんべつ', r'(?:大人|年相応|思慮)(?:としての|の)$', r'が(?:な|つ|あ)|の(?:な|あ)|盛り|くさ|臭|を(?:わきまえ|失)')],
+    # 分別: ぶんべつ for sorting waste (ゴミの分別, 分別して出す); ふんべつ (good sense, HAND_DEFAULTS) otherwise.
+    '分別': [('ぶんべつ', r'(?:ゴミ|ごみ|資源|缶|瓶|びん|ペットボトル|プラスチック|プラ|生ゴミ|生ごみ|廃棄物)[のをはも]?$',
+             r'(?:する|して|し[たまなろよ]|され|でき|収集|回収|処理|方法|ルール|作業|基準|ごみ|ゴミ)'),
+            ('ふんべつ', r'(?:大人|年相応|思慮)(?:としての|の)$', r'が(?:な|つ|あ)|の(?:な|あ)|盛り|くさ|臭|を(?:わきまえ|失)')],
     '人事': [('ひとごと', None, r'(?:では|じゃ)な|とは思え|のよう|みたい|ながら')],
     '気質': [('かたぎ', words(OCCUPATION, '昔', '江戸っ子') + '$', None)],
     '末期': [('まつご', None, r'の(?:水|言葉|際|願い|一言|息)')],
@@ -218,7 +226,12 @@ _CONTEXT_RULES = {
     # 人 right after a katakana word (カナダ人); after a place name, see context_reading.
     '人': [('じん', r'[ァ-ヺー]$', None)],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
-    '一日': [('ついたち', r'月の?$', None)],
+    '一日': [('ついたち', r'月(?:初め)?の?$', None)],
+    # 銀杏 ぎんなん: the nut, eaten or picked (銀杏を焼く, 茶碗蒸しの銀杏); the tree いちょう (HAND_DEFAULTS).
+    '銀杏': [('ぎんなん', r'(?:茶碗蒸し|焼き|炒り|煎り)(?:の|に|と|には)?$',
+             r'の実|を(?:拾|焼|炒|煎|食|剥|む[いきく])|.{0,8}?(?:食べ|焼い|焼く|炒|煎|茶碗蒸し|美味|おいし)')],
+    # 大文字 だいもんじ: Kyoto's bonfire (大文字の送り火, 大文字焼き); capital letters おおもじ (HAND_DEFAULTS).
+    '大文字': [('だいもんじ', r'(?:京都|五山|送り火)の?$', r'焼|山|の?送り火|五山')],
     # These four also keep their model where no rule fires (the table's ruleForms).
     # 開く: ひらく after を (会を開く, 手紙を開いた); あく for opening hours (店は開いてますか) and lids.
     '開く': [('ひらく', r'を$', None),
@@ -283,7 +296,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('鬼', 'き'): 'おに',
                  # Nominated by Opus's readings of post-war library sentences (Sudachi's reading where Opus
                  # gives another one, 3+ authors, 80%+ one reading), checked on Tatoeba B1 (TRADEOFFS T45).
-                 ('擦る', 'する'): 'こする', ('素', 'もと'): 'す'}
+                 ('擦る', 'する'): 'こする', ('素', 'もと'): 'す',
+                 # 分別 alone is good sense; sorting waste is a context rule (ゴミの分別 ぶんべつ).
+                 ('分別', 'ぶんべつ'): 'ふんべつ'}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:

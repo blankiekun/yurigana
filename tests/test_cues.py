@@ -18,4 +18,4 @@ class CuesTest(unittest.TestCase):
 
     def test_counter_has_the_counters(self):
         one_kanji = {c for c in counters.COUNTERS if len(c) == 1}
-        self.assertEqual(one_kanji - cues.COUNTER, {'着', '間'})
+        self.assertEqual(one_kanji - cues.COUNTER, set())

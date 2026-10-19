@@ -108,6 +108,22 @@ class CounterReadingTest(unittest.TestCase):
         self.assertEqual(reading('一', '日', 'にち', '毎日'), ('いち', 'にち'))
         self.assertEqual(reading('二', '日', 'か'), ('ふつ', 'か'))
 
+    def test_era_year(self):
+        # After an era name two kanji digits are the year, not "two or three"
+        self.assertEqual(reading('二三', '年', 'ねん', '昭和'), ('にじゅうさん', 'ねん'))
+        self.assertEqual(reading('四五', '年', 'ねん', '生まれは明治'), ('よんじゅうご', 'ねん'))
+        self.assertEqual(reading('二三', '年', 'ねん', 'ここ'), ('にさん', 'ねん'))
+        self.assertEqual(reading('二三', '日', 'にち', '平成'), ('にじゅうさん', 'にち'))
+
+    def test_hitoma(self):
+        # 一間 is one room next to a room or lodging word, else a length (いっけん)
+        self.assertEqual(reading('一', '間', 'けん', '六畳'), ('ひと', 'ま'))
+        self.assertEqual(reading('一', '間', 'けん', '', 'の部屋'), ('ひと', 'ま'))
+        self.assertEqual(reading('一', '間', 'けん', '', 'を借りて'), ('ひと', 'ま'))
+        self.assertEqual(reading('一', '間', 'けん', '旅館の', 'に通'), ('ひと', 'ま'))
+        self.assertEqual(reading('一', '間', 'けん', '', 'ほど離'), ('いっ', 'けん'))
+        self.assertEqual(reading('三', '間', 'けん', '', 'の部屋'), ('さん', 'げん'))
+
     def test_bu(self):
         # 分 as a tenth: pairs, after 割/寸/両, before 咲き/目/通り; minutes and fractions otherwise
         self.assertEqual(reading('五', '分', 'ふん', '', '五分'), ('ご', 'ぶ'))

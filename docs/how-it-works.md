@@ -32,7 +32,12 @@ reading wins:
    表に出る おもて, 館の主 あるじ, 赤ん坊を抱く だく, ローズ家 け, すぐ側 そば, この後 あと, その場に留まる とどまる …), in
    `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
-   周囲に人気がない); この店は人気がない stays にんき.
+   周囲に人気がない); この店は人気がない stays にんき. 何 is なに before a counter kanji that
+   starts a verb when the verb's okurigana follow (何着てる, 何話してる, 何間違えてる, 何歩いてる),
+   なん before the counter itself (何着か, 何話まで, 何歩くらい) and in Xやら何やら. 銀杏 is ぎんなん
+   with food cues (銀杏を焼く, 茶碗蒸しの銀杏, 銀杏の実), 大文字 だいもんじ for Kyoto's bonfire
+   (京都の大文字, 大文字焼き, 大文字の送り火), 分別 ぶんべつ for sorting waste (ゴミの分別, 分別して出す);
+   otherwise their defaults below (いちょう, おおもじ, ふんべつ).
 3. **The reading model** (`ReadingModel`): a small naive Bayes classifier per form, over
    the two tokens on each side, their pairs and the content words within six tokens of the
    line. It answers only when its best reading's posterior is at least 0.7. A form that has
@@ -56,8 +61,8 @@ reading wins:
    A second batch (箱 ばこ → はこ, 深い ぶかい, 腹 ふく, 沿い そい, 仏 ふつ, 米 べい,
    鏡 きょう and 27 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
    right, and no more breaks than fixes on NDL's held-out authors. 一日 as one token
-   (Sudachi's ついたち) is いちにち except after 月 (来月の一日, a context rule); 一塊
-   いっかい → ひとかたまり.
+   (Sudachi's ついたち) is いちにち except after 月 or 月初め (来月の一日, 月初めの一日, a context rule); 一塊
+   いっかい → ひとかたまり; 分別 ぶんべつ → ふんべつ (good sense; sorting waste is a rule, above).
    擦る する → こする and 素 もと → す were nominated by Opus's readings of post-war library
    sentences (where Opus reads a word otherwise than Sudachi in 3+ sentences by 3+ authors and 80%+
    of the time the same way) and checked on Tatoeba B1 (2 changes, both right); TRADEOFFS T45.
@@ -115,14 +120,14 @@ numbers in kanji (三十五, 一九九九), digits (35, ３５) and 何, 幾, �
 | voicing after 3, 何, 千, 万 | 三本 さんぼん, 何匹 なんびき, 三階 さんがい, 三軒 さんげん, 三足 さんぞく, 何分 なんぷん |
 | h counters | 本 匹 杯 発 泊 版 編 分 歩 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん unless の goes on with a word: 徒歩１０分の距離 ふん, but 十分の じゅうぶん) |
 | 分 as a tenth | ぶ in pairs (五分五分, 七分三分, 五分と五分), after 割/寸/両 (三割五分) and before 咲き/目/通り (三分咲き) |
-| k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) 貫 脚 間 (けん; 三間 さんげん, not 二間 ふたま) |
+| k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) 貫 脚 間 (けん; 三間 さんげん, not 二間 ふたま; 一間 ひとま next to a room or lodging word: 六畳一間, 一間の部屋, 一間を借りる) |
 | s, t counters | 冊 歳/才 足 週 週間 銭 周 隻 艘 寸 尺 升 (三寸 さんずん, 三尺 さんじゃく, 三升 さんじょう); 対 点 頭 通 着 町 丁 |
 | ひと, ふた for 1, 2 | 晩 粒 坪 (一晩 ひとばん, 二粒 ふたつぶ; 三晩 さんばん) |
 | 羽 | わ, ば after 3/何/千, っぱ after 6, 8, 10, 100 |
-| no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 列 畳 分目 (八分目 はちぶんめ) |
+| no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 列 畳 分目 (八分目 はちぶんめ) 話 (episodes: 第三話 さんわ) |
 | 4, 7, 9 | よん, なな, きゅう; 時, 時間 よ, しち, く; 人 よ, しち; 円, 年, 畳 よ; 月 し, しち, く |
 | days (日, 日間) | ついたち after 月, else いちにち; ふつか … とおか, じゅうよっか, はつか, にじゅうよっか, 十七日 じゅうしちにち |
-| others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何); two consecutive digits are "two or three" (二三日 にさんにち, 三四日 さんよっか, 四五人 しごにん) |
+| others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何); two consecutive digits are "two or three" (二三日 にさんにち, 三四日 さんよっか, 四五人 しごにん), but a year after an era name (昭和二三年 にじゅうさんねん; 明治 大正 昭和 平成 令和 元禄) |
 
 Where usage varies one reading is given: 8 geminates (はっぽん, not はちほん), 10 is じゅっ
 (not じっ), 七人 しちにん. 一対一 (one on one) is left alone, and numbers with a point or

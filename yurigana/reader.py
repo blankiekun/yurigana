@@ -7,7 +7,7 @@ import re
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
+from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import preferred
@@ -276,7 +276,7 @@ class Reader:
             if counter and number_end in at and words[at[number_end]].end == end:
                 own = words[at[number_end]]
                 plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
-                reading = {'ぶん': own.reading, 'ぶ': 'ぶ'}.get(counter, plain[0] if plain else own.reading)
+                reading = {'ぶん': own.reading, 'ぶ': 'ぶ', 'ま': 'ま'}.get(counter, plain[0] if plain else own.reading)
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
@@ -384,6 +384,8 @@ class Reader:
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
+        if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
+            value = number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
             return number_reading(value, '一千' in surface), 'counter', None
         if surface == '一' and tokens[i].part_of_speech()[1] == '数詞':

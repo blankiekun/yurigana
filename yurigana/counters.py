@@ -56,16 +56,22 @@ COUNTERS = {
     '升': ('しょう', 's', 'じょう', _479), '貫': ('かん', 'k', 'がん', _479), '脚': ('きゃく', 'k', None, _479),
     '間': ('けん', 'k', 'げん', _479), '町': ('ちょう', 't', None, _479), '丁': ('ちょう', 't', None, _479),
     '列': ('れつ', 'n', None, _479), '畳': ('じょう', 'n', None, _YO), '分目': ('ぶんめ', 'n', None, ('よん', 'しち', 'く')),
+    '話': ('わ', 'n', None, _479),  # episodes (第三話, 何話)
     '晩': ('ばん', 'y', None, _479), '粒': ('つぶ', 'y', None, _479), '坪': ('つぼ', 'y', None, _479),
 }
 # counters whose kanji has other readings after a number (二間 ふたま, 三町 まち): only when Sudachi reads them so
 _ONLY_AS = {'間': 'けん', '町': 'ちょう', '畳': 'じょう'}
 # 二三日, 四五人: two consecutive digits are "two or three", each read
 _PAIR = re.compile('[一二三四五六七八][二三四五六七八九]')
+# right after an era name the digits are a year (昭和二三年 is 23), not "two or three"
+_ERA = re.compile('(?:明治|大正|昭和|平成|令和|元禄)$')
 _PAIR_FIRST = {'一': 'いち', '二': 'に', '三': 'さん', '四': 'し', '五': 'ご', '六': 'ろく', '七': 'しち', '八': 'はち'}
 _GEMINATE = {'k': {1, 6, 8, 10, 100}, 'h': {1, 6, 8, 10, 100}, 's': {1, 8, 10}, 't': {1, 8, 10},
              'w': {6, 8, 10, 100}}
 _VOICED_AFTER = {3, '何', 1000, 10 ** 4}
+# 一間 is ひとま (one room) next to a room or lodging word (六畳一間, 一間の部屋, 一間を借りる), else いっけん
+_HITOMA_BEFORE = re.compile('(?:畳|部屋|座敷|和室|宿|旅館|下宿|アパート|屋敷|家|二階)の?$')
+_HITOMA_AFTER = re.compile('の(?:部屋|座敷|和室)|に(?:住|暮|通|案内|泊|寝)|を(?:借|間借|与|あてが)|きり')
 _P = str.maketrans('はひふへほわ', 'ぱぴぷぺぽぱ')
 _DAYS = {2: 'ふつ', 3: 'みっ', 4: 'よっ', 5: 'いつ', 6: 'むい', 7: 'なの', 8: 'よう', 9: 'ここの', 10: 'とお', 20: 'はつ'}
 _MONTH = ('し', 'しち', 'く')
@@ -79,6 +85,11 @@ TEN_MINUTES_BEFORE = '(?:' + words(DURATION_BEFORE) + r'|[0-9０-９〇一二三
 TEN_MINUTES_AFTER = ('(?:' + words(DURATION_AFTER) + r'|前(?!後|進)|間(?!に合|にあ|違|ちが)|あまり(?!に|の)'
                      r'|[0-9０-９〇一二三四五六七八九]+秒|で(?:着|終|戻|帰|出|始|済|行|来))')
 _TEN_MINUTES = (re.compile(TEN_MINUTES_BEFORE), re.compile(TEN_MINUTES_AFTER))
+
+
+def is_year(number: str, before: str) -> bool:
+    """Whether two consecutive kanji digits are an era's year (昭和二三年: 23), not "two or three"."""
+    return bool(_PAIR.fullmatch(number) and _ERA.search(before))
 
 
 def number_value(surface: str):
@@ -157,7 +168,7 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
     (reading of the whole, None) when it can't be split (一人 ひとり, 二十日 はつか), or None.
     `before`: the text before the number (月 there makes 一日 ついたち), `after`: the text after
     the counter (五分五分: 分 ぶ)."""
-    if _PAIR.fullmatch(number) and _DIGIT[number[1]] == _DIGIT[number[0]] + 1:
+    if _PAIR.fullmatch(number) and _DIGIT[number[1]] == _DIGIT[number[0]] + 1 and not is_year(number, before):
         if counter in ('日', '日間'):  # 二三日 にさんにち, 三四日 さんよっか
             return _PAIR_FIRST[number[0]] + ('よっ' if number[1] == '四' else _KANA[_DIGIT[number[1]]]), \
                 ('か' if number[1] == '四' else 'にち') + counter[1:].replace('間', 'かん')
@@ -204,6 +215,8 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
     if counter == '升' and after[:1] == '目':  # 二升目: the second square (升目 ますめ)
         return None
     plain, cls, voiced, four79 = COUNTERS[counter]
+    if counter == '間' and value == 1 and (_HITOMA_BEFORE.search(before) or _HITOMA_AFTER.match(after)):
+        return 'ひと', 'ま'
     if cls == 'y' and value in (1, 2):
         return ('ひと', 'ふた')[value - 1], plain
     if kind in (4, 7, 9):
@@ -247,7 +260,8 @@ def spans(text: str, tokens: list):
         surface = token.surface()
         m = NUMERAL.match(surface)
         if m and m.end() < len(surface) and surface[m.end():] in COUNTERS and _fused(token, m.group(), surface[m.end():]):
-            found = reading(m.group(), surface[m.end():], '', text[:token.begin])
+            found = reading(m.group(), surface[m.end():], '', text[:token.begin],
+                            text[token.begin + len(surface):token.begin + len(surface) + 4])
             if found:
                 out.append((token.begin, token.begin + m.end(), token.begin + len(surface), *found))
         if not _is_numeral(token):
