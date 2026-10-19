@@ -1,6 +1,7 @@
 """Readings from a rank-based Yomitan frequency dictionary (e.g. Jiten's list,
 jiten.moe/frequency-dictionaries): the `known` set of (form, reading) pairs."""
 import json
+import math
 import zipfile
 
 # Jiten's list is one 55 MB bank; anything far bigger is likely a deflate bomb.
@@ -38,3 +39,17 @@ def reading_ranks(path: str) -> dict:
         if reading:
             ranks[term, reading] = min(value, ranks.get((term, reading), value))
     return ranks
+
+
+def preferred(ranks: dict, order=()) -> tuple:
+    """(the reading `ranks` {reading: rank} ranks first, or None; the best rank of the others).
+    A list like Jiten's ranks words, not readings: every reading of one JMdict entry gets the
+    entry's rank (言う いう = ゆう, 言葉 ことば = けとば). Readings tied at the best rank are one
+    group, decided by `order` (JMdict's readings of the form, its first kana reading first),
+    else undecided (None); the others' rank is the best one outside the group."""
+    if not ranks:  # rows mined with an older list
+        return None, math.inf
+    top = min(ranks.values())
+    tied = [r for r, rank in ranks.items() if rank == top]
+    best = tied[0] if len(tied) == 1 else next((r for r in order if r in tied), None)
+    return best, min((rank for rank in ranks.values() if rank != top), default=math.inf)

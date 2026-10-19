@@ -11,6 +11,13 @@ Group (https://www.edrdg.org/kanjidic/), licensed under CC BY-SA 4.0
 (https://creativecommons.org/licenses/by-sa/4.0/); it is distributed under the
 same licence. tools/kanji_readings.py builds it.
 
+yurigana/jmdict-pairs.json.gz (written forms and their readings) is derived from
+JMdict by the Electronic Dictionary Research and Development Group
+(https://www.edrdg.org/jmdict/j_jmdict.html), licensed under CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/); it is distributed under the
+same licence. tools/jmdict_pairs.py builds it; the file records the JMdict
+version (its creation date) it was built from.
+
 yurigana/reading-model-public.json.gz is a model trained on public-domain works
 from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
 readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,

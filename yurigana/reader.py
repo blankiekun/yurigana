@@ -1,4 +1,5 @@
 """The one-call entry point: Reader().read(text, hints) gives each kanji word's reading."""
+import gzip
 import json
 import math
 import os
@@ -9,8 +10,28 @@ from typing import NamedTuple
 from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
+from .yomitan import preferred
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
+JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
+
+
+def jmdict_readings(path: str = JMDICT_PAIRS) -> dict:
+    """form -> JMdict's readings of it, in JMdict's order (tools/jmdict_pairs.py), with ー
+    spelled out (ぎょーざ: ぎょうざ, as lists spell it)."""
+    with gzip.open(path, 'rt', encoding='utf-8') as f:
+        return {form: [_long_vowels(r) for r in readings.split(' ')]
+                for form, readings in json.load(f)['pairs'].items()}
+
+
+_VOWEL = {**dict.fromkeys('あかさたなはまやらわがざだばぱぁゃゎ', 'あ'), **dict.fromkeys('いきしちにひみりぎじぢびぴぃ', 'い'),
+          **dict.fromkeys('うくすつぬふむゆるぐずづぶぷぅゅ', 'う'), **dict.fromkeys('えけせてねへめれげぜでべぺぇ', 'い'),
+          **dict.fromkeys('おこそとのほもよろごぞどぼぽぉょ', 'う')}
+
+
+def _long_vowels(reading: str) -> str:
+    """ー as the kana it stands for after a kana: o-row う, e-row い (こんぺいとー: こんぺいとう)."""
+    return re.sub('(?<=(.))ー', lambda m: _VOWEL.get(m.group(1), 'ー'), reading)
 
 
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
@@ -134,7 +155,14 @@ class Reader:
         for form, reading in known or ():
             if _HIRAGANA_WORD.match(reading):
                 self.readings[form].append(reading)
-        self.only = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
+        # JMdict's readings of the list's forms: a check on the list (names, parser noise) and the
+        # order of readings it ranks the same
+        jmdict = jmdict_readings() if known is not None else {}
+        self.jmdict = {form: jmdict[form] for form in self.readings if form in jmdict}
+        # The list's single readings; `only` (certainty 1.0) when JMdict gives the form that reading
+        # too, or has no entry for the form (声がけ こえかけ, 振り幅 しんぷく, 卵型 らんけい in Jiten's list)
+        self.single = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
+        self.only = {form: r for form, r in self.single.items() if r in self.jmdict.get(form, (r,))}
         self._tails = None
         # 一X whose ひと…/いっ… reading the list ranks 3+ times above its others (一重 ひとえ, not いちえ):
         # read so when Sudachi splits it 一|X; not forms with context rules (一行 いっこう/いちぎょう)
@@ -142,8 +170,8 @@ class Reader:
         self.one_x = {}
         for form, readings in self.readings.items():
             if form[:1] == '一' and len(readings) > 1 and ranks and form not in _CONTEXT_RULES:
-                best, second = sorted(readings, key=lambda r: ranks[form, r])[:2]
-                if best[:2] in ('ひと', 'いっ') and ranks[form, second] >= 3 * ranks[form, best]:
+                best, second = preferred({r: ranks[form, r] for r in readings}, self.jmdict.get(form, ()))
+                if best and best[:2] in ('ひと', 'いっ') and second >= 3 * ranks[form, best]:
                     self.one_x[form] = best
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
@@ -240,8 +268,9 @@ class Reader:
         reading: 三|日|月 みかづき, 身の上|話 みのうえばなし, 一|石|二鳥 いっせきにちょう. Left out:
         spans with particles or ending in kana (the list has phrases such as 彼の かの), spans with
         ruby, a number and its counter (一|枚, or any span inside one of `counted`, the counter spans,
-        which read() reads) and spans next to a number (１|日|中, 第|一)."""
-        if not self.only or not HAS_KANJI.search(tokens[i].surface()):
+        which read() reads) and spans next to a number (１|日|中, 第|一). The Word is `only` when
+        JMdict has the joined form with that reading, else `dictionary` (names, list noise)."""
+        if not self.single or not HAS_KANJI.search(tokens[i].surface()):
             return None
         if i and _NUMERAL.match(tokens[i - 1].surface()) and _end(tokens[i - 1]) == tokens[i].begin:
             return None
@@ -257,7 +286,7 @@ class Reader:
                     or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
                 continue
             form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
-            reading = self.only.get(form)
+            reading = self.single.get(form)
             if n == 2 and span[0].surface() == '一':
                 # 一|X: only the sound changes Sudachi's split misses (一|思い ひとおもい, 一|票 いっぴょう);
                 # the list's いち… for such pairs is mostly names (一章 かずあき) or kun guesses (一城 いちしろ)
@@ -266,7 +295,10 @@ class Reader:
                     if form in self.one_x:
                         return i + n, Word(begin, end, form, self.one_x[form], 'default', None)
             if reading:
-                return i + n, Word(begin, end, form, reading, 'only', 1.0)
+                # a joined form JMdict lacks is mostly a name or noise (三日後 みひりあ, 利根川 さねがわ): not shown
+                if form in self.jmdict and form in self.only:
+                    return i + n, Word(begin, end, form, reading, 'only', 1.0)
+                return i + n, Word(begin, end, form, reading, 'dictionary', None)
             # Sudachi's split of a word it doesn't keep whole: 一昨|日 いっさく|ひ is おととい
             default = DEFAULT_READINGS.get((form, ''.join(to_hiragana(t.reading_form()) for t in span)))
             if default and (form, default) in self.known:
@@ -392,7 +424,7 @@ class Reader:
         a listed form read it (本棚 ほんだな: 棚 voiced)."""
         if self._tails is None:
             self._tails = defaultdict(lambda: [0, 0])
-            for form, reading in self.only.items():
+            for form, reading in self.single.items():
                 for k in range(1, len(form)):
                     for tail in self.readings.get(form[k:], ()):
                         voiced = rendaku(tail)

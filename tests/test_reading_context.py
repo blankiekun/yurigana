@@ -34,6 +34,13 @@ class LabelTest(unittest.TestCase):
     def test_ambiguous_forms_need_two_hiragana_readings(self):
         self.assertEqual(set(FORMS), {'人気', '本気', '行く'})
 
+    def test_tied_readings_jmdict_lacks_are_dropped(self):
+        known = {('言葉', 'ことば'): 244, ('言葉', 'けとば'): 244, ('言葉', 'ことのは'): 197387,
+                 ('側', 'かわ'): 927, ('側', 'がわ'): 927, ('男', 'おとこ'): 155, ('男', 'おっこ'): 155}
+        forms = rc.ambiguous_forms(known, {'言葉': ['ことば', 'ことのは'], '側': ['そば', 'がわ', 'かわ'], '男': ['おとこ']})
+        self.assertEqual(forms, {'言葉': {'ことば': 244, 'ことのは': 197387}, '側': {'かわ': 927, 'がわ': 927}})
+        self.assertEqual(rc.ambiguous_forms(known)['言葉'], {'ことば': 244, 'けとば': 244, 'ことのは': 197387})
+
     def test_flavour_and_unlisted_ruby_are_not_gold(self):
         readings = FORMS['人気'] | {'いっしょ': 1}
         self.assertEqual(rc.label('ひとけ', readings), ('ひとけ', None))
