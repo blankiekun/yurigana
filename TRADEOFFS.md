@@ -20,7 +20,6 @@ ruby). Forms and numbers only.
 | T6 | 白髪 defaults to しらが | #10 | NDL 2 (白髪の老紳士 はくはつ) | 3 fixed on NDL, 4/4 half a | literary/older-text cue |
 | T8 | 日本 defaults to にほん (owner-approved) | #11 | にっぽん names (日本銀行, 大日本帝国) | にほん is the common reading | names/compounds keep にっぽん (default-guard agent) |
 | T9 | 一歩 reads いっぽ | #15 | NDL 1 (author's ひとあし) | 一歩 いっぽ is standard | none needed (author choice) |
-| T10 | 額 has no rule: がく/ひたい left to Sudachi | #15 | NDL 16, B1 1, bank 1 not fixed | a rule form switches off its model where no rule fires: NDL +16/-7 | after #5 (model where no rule fires) |
 | T11 | 下手 しもて only with stage/river cues | #15 | ずっと下手 (worse vs stage-left) | no safe cue | none (genuinely ambiguous) |
 | T12 | 方 かた person cues are Tatoeba-style (担当の方, 立派な方です) | #16 | rarely fire in fiction | no breaks on NDL | cues from literary text; 方 after an attributive verb (できる方は) needs meaning |
 | T13 | 後 のち/うしろ and 中 うち have no rule | #16 | NDL ~10-20 | 後に → のち broke 56 on B1 | context model; most NDL cases are author ruby choices |
@@ -39,7 +38,6 @@ ruby). Forms and numbers only.
 | T26 | 一 + one token joins when the list's only (or 3x higher ranked) reading starts with ひと/いっ (一思い, 一票, 一重 ひとえ) | #24 | 一箱 ひとはこ (いっぱこ also standard), 一茎 ひとくき (NDL いっけい), 一周忌 いっしゅうき; needs Jiten's ranks (off with a plain reading set) | B1 +53/-3, NDL full +163/-2 | per-form cues; a 和語/漢語 signal (UniDic word origin) for unlisted 一冬, 一膝, 一部屋 |
 | T27 | 一日 defaults to いちにち; ついたち only after 月 / 月の | #24 | ついたち without a month cue (一日に給料が出る); 正月の一日 may misfire | ~40 errors fixed on B1 + NDL tuning half | more date cues (毎月, 朔日 context, 日付 words) |
 | T28 | 一時 has no rule (いちじ / いっとき / ひととき) | #24 | NDL fiction いっとき 6 | no reliable cue; いちじ 16 | context model |
-| T29 | 開く, 止める, 空く have no rule (あく/ひらく, やめる/とめる, すく/あく) | #28 | their misreads stay (B1 開く ~20, 止める ~12) | a rule form switches off its model where no rule fires: 開く B1 +13/-15, 止める B1 +7/-8, NDL +3/-5 | #5 (model where no rule fires), then cues (お腹が空く, 〜のを止める, 店が開いてますか) |
 | T30 | 金 defaults to かね when no きん cue fires | #28 | metal 金 without a cue (金は高い, 金の花瓶, 金の粥) and kanji compounds Sudachi splits (奉還金, 封金, 無給金, 金紅色): B1 1, NDL tune 2, NDL report 7 | B1 +13, B2 +18, NDL +12/+7 for 金 | the split-token guard (T14, #26); more metal cues (色, 花瓶, 箔 nearby) |
 | T31 | 外 is a rule form (ほか: 外の人, より外, 待つ外ない), so its model no longer answers | #28 | 目的の外は (NDL tune 1) | NDL tune +6/-1, report +3/-0 | retrain 外 on the occurrences no rule reads: its current entry, trained on all of them, reads B1 0/1 when allowed (#40) |
 | T32 | 何 なに before やら/やって, に使う/について/にする, ごっこ, げない | #28 | 雪かきやら何やら (B1 1), 第二外国語は何にする (B2 1, IPAdic gold) | B1 +18, NDL +5, B2 +8 for 何 | a list cue (Xやら何やら → なん) |
@@ -47,7 +45,7 @@ ruby). Forms and numbers only.
 | T34 | default-readings.tsv: NDL (pre-war) nominates, modern text decides; only 身体 からだ, 時 とき, 実 み, 下 した pass. Left out though NDL's ruby supports them: 都 みやこ, 露 つゆ, 側 そば, 表 おもて, 咽喉 のど, 空地 あきち, 跫音 あしおと, 画 え and ~25 more (Tatoeba has too few or mixed cases) | #25 | NDL report: those ~40 fixed/net per form stay unfixed (e.g. 露 52, 都 39, 表 39, 側 36 on the test authors); 実 じつ in older text (NDL 2 broken) | post-war target: their support is mainly pre-war text; modern 側/表 right only 6/11, 5/7 | modern evidence per pair (library ruby/silver, a post-war gold set) to admit more; 側/表 need context (川の側 そば vs 敵の側 がわ) |
 | T35 | 都 alone defaults to みやこ (fiction's capital); と only with Tokyo-government cues (都の職員, 都が発表); 露 alone defaults to つゆ, ろ next to a kanji (露大統領) | this PR | news text's bare 都 (Tokyo) without a cue reads みやこ | Sudachi's と/ろ was wrong for every story use; 0 broken on any set | more government cues from news text if a modern news set appears |
 | T36 | 辛い keeps its model where no rule fires (からい from food context it learnt on Tatoeba) | #40 | NDL report: prewar fiction つらい read からい 3 (窮屈で辛い); modern library sets 0 | B1 +6/-1, B2 +5/-1 (からい food talk Sudachi read つらい) | more つらい cues (思い, 気持ち, 窮屈) or a fiction-trained 辛い entry |
-
+| T37 | 開く after を reads ひらく; 止める after の/こと reads やめる; 空く has a すく rule only for roads and trains (お腹が空く stays with the model) | #41 | B2 1 (窓を開いたまま, IPAdic gold あ); NDL report: 眼を開いていよう あく 1, というのを止めてくれた とめる 1 (meiji) | B1 +19/-0, B2 +2/-1, NDL report +8/-1; library 0/0. お腹 → すく fixed nothing on B1 (the model already reads it) and broke 1 there on IPAdic gold, so it was left out | a cue for eyes and windows (眼/目/窓を開く: both readings), a "stop someone" cue (〜のを止めてくれた) |
 ## Resolved
 
 | id | trade-off | from | resolved by |
@@ -56,3 +54,5 @@ ruby). Forms and numbers only.
 | R3 | 十分 read じゅっぷん where Sudachi split it even when it means "enough" (十分には, 将来十分見込み); じゅうぶん where Sudachi kept one token even with a minutes cue (十分足らず, あと十分) | #3 | #22: one cue set for both |
 | R2 | 三軒 surname path had no effect (the dictionary Word won over the counter span) | #3 | #18 |
 | R4 | 金 had no default (money 金 かね misread: B1 13, NDL 27, half a 38) | #10 | #28 (きん cues: 銀/鉄/金属 nearby, 金のくさり/モール, 金の値段; then the かね default; see T30) |
+| R5 | 額 had no rule: がく/ひたい left to Sudachi (was T10) | #15 | #40 + #41: a frame cue (額に入れて飾る) for がく, forehead cues (額に汗, 額を拭う) for ひたい, and the model still answers where neither fires: B1 +2 |
+| R6 | 開く, 止める, 空く had no rule, because a rule switched off their model (was T29) | #28 | #40 (a rule form keeps its model where no rule fires, listed in the table's ruleForms) + #41 (the rules, see T37): B1 +19/-0; the same rules with the models off would be B1 +28/-43 |

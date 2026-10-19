@@ -10,8 +10,9 @@ import os
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
-from .cues import (ABSTRACT, BODY, BUILDING, FOOTWEAR, GROUNDS, INSECT, INSTRUMENT, IRU_STEM, KIN_TITLE, METAL, NIGHT,
-                   PEOPLE, PERSON, REALM, ROLE, SETTLEMENT, STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, VICINITY, words)
+from .cues import (ABSTRACT, BODY, BUILDING, FOOTWEAR, GROUNDS, HALTED, INSECT, INSTRUMENT, IRU_STEM, KIN_TITLE, METAL, NIGHT,
+                   OPEN_HOURS, PEOPLE, PERSON, REALM, ROLE, SETTLEMENT, STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, TRAFFIC,
+                   VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -191,6 +192,22 @@ _CONTEXT_RULES = {
     '人': [('じん', r'[ァ-ヺー]$', None)],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
     '一日': [('ついたち', r'月の?$', None)],
+    # These four also keep their model where no rule fires (the table's ruleForms).
+    # 開く: ひらく after を (会を開く, 手紙を開いた); あく for opening hours (店は開いてますか) and lids.
+    '開く': [('ひらく', r'を$', None),
+            ('あく', words(OPEN_HOURS, '日', '曜日', 'まで') + r'[はがも]?$', None),
+            ('あく', None, r'て(?:ますか|ます？|る？|ますよ)'),
+            ('あく', r'(?:蓋|ふた|フタ)[がはも]?$', r'(?!れ)', 'and')],
+    # 止める: とめる for machines and flows (エンジンを止める); やめる for doing something (食べるのを止める, お止めください).
+    '止める': [('とめる', words(HALTED) + 'を$', None),
+             ('やめる', r'(?<!へ)(?:の|こと)を?$', r'(?!られ)', 'and'),
+             ('やめる', r'お$', r'(?:ください|下さい|になって|なさい)', 'and')],
+    # 空く: すく for roads and trains (道が空いている); お腹が空く is left to the model (it reads it already).
+    '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None)],
+    # 額: がく for a frame (額に入れて飾る); ひたい for the forehead (額に汗, 額を拭う).
+    '額': [('がく', None, r'に.{0,10}?(?:収め|納め|入れ|飾[っらりるれ])|縁|ぶち'),
+           ('ひたい', None, r'[がは](?:熱|汗|広|狭)|に(?:汗|手|皺|しわ|傷|当て|かか|垂)|から汗|の(?:汗|傷|皺|しわ)'
+            r'|を(?:拭|ぬぐ|押さえ|寄せ|集め)')],
     '一行': [('いちぎょう', r'(?:最初の|最後の|文章の|冒頭の|手紙の|ほんの|たった)$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
