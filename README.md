@@ -283,12 +283,16 @@ a table built from copyrighted books.
 The steps one by one (`mine`, `report`, `train`, `evaluate`) and how the public table was
 built are in `yurigana/reading_context.py`'s docstring:
 
-1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`;
-2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b`;
+1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`
+   (Aozora works by the authors the NDL test set holds out are left out; half b is written as
+   `b1` and `b2`, the gold sets' split);
+2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b1`;
 3. `train` on the Aozora and half a rows together, `--priors` half a's rows;
-4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
-   that read no worse than rules + Sudachi (forms with rules: and better than Sudachi where
-   no rule fires).
+4. `evaluate` on B1's rows with `--all --prune`, which keeps the forms B1 can score that read
+   no worse than rules + Sudachi (forms with rules: and better than Sudachi where no rule
+   fires). B2 stays unseen.
+
+The committed table predates these two fetch fixes (T40 in TRADEOFFS.md).
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.

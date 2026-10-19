@@ -645,6 +645,14 @@ def ndl_held_out(author: str) -> bool:
     return zlib.crc32(author.encode()) % 5 == 0
 
 
+# The corpus's authors that ndl_held_out picks (23 of its 115 author folders): their works are
+# left out of the public table's training data (fetch_aozora), so ndl-test.jsonl stays unseen.
+NDL_TEST_AUTHORS = frozenset((
+    'アンデルセン_ハンス・クリスチャン', 'ツルゲーネフ_イワン', '三木清', '佐々木邦', '北原白秋', '吉川英治', '堀辰雄',
+    '夢野久作', '室生犀星', '宮本百合子', '小山清', '岡本かの子', '幸田露伴', '正岡容', '水上滝太郎', '泉鏡花', '渡辺温',
+    '田中貢太郎', '竹内浩三', '紫式部', '菊池幽芳', '谷崎潤一郎', '近松秋江'))
+
+
 def convert_ndl(archive, out, lines_per_work=100):
     import zipfile
     rows, authors = [], set()
