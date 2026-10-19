@@ -31,6 +31,40 @@ fixes). Gold is never changed automatically: a reading found acceptable on revie
 waiver file, `--alts waivers.tsv` (`set, id, surface, reading` per line), which adds it to that
 span's accepted readings without editing the set.
 
+## Clean and hard
+
+With `--known`, every item gets tags from the gold and the list alone (`--classes FILE` writes
+them as TSV, keys only), and two metrics join word list:
+
+- **clean**: word list without the items the gold makes unscorable or doubtful. `partial` is
+  ruby over part of a word (a kanji next to the span that no span reads, as ruby over 学 alone
+  in 学校): no tokeniser can line up with it, so every system loses it. `kanjidic_only` is a
+  form the list doesn't have whose reading only its kanji's KANJIDIC readings spell out:
+  mostly names and invented on'yomi, where the book's ruby is the only source anyone has.
+  `--exclude FILE` (`set, id, surface` per line) drops gold noise found on review, such as
+  Tatoeba's IPAdic artefacts; nothing is excluded automatically, since agreement between
+  systems would make the gold depend on them.
+- **hard**: clean over the forms the list reads two or more ways (`listed >= 2`), where
+  systems actually differ.
+
+Why: on the modern books about 60% of items are read right by every tokeniser (yurigana,
+Sudachi, GiNZA, MeCab + UniDic) and by Opus. Those are free points for all of them, so word
+list squeezes every gap: in the audit that added these metrics, yurigana vs Sudachi was 1.1
+points on word list and 4.8 on hard, Opus vs yurigana 3.4 and 11.9. Clean moves every system
+up by about the same amount (about +1 point on the modern books) and changes no ranking; it
+only stops charging everyone for the gold's artefacts. Hard is the column to read for a
+reading change; it is about a quarter of a book set's items, so its intervals are wider.
+
+Left in on purpose: items where yurigana, Sudachi and Opus agree on a reading the book's ruby
+rejects. In book ruby these are nearly always real author readings, not gold errors (on
+Tatoeba they are mostly IPAdic's: there `--exclude` is the way). Names Sudachi tags 固有名詞
+stay in too (the `proper` tag, for breakdowns): they are shown as furigana like any word.
+
+The tags use Sudachi-C (SudachiDict-full) for the word over a span. The second environment
+(GiNZA, yomikata) has a SudachiPy that can't read that dictionary, so its tags fall back to
+the lemma or surface (a note in the report says so); the README's GiNZA and yomikata rows are
+their per-item results over the main environment's tags (same keys).
+
 The metrics and the gold format are in `yurigana/evaluate.py`'s docstring. Scoring is by
 union span (the smallest stretch where gold and tokens line up), so segmentation doesn't
 count, only readings: Sudachi's three split modes score alike. Word list folds voicing
