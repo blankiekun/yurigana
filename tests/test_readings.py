@@ -125,6 +125,19 @@ class ContextReadingTest(unittest.TestCase):
             begin = text.index(surface or form)
             self.assertEqual(context_reading(text, begin, surface or form, form, known), reading, text)
 
+    def test_kata_and_nochi_rules(self):
+        known = {('方', 'かた'), ('方', 'ほう'), ('後', 'あと'), ('後', 'のち'), ('後', 'ご')}
+        cases = [('あのお方は', '方', 'かた'), ('お三方が来た', '方', 'かた'), ('紛う方なき本物', '方', 'かた'),
+                 ('この方は私の恩人です', '方', 'かた'), ('その方は', '方', None), ('この方がいい', '方', 'ほう'),
+                 ('この方に向かって', '方', None), ('教えてくださった方がいた', '方', 'かた'),
+                 ('先に帰られた方がいい', '方', 'ほう'), ('助手の方に聞いた', '方', None), ('助手の方は親切だ', '方', 'かた'),
+                 ('彼は、後に有名な作家となった', '後', 'のち'), ('後に分かったことだが', '後', 'のち'),
+                 ('しかる後に', '後', 'のち'), ('それから後、二人は', '後', 'のち'), ('後の世に伝える', '後', 'のち'),
+                 ('食事の後に散歩した', '後', None), ('、後に続く', '後', None), ('、後にいる者', '後', None),
+                 ('後の世話を頼む', '後', None)]
+        for text, form, reading in cases:
+            self.assertEqual(context_reading(text, text.index(form), form, form, known), reading, text)
+
     def test_nani_before_ka_suru_and_verbs_nan_before_counters(self):
         for text in ('何か食べたい。', '何してるの？', '何？', '何食べる？'):
             self.assertEqual(self.reading(text, '何'), 'なに', text)
