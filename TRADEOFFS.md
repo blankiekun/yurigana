@@ -37,6 +37,9 @@ ruby). Forms and numbers only.
 | T22 | A bare 十分 with no minutes cue reads じゅうぶん, whether or not Sudachi splits it | #22 | 十分待った, 十分休んだ meaning ten minutes read じゅうぶん | "enough" is far more common (B1 29, B2 19, NDL 48 vs ~3 minutes) | more minute cues (counters.TEN_MINUTES_BEFORE/AFTER); 十分間に合う at a line start is split 十 + 分間 by Sudachi and still reads ふんかん |
 | T24 | A split compound's second part is voiced when the list's compounds voice that tail ≥ 4 in 5 (小屋 ごや, 細工 ざいく) | #21 | NDL pairs that don't voice (袴羽織), a name + noun (先生布団); B1 8, NDL report 1 | B1 +26, NDL report +39 (display) | per-pair evidence; non-noun tails (好き, 深い) not handled yet |
 | T25 | A Sudachi reading one voicing away from a 3+ character word's only listed reading takes the listed one | #21 | 投票所 じょ (list しょ; both in use) | 睡眠不足 ぶそく and similar | none (both standard) |
+| T26 | 一 + one token joins when the list's only (or 3x higher ranked) reading starts with ひと/いっ (一思い, 一票, 一重 ひとえ) | #24 | 一箱 ひとはこ (いっぱこ also standard), 一茎 ひとくき (NDL いっけい), 一周忌 いっしゅうき; needs Jiten's ranks (off with a plain reading set) | B1 +53/-3, NDL full +163/-2 | per-form cues; a 和語/漢語 signal (UniDic word origin) for unlisted 一冬, 一膝, 一部屋 |
+| T27 | 一日 defaults to いちにち; ついたち only after 月 / 月の | #24 | ついたち without a month cue (一日に給料が出る); 正月の一日 may misfire | ~40 errors fixed on B1 + NDL tuning half | more date cues (毎月, 朔日 context, 日付 words) |
+| T28 | 一時 has no rule (いちじ / いっとき / ひととき) | #24 | NDL fiction いっとき 6 | no reliable cue; いちじ 16 | context model |
 
 ## Resolved
 
