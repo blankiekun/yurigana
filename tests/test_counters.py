@@ -128,6 +128,8 @@ class CounterReadingTest(unittest.TestCase):
     def test_number_reading(self):
         for value, expected in ((600, 'ろっぴゃく'), (800, 'はっぴゃく'), (3000, 'さんぜん'), (650, 'ろっぴゃくごじゅう')):
             self.assertEqual(number_reading(value), expected)
+        self.assertEqual(number_reading(10 ** 7, one_thousand=True), 'いっせんまん')  # written 一千万
+        self.assertEqual(reading('一千万', '円', 'えん'), ('いっせんまん', 'えん'))
 
     def test_not_a_counter(self):
         self.assertIsNone(reading('三', '犬'))

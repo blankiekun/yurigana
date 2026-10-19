@@ -143,6 +143,22 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
+    def test_one_x(self):
+        known = {('一昨日', 'おととい'): 7614, ('一昨日', 'いっさくじつ'): 7614, ('一日中', 'いちにちじゅう'): 5374,
+                 ('一日', 'いちにち'): 1344, ('一日', 'ついたち'): 29440, ('一重', 'ひとえ'): 41973,
+                 ('一重', 'いちえ'): 315317, ('一票', 'いっぴょう'): 30666, ('一章', 'かずあき'): 56197,
+                 ('一千万', 'いっせんまん'): 39496, ('四月一日', 'わたぬき'): 100000}
+        reader = Reader(known)
+        for text, form, reading in (('一昨日来た。', '一昨日', 'おととい'), ('一日中家にいた。', '一日中', 'いちにちじゅう'),
+                                    ('一日で読んだ。', '一日', 'いちにち'), ('四月一日に会う。', '一日', 'ついたち'),
+                                    ('一重の着物', '一重', 'ひとえ'), ('清き一票を。', '一票', 'いっぴょう'),
+                                    ('一千万の人', '一千万', 'いっせんまん'), ('一睨みした。', '一', 'ひと'),
+                                    ('一ト月たった。', '一', 'ひ'), ('一と息入れた。', '一', 'ひ'), ('一たい何だ。', '一', 'いっ')):
+            with self.subTest(text):
+                self.assertIn((form, reading), [(w.form, w.reading) for w in reader.read(text)])
+        self.assertNotIn('一章', [w.form for w in reader.read('一章を読む。')])  # a name's reading: not joined
+        self.assertNotIn('四月一日', [w.form for w in reader.read('四月一日に会う。')])  # a date, not わたぬき
+
 
 if __name__ == '__main__':
     unittest.main()
