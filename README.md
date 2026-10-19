@@ -69,28 +69,32 @@ hideKnownRuby('人間', 'にんげん', { 人: 12, 間: 30 }, readings); // true
 
 ## How it compares
 
-Word list accuracy (%): the share of kanji words whose reading is right, with Jiten's list,
-yurigana main, 2026-10-19. Sudachi is SudachiDict-full, mode C; MeCab runs with IPAdic and
-unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
+Clean word list accuracy (%): the share of kanji words whose reading is right, with Jiten's
+list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
+readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
+more ways, where tokenisers actually differ (about 60% of a book's words every one of them
+reads right). yurigana main, 2026-10-19. Sudachi is SudachiDict-full, mode C; MeCab runs with
+IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
-| | modern books | older books (NDL) | Tatoeba B2 |
-|---|---|---|---|
-| **yurigana** | **93.2** | **91.6** | **99.0** |
-| Sudachi | 92.1 | 90.5 | 94.3 |
-| GiNZA | 92.1 | 90.4 | 94.3 |
-| yomikata | 90.8 | 90.6 | 93.1 |
-| MeCab + unidic-lite | 90.8 | 90.2 | 93.3 |
-| MeCab + IPAdic | 85.2 | 86.7 | 97.0 |
-| pykakasi | 83.7 | 83.3 | 93.7 |
-| Claude Opus | 96.6 | 95.3 | – |
+| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ |
+|---|---|---|---|---|---|
+| **yurigana** | **94.4** | **83.3** | **92.0** | **88.8** | **99.0** |
+| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 |
+| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 |
+| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 |
+| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 |
+| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 |
+| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 |
+| Claude Opus | 97.6 | 95.2 | 95.4 | 93.3 | – |
 
-- **Modern books**: the books' own ruby (furigana) over 1,875 words in post-war novels and light
-  novels by authors the tables never saw. The books are a private library, so this set isn't
-  published.
+- **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
+  light novels by authors the tables never saw. The books are a private library, so this set
+  isn't published.
 - **Older books**: 300 sentences of NDL's huriganacorpus-aozora (human ruby, mostly pre-war
-  Aozora Bunko texts), authors held out.
-- **Tatoeba B2**: 27,000 sentences. Its gold is MeCab + IPAdic machine furigana, so
-  MeCab + IPAdic's score there is inflated.
+  Aozora Bunko texts), authors held out; 2,306 clean words.
+- ¹ **Tatoeba B2**: 27,000 sentences. Its gold is MeCab + IPAdic machine furigana, so
+  MeCab + IPAdic's score there is inflated, and yurigana's is saturated: most of its remaining
+  misses are IPAdic's readings, not errors. Clean only.
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.1% of
 the time on the modern books and cover 70% of their words; the rest are left for the reader.
@@ -108,6 +112,7 @@ Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 ## Tests
 
 `python -m unittest` (the Sudachi tests skip without SudachiPy) and `node --test js/*.test.js`.
+They include the regression list `eval/sanity.tsv` ([docs/evaluation.md](docs/evaluation.md#the-sanity-list)).
 
 ## Licence
 
