@@ -15,7 +15,7 @@ import os
 
 from .readings import _CONTEXT_RULES
 
-# The committed table, trained on Aozora Bunko and Tatoeba (README).
+# The committed table, trained on Aozora Bunko and Tatoeba (docs/training.md).
 PUBLIC_TABLE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reading-model-public.json.gz')
 
 WINDOW = 6  # tokens looked at on each side, within the line
