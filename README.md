@@ -111,6 +111,7 @@ Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 ## Tests
 
 `python -m unittest` (the Sudachi tests skip without SudachiPy) and `node --test js/*.test.js`.
+They include the regression list `eval/sanity.tsv` ([docs/evaluation.md](docs/evaluation.md#the-sanity-list)).
 
 ## Licence
 
