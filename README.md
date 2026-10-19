@@ -217,13 +217,27 @@ over 宇宙. Such ruby is never a reading:
   spelled by the kanji's own readings);
 - ruby over part of a compound (魚《うお》市場).
 
+### Names across a book
+
+Books give a name's reading with ruby once, on its first appearance; later it stands bare and
+Sudachi guesses (大谷 おおや for おおたに, invented names). `reader.read(text, hints, carry={})`
+carries the book's ruby over a name to its later bare occurrences, as source `book`: pass `{}`
+for a whole book in one text, or the same dict to each of a book's texts in order. A name is a
+固有名詞 token or a form the list doesn't know (not a number); its hiragana ruby is taken even
+when the list lacks the reading (nanori, invented readings: 信雄 のぶかつ), except pronouns
+(鈴木《あいつ》); ruby over a two-token full name is split where Sudachi's reading of one part
+fits (姫野芽衣《ひめのめい》: ひめの + めい). Common words are never carried (hiragana ruby once
+isn't assumed for a heteronym's later bare occurrences), and a form stops being carried after
+ruby over it that isn't taken (flavour, katakana) or that gives a second reading. Without
+`carry`, nothing changes.
+
 ### Certainty
 
 `source` and `certainty`:
 
 | source | certainty |
 |---|---|
-| `ruby`, `rule`, `only` | 1.0 |
+| `ruby`, `book`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `default`, `counter` | None |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
