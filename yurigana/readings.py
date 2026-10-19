@@ -11,9 +11,9 @@ import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
 from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, EDGE, FEW, FOOTWEAR, GROUNDS,
-                   HALTED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
-                   OPEN_HOURS, PEOPLE, PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SETTLEMENT, SOCIETY, STREET,
-                   SUPERIOR, TERM, THINGS, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
+                   HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
+                   OPEN_HOURS, PEOPLE, PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
+                   STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -131,10 +131,37 @@ _CONTEXT_RULES = {
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)')],
     # 間: ま in いつの間に, 束の間, 一瞬の間; あいだ in この間 (the other day; Sudachi says かん).
-    '間': [('ま', r'(?:いつ|何時|束|一瞬|咄嗟|瞬く|またたく|あっという|あっと言う|アッという)の?$', None),
-           ('あいだ', r'この$', None)],
+    # 間 ま also for a pause (間が空く, 間を置いて, する間もなく), not after の (その間も, AとBの間が空く: あいだ).
+    '間': [('ま', r'(?:いつ|何時|束|一瞬|咄嗟|瞬く|またたく|あっという|あっと言う|アッという|呼吸|呼吸分|一拍|謁見|玉座)の?$', None),
+           ('あいだ', r'この$', None),
+           ('ま', r'(?<!の)$', r'が(?:空|あ[いくきけ]|開|でき|持た|悪|抜け)|も(?:な[くい]|無[くい]|与え|あた|惜し)'
+            r'|を(?:置|お[いかきく])', 'and')],
     # 後 before a number is あと (後五分で); Sudachi says ご. Not after その/この or a kanji (その後, 五年後, 購入後２日).
-    '後': [('あと', r'(?<!その)(?<!この)(?<![一-鿿々0-9０-９])$', r'[0-9０-９一二三四五六七八九十百千数幾]', 'and')],
+    # この後, あの後: あと (Sudachi: ご); その後 keeps そのご (both standard).
+    '後': [('あと', r'(?<!その)(?<!この)(?<![一-鿿々0-9０-９])$', r'[0-9０-９一二三四五六七八九十百千数幾]', 'and'),
+           ('あと', r'(?:この|あの)$', None)],
+    # 表 おもて: the outside or the front (表に出る, 表に出さない, コインの表, 表の顔); ひょう (a table) otherwise.
+    '表': [('おもて', r'(?:裏[とものか]|コインの|硬貨の)$',
+            r'に(?:は|も)?(?:出|で[たてるな]|立|現)|へ(?:出|と)|を出歩|で(?:遊|待|絡)|[とか]裏|が(?:出|ない)|だって|立って|沙汰|向き'
+            r'|の(?:顔|世界|社会|舞台|仕事|理由|看板|門|通り|玄関)')],
+    # 主: あるじ for the master of a house or of servants (館の主, 我が主, 奴隷と主); しゅ in 主として (mainly);
+    # Sudachi's ぬし otherwise (声の主, 森の主).
+    '主': [('しゅ', r'(?<!の)$', r'として', 'and'),
+           ('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, ROOM - {'室', '廊下'}, SERVANT,
+                                    '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None)],
+    # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 腕に抱く, 抱かれる, 抱きたい);
+    # Sudachi's いだく for feelings (疑問を抱く, 不満を抱かれる).
+    '抱く': [('だく', r'(?:(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を|腕に|腕の中に)$', None),
+            ('だく', r'(?<!を)$', r'れ|た[いくかけ]', 'and')],
+    # 家 け after a katakana name (ローズ家, フジバヤシ家); Sudachi says か.
+    '家': [('け', r'[ァ-ヺー・]{2,}$', None)],
+    # 側 そば: beside (すぐ側, 彼の側にいる, 駅の側で); がわ (a side) otherwise (向こう側, 民の側につく).
+    '側': [('そば', r'すぐ$', None),
+           ('そば', r'[のがはも]$', r'に(?:いる|い[てたらまれよ]|居|あ[るっ]|置|寄|座|控|仕え|付き添|はべ|侍|来|行)|で(?!は)|まで', 'and')],
+    # 傍 alone (not 傍ら) is そば before a particle: 彼の傍にいる, 窓の傍で; Sudachi says かたわら.
+    '傍': [('そば', None, r'(?:に|で|まで|から|へ|を)')],
+    # 留まる とどまる after に (その場に留まる, だけに留まる), but 目に留まる, 枝に留まる: とまる.
+    '留まる': [('とどまる', r'(?<![目眼耳枝肩木々線])に$', None)],
     '今日': [('こんにち', None, 'の' + words(REALM - {'国'}, SOCIETY - {'未来', '地球'}, ISSUE - {'急務', '懸案'})
               + r'|に(?:至|いた)る|では|において')],
     # Sudachi says あす; books mostly say あした, except in formal phrases.

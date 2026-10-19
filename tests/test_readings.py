@@ -103,6 +103,28 @@ class ContextReadingTest(unittest.TestCase):
         self.assertIsNone(self.reading('明日の日本を担う', '明日'))
         self.assertIsNone(self.reading('料理が上手だ', '上手'))
 
+    def test_heteronym_rules_post_war(self):
+        known = {('表', 'おもて'), ('表', 'ひょう'), ('主', 'あるじ'), ('主', 'ぬし'), ('主', 'しゅ'), ('抱く', 'だく'),
+                 ('抱く', 'いだく'), ('家', 'け'), ('家', 'いえ'), ('側', 'そば'), ('側', 'がわ'), ('傍', 'そば'),
+                 ('傍', 'かたわら'), ('間', 'ま'), ('間', 'あいだ'), ('後', 'あと'), ('留まる', 'とどまる'), ('留まる', 'とまる')}
+        cases = [('感情を表に出さない', '表', None, 'おもて'), ('コインの表が出た', '表', None, 'おもて'),
+                 ('結果を表にまとめた', '表', None, None),
+                 ('屋敷の主が客を迎えた', '主', None, 'あるじ'), ('我が主の命令', '主', None, 'あるじ'),
+                 ('声の主は姉だった', '主', None, None), ('会議では主として予算を', '主', None, 'しゅ'),
+                 ('神剣の主として', '主', None, None),
+                 ('赤ん坊を抱いている', '抱く', '抱い', 'だく'), ('少女に抱かれて眠った', '抱く', '抱か', 'だく'),
+                 ('不安を抱いている', '抱く', '抱い', None), ('疑問を抱かれる', '抱く', '抱か', None),
+                 ('スミス家の人々', '家', None, 'け'), ('友達の家に行く', '家', None, None),
+                 ('彼の側にいる', '側', None, 'そば'), ('駅のすぐ側に', '側', None, 'そば'),
+                 ('弱い者の側に立った', '側', None, None), ('彼の傍で眠る', '傍', None, 'そば'),
+                 ('少し間を置いて', '間', None, 'ま'), ('返事をする間もなく', '間', None, 'ま'),
+                 ('その間も雨は', '間', None, None), ('会話に間が空いた', '間', None, 'ま'),
+                 ('この後、映画を', '後', None, 'あと'), ('その場に留まった', '留まる', '留まっ', 'とどまる'),
+                 ('目に留まった', '留まる', '留まっ', None), ('鳥が木に留まる', '留まる', None, None)]
+        for text, form, surface, reading in cases:
+            begin = text.index(surface or form)
+            self.assertEqual(context_reading(text, begin, surface or form, form, known), reading, text)
+
     def test_nani_before_ka_suru_and_verbs_nan_before_counters(self):
         for text in ('何か食べたい。', '何してるの？', '何？', '何食べる？'):
             self.assertEqual(self.reading(text, '何'), 'なに', text)
