@@ -2,7 +2,7 @@
 import unittest
 
 from yurigana import Reader, Word, aozora_text
-from yurigana.counters import number_value, reading
+from yurigana.counters import number_reading, number_value, reading
 from yurigana.tokens import Token
 
 try:
@@ -38,6 +38,7 @@ CASES = [
     ('三千', '円', 'えん', 'さんぜんえん'), ('一', '箇月', 'かげつ', 'いっかげつ'), ('六', '箇月', 'かげつ', 'ろっかげつ'),
     ('一', '台', 'だい', 'いちだい'), ('何', '匹', 'ひき', 'なんびき'), ('幾', '人', 'にん', 'いくにん'),
     ('六百', '本', 'ぽん', 'ろっぴゃっぽん'), ('一兆', '円', 'えん', 'いっちょうえん'), ('8', '頭', 'とう', 'はっとう'),
+    ('一', '歩', 'ほ', 'いっぽ'), ('三', '歩', 'ほ', 'さんぽ'), ('二', '歩', 'ほ', 'にほ'),
 ]
 
 # The acceptance grid, written by hand from standard counter grammar (not from any corpus):
@@ -98,6 +99,20 @@ class CounterReadingTest(unittest.TestCase):
         self.assertEqual(reading('一', '日', 'にち', '四月'), ('ついたち', None))
         self.assertEqual(reading('一', '日', 'にち', '毎日'), ('いち', 'にち'))
         self.assertEqual(reading('二', '日', 'か'), ('ふつ', 'か'))
+
+    def test_bu(self):
+        # 分 as a tenth: pairs, after 割/寸/両, before 咲き/目/通り; minutes and fractions otherwise
+        self.assertEqual(reading('五', '分', 'ふん', '', '五分'), ('ご', 'ぶ'))
+        self.assertEqual(reading('三', '分', 'ふん', '七分', 'に'), ('さん', 'ぶ'))
+        self.assertEqual(reading('七', '分', 'ふん', '', '三分'), ('しち', 'ぶ'))
+        self.assertEqual(reading('五', '分', 'ぶん', '三割', 'だ'), ('ご', 'ぶ'))
+        self.assertEqual(reading('三', '分', 'ふん', 'まだ', '咲き'), ('さん', 'ぶ'))
+        self.assertEqual(reading('五', '分', 'ふん', '', '待った'), ('ご', 'ふん'))
+        self.assertEqual(reading('三', '分', 'ぶん', '', 'の一'), ('さん', 'ぶん'))
+
+    def test_number_reading(self):
+        for value, expected in ((600, 'ろっぴゃく'), (800, 'はっぴゃく'), (3000, 'さんぜん'), (650, 'ろっぴゃくごじゅう')):
+            self.assertEqual(number_reading(value), expected)
 
     def test_not_a_counter(self):
         self.assertIsNone(reading('三', '犬'))
@@ -170,6 +185,10 @@ class SudachiCounterTest(unittest.TestCase):
                 words = [(w.form, w.reading) for w in reader.read(text) if w.source == 'counter']
                 self.assertEqual(words[0], (span, expected))
         self.assertIn(('分', 'ぶん'), words)  # 三分の一: the fraction's 分 keeps ぶん
+        words = [(w.form, w.reading, w.source) for w in reader.read('六百ページと五分五分の勝負')]
+        self.assertIn(('六百', 'ろっぴゃく', 'counter'), words)  # a number alone: not Sudachi's ろくひゃく
+        self.assertIn(('分', 'ぶ', 'counter'), words)
+        self.assertNotIn('counter', [w.source for w in reader.read('数万の人')[:2]])  # 万 alone isn't いちまん
         words = reader.read('一人で十分です。')  # lexicalised: one token each, left alone
         self.assertNotIn('counter', [w.source for w in words])
 

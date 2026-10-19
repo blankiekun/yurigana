@@ -101,7 +101,12 @@ _CONTEXT_RULES = {
     # Sudachi says あす; books mostly say あした, except in formal phrases.
     '明日': [('あした', None, r'(?!の(?:日本|社会|世界|未来|地球|国)|を担|にも)')],
     '上手': [('かみて', r'舞台の?$', None), ('うわて', r'枚$', r'に出(?:る|た|て|ら|ま)')],
-    '下手': [('しもて', r'舞台の?$', None), ('したて', None, r'に出(?:る|た|て|ら|ま)')],
+    # 下手 しもて: the stage's or a river's lower side; へた takes no へ (下手へ退く).
+    '下手': [('しもて', r'(?:舞台|川|河)の?(?:ずっと|少し|やや|すぐ)?$', r'へ|から(?:登場|出|入|現)|向き|寄り'),
+             ('したて', None, r'に出(?:る|た|て|ら|ま|れ)')],
+    # 一足 いっそく: a pair of footwear; ひとあし (a step) otherwise.
+    '一足': [('いっそく', r'(?:靴|くつ|クツ|靴下|草鞋|わらじ|下駄|足袋|スニーカー|ブーツ|サンダル|スリッパ|草履)[をがはも]?$',
+              r'の(?:靴|くつ|クツ|靴下|草鞋|わらじ|下駄|足袋|スニーカー|ブーツ|サンダル|スリッパ|草履)')],
     '市場': [('いちば', r'(?:魚|青物|朝|築地|近所の|朝早く)$', r'.{0,8}?(?:魚|野菜|果物|八百屋|買い物|買[っうい]|売り子)')],
     '生物': [('なまもの', None, r'を(?:食べ|食[うっ]|召し上が)|.{0,8}?(?:冷蔵|早めに|腐[らりるっ]|扱いに注意)')],
     '最中': [('もなか', r'(?:アイス|栗|餡)の$|(?:餡|あんこ).{0,8}入[っり].{0,2}$',
@@ -150,7 +155,10 @@ _CONTEXT_RULES = {
 DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 'いう', ('富士山', 'ふじやま'): 'ふじさん',
                     ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
                     ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが',
-                    ('日本', 'にっぽん'): 'にほん'}
+                    ('日本', 'にっぽん'): 'にほん',
+                    # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
+                    ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
+                    ('近々', 'ちかじか'): 'ちかぢか'}
 
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in _CONTEXT_RULES.items()}
@@ -195,3 +203,24 @@ def conjugated_reading(surface: str, form: str, sudachi: str, readings) -> str |
     matches = [r for r in readings if r.endswith(okurigana) and len(r) > len(okurigana)
                and (r[:len(r) - len(okurigana)] + tail).translate(_LARGE) == sudachi.translate(_LARGE)]
     return matches[0] if len(matches) == 1 else None
+
+
+_KANA_TAIL = re.compile(r'[ぁ-ゖァ-ヺーゝゞヽヾ]+')
+# 来る's stem by what follows it: こ before the 未然形/命令形 endings (来ない, 来なきゃ, 来よう, 来い,
+# 来られる, 来まい, 来ねえ), く before る/れば/りゃ, き otherwise (来た, 来ます, 来て, 来ながら, 来なさい).
+_KO = re.compile(r'な[いくかけき]|まい|[いうよさらずぬねんれ]')
+
+
+def surface_reading(surface: str, form: str, reading: str | None, after: str = '') -> str | None:
+    """The reading of a token's surface from its dictionary form's: 行った, 行く, いく → いった.
+    `after`: the text right after the token, for 来る, whose stem is read き, こ or く (来た きた)."""
+    if reading is None or surface == form:
+        return reading
+    stem, okurigana = re.match(r'^(.*?)([ぁ-ゖ]*)$', form).groups()
+    rest = surface[len(stem):]
+    if not (stem and surface.startswith(stem) and reading.endswith(okurigana) and (not rest or _KANA_TAIL.fullmatch(rest))):
+        return None
+    if form == '来る' and reading == 'くる':
+        kana = to_hiragana(rest + (_KANA_TAIL.match(after) or [''])[0])
+        return ('く' if re.match(r'る|れ[ばど]|りゃ', kana) else 'こ' if _KO.match(kana) else 'き') + to_hiragana(rest)
+    return reading[:len(reading) - len(okurigana)] + to_hiragana(rest)

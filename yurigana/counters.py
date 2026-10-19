@@ -33,7 +33,7 @@ _HOURS = ('よ', 'しち', 'く')
 COUNTERS = {
     '本': ('ほん', 'h', 'ぼん', _479), '匹': ('ひき', 'h', 'びき', _479), '杯': ('はい', 'h', 'ばい', _479),
     '発': ('はつ', 'h', 'ぱつ', _479), '泊': ('はく', 'h', 'ぱく', _479), '版': ('はん', 'h', 'ぱん', _479),
-    '編': ('へん', 'h', 'ぺん', _479), '分': ('ふん', 'h', 'ぷん', _479),
+    '編': ('へん', 'h', 'ぺん', _479), '分': ('ふん', 'h', 'ぷん', _479), '歩': ('ほ', 'h', 'ぽ', _479),
     '個': ('こ', 'k', None, _479), '回': ('かい', 'k', None, _479), '階': ('かい', 'k', 'がい', _479),
     '軒': ('けん', 'k', 'げん', _479), '件': ('けん', 'k', None, _479), '曲': ('きょく', 'k', None, _479),
     '巻': ('かん', 'k', None, _479), '箇月': ('かげつ', 'k', None, _479), '箇所': ('かしょ', 'k', None, _479),
@@ -55,6 +55,10 @@ _VOICED_AFTER = {3, '何', 1000, 10 ** 4}
 _P = str.maketrans('はひふへほわ', 'ぱぴぷぺぽぱ')
 _DAYS = {2: 'ふつ', 3: 'みっ', 4: 'よっ', 5: 'いつ', 6: 'むい', 7: 'なの', 8: 'よう', 9: 'ここの', 10: 'とお', 20: 'はつ'}
 _MONTH = ('し', 'しち', 'く')
+# 分 as a tenth (ぶ): in pairs (五分五分, 七分三分, 五分と五分), after 割/寸/両 (三割五分, 一寸五分) and before
+# 咲き/目/通り (三分咲き, 八分目)
+_BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9０-９]分と?)$')
+_BU_AFTER = re.compile(r'と?[〇一二三四五六七八九十0-9０-９]+分|[咲目]|通り|どおり')
 
 
 def number_value(surface: str):
@@ -120,11 +124,17 @@ def _days(value, kana, kind, after_month: bool):
     return kana, 'にち'
 
 
-def reading(number: str, counter: str, sudachi: str = '', before: str = ''):
+def number_reading(value: int) -> str:
+    """A number's reading: 六百 ろっぴゃく, 三千 さんぜん."""
+    return ''.join(kana for kana, _ in _elements(value))
+
+
+def reading(number: str, counter: str, sudachi: str = '', before: str = '', after: str = ''):
     """(number's reading, counter's reading) for `number` followed by the counter token
     (`counter`: its normalized form, `sudachi`: Sudachi's reading of it in hiragana), or
     (reading of the whole, None) when it can't be split (一人 ひとり, 二十日 はつか), or None.
-    `before`: the text before the number (月 there makes 一日 ついたち)."""
+    `before`: the text before the number (月 there makes 一日 ついたち), `after`: the text after
+    the counter (五分五分: 分 ぶ)."""
     if number in _QUESTION:
         kana, kind = _QUESTION[number]
         value = None
@@ -147,6 +157,10 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = ''):
         if kind in (4, 7, 9):
             kana = kana[:-len(final)] + _MONTH[(4, 7, 9).index(kind)]
         return kana, 'がつ'
+    if counter == '分' and (_BU_BEFORE.search(before) or _BU_AFTER.match(after)):
+        if kind in (4, 7, 9):
+            kana = kana[:-len(final)] + ('よん', 'しち', 'く')[(4, 7, 9).index(kind)]
+        return kana, 'ぶ'
     if counter == '分' and sudachi == 'ぶん':  # a fraction: 三分の一
         return kana, 'ぶん'
     if counter == '人' and value in (1, 2):
@@ -204,7 +218,7 @@ def spans(text: str, tokens: list):
             # 一対一 (one on one) is いったいいち
             if not (counter.normalized_form() == '対' and NUMERAL.match(text[end:end + 1])):
                 found = reading(text[token.begin:counter.begin], counter.normalized_form(),
-                                to_hiragana(counter.reading_form()), text[:token.begin])
+                                to_hiragana(counter.reading_form()), text[:token.begin], text[end:end + 4])
                 if found:
                     out.append((token.begin, counter.begin, end, *found))
         i = j

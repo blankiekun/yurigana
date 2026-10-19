@@ -1,7 +1,7 @@
 """Tests for yurigana.readings: ruby and context rules."""
 import unittest
 
-from yurigana.readings import conjugated_reading, context_reading, ruby_reading
+from yurigana.readings import conjugated_reading, context_reading, ruby_reading, surface_reading
 
 
 class RubyReadingTest(unittest.TestCase):
@@ -59,6 +59,15 @@ class ConjugatedReadingTest(unittest.TestCase):
         for surface, sudachi in (('来', 'き'), ('来', 'こ'), ('来よう', 'こよう'), ('来い', 'こい'), ('来れ', 'くれ')):
             self.assertEqual(conjugated_reading(surface, '来る', sudachi, ['きたる', 'くる']), 'くる', surface)
         self.assertIsNone(conjugated_reading('来', '来る', 'き', ['きたる']))  # くる not listed
+
+    def test_surface_reading(self):
+        self.assertEqual(surface_reading('行っ', '行く', 'いく', 'た'), 'いっ')
+        self.assertIsNone(surface_reading('云っ', '言う', 'いう'))
+        for surface, after, expected in (('来', 'た。', 'き'), ('来', 'ます', 'き'), ('来', 'ながら', 'き'), ('来', 'なさい', 'き'),
+                                         ('来', 'ない', 'こ'), ('来', 'なきゃ', 'こ'), ('来い', '', 'こい'), ('来よう', '', 'こよう'),
+                                         ('来', 'られる', 'こ'), ('来れ', 'ば', 'くれ'), ('来れ', 'る', 'これ'), ('来', '。', 'き')):
+            self.assertEqual(surface_reading(surface, '来る', 'くる', after), expected, surface + after)
+        self.assertEqual(surface_reading('来る', '来る', 'きたる'), 'きたる')
 
 
 class ContextReadingTest(unittest.TestCase):
