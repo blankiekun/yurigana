@@ -96,7 +96,7 @@ class CounterReadingTest(unittest.TestCase):
                     if expected == '-':
                         continue
                     with self.subTest(number + counter):
-                        got = reading(number, counter, sudachi)
+                        got = reading(number, counter, sudachi, '', '後')  # 後: a bare 十分 is minutes only with a cue
                         self.assertEqual(got and got[0] + (got[1] or ''), expected)
 
     def test_split(self):
@@ -119,6 +119,11 @@ class CounterReadingTest(unittest.TestCase):
         self.assertEqual(reading('三', '分', 'ぶん', '', 'の一'), ('さん', 'ぶん'))
         self.assertEqual(reading('１０', '分', 'ぶん', '徒歩', 'のところ'), ('じゅっ', 'ぷん'))  # Sudachi's ぶん: minutes
         self.assertEqual(reading('十', '分', 'ぶん', '', 'の理解'), ('じゅう', 'ぶん'))  # 十分 じゅうぶん
+        self.assertEqual(reading('十', '分', 'ふん', '', 'には'), ('じゅう', 'ぶん'))  # Sudachi split 十分 "enough"
+        self.assertEqual(reading('十', '分', 'ふん', '', '待った'), ('じゅう', 'ぶん'))  # no cue: "enough" is far more common
+        self.assertEqual(reading('十', '分', 'ふん', '', 'ほど歩'), ('じゅっ', 'ぷん'))
+        self.assertEqual(reading('十', '分', 'ふん', '三時', 'に着'), ('じゅっ', 'ぷん'))
+        self.assertEqual(reading('十', '分', 'ふん', '二', '待った'), ('じゅっ', 'ぷん'))  # part of 二十分
 
     def test_number_reading(self):
         for value, expected in ((600, 'ろっぴゃく'), (800, 'はっぴゃく'), (3000, 'さんぜん'), (650, 'ろっぴゃくごじゅう')):
