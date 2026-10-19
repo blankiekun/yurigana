@@ -2,7 +2,7 @@
 import unittest
 
 from yurigana import Reader, Word, aozora_text
-from yurigana.reader import PlainReadings
+from yurigana.reader import PlainReadings, rendaku
 from yurigana.reading_model import ReadingModel, build_form
 from yurigana.tokens import Token
 
@@ -17,7 +17,9 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            '学校': ('学校', 'ガッコウ', '名詞'), '私': ('私', 'ワタクシ', '代名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞'),
            '身の上': ('身の上', 'ミノウエ', '名詞'), '話': ('話', 'ハナシ', '名詞'), '彼': ('彼', 'カレ', '代名詞'),
            '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞'), '日本': ('日本', 'ニッポン', '名詞'),
-           '箱': ('箱', 'バコ', '名詞'), '深い': ('深い', 'ブカイ', '形容詞'), '沿い': ('沿い', 'ソイ', '接尾辞')}
+           'プレハブ': ('プレハブ', 'プレハブ', '名詞'), '小屋': ('小屋', 'コヤ', '名詞'), 'この': ('この', 'コノ', '連体詞'),
+           '箱': ('箱', 'バコ', '名詞'), '深い': ('深い', 'ブカイ', '形容詞'), '沿い': ('沿い', 'ソイ', '接尾辞'),
+           '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞')}
 
 
 class ToyTokenizer:
@@ -108,6 +110,19 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(self.reader().read(text, hints)[0][3:5], ('わたくし', 'ruby'))  # ruby still wins
         self.assertEqual(self.reader({('私', 'わたくし'), ('私', 'あたし')}).read('私。')[0][3:5],
                          ('わたくし', 'dictionary'))  # わたし not listed
+
+    def test_rendaku_by_the_lists_compounds(self):
+        known = {('小屋', 'こや'), ('棚', 'たな'), ('睡眠不足', 'すいみんぶそく'),
+                 *((head + '小屋', reading + 'ごや') for head, reading in
+                   (('犬', 'いぬ'), ('山', 'やま'), ('牛', 'うし'), ('馬', 'うま'), ('豚', 'ぶた')))}
+        reader = self.reader(known)
+        self.assertEqual([w[2:5] for w in reader.read('プレハブ小屋。この棚。睡眠不足。')],
+                         [('小屋', 'ごや', 'only'), ('棚', 'たな', 'dictionary'), ('睡眠不足', 'すいみんぶそく', 'only')])
+        self.assertEqual(reader.read('小屋。')[0].reading, 'こや')  # no first part
+        self.assertEqual(reader.read('プレハブ棚。')[0].reading, 'だな')  # no listed compounds to go by: Sudachi's
+        self.assertEqual(rendaku('たな'), 'だな')
+        self.assertIsNone(rendaku('かぜ'))  # Lyman's law
+        self.assertIsNone(rendaku('ろく'))
 
     def test_plain_readings(self):
         plain = PlainReadings()
