@@ -75,8 +75,10 @@ The first step that gives a reading wins:
    周囲に人気がない); この店は人気がない stays にんき.
 3. **The reading model** (`ReadingModel`): a small naive Bayes classifier per form, over
    the two tokens on each side, their pairs and the content words within six tokens of the
-   line. It answers only when its best reading's posterior is at least 0.7, and never for a
-   form that has rules.
+   line. It answers only when its best reading's posterior is at least 0.7. A form that has
+   rules gets a model only where it read better than Sudachi on the held-out occurrences no
+   rule fires on (it is trained on those too); the table lists such forms (`ruleForms`), and
+   an entry for a rule form that isn't listed is ignored.
 4. **Sudachi's reading** of the token, for an unconjugated word.
    A few of Sudachi's readings that are almost always wrong in modern text are replaced
    (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
@@ -113,7 +115,7 @@ sentence. Use it to sort or flag, not as a probability.
 
 ### Building a table from your own library
 
-The committed table (`reading-model-public.json.gz`, 42 forms) is trained on public-domain
+The committed table (`reading-model-public.json.gz`, 43 forms) is trained on public-domain
 works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
 own library reads far more forms (403 on one library of 19,000 books):
 
@@ -134,7 +136,8 @@ built are in `yurigana/reading_context.py`'s docstring:
 2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b`;
 3. `train` on the Aozora and half a rows together, `--priors` half a's rows;
 4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
-   that read no worse than rules + Sudachi.
+   that read no worse than rules + Sudachi (forms with rules: and better than Sudachi where
+   no rule fires).
 
 `python -m yurigana.eval_readings --dictionary jiten_freq_global.zip` scores the hand-written
 sentences in `readings-test.tsv`; add rows with every new rule.
@@ -149,6 +152,13 @@ occurrences, scored on spans as the sentences mark them), micro 79.4% → 86.3%,
 79.7% → 80.2%, micro over forms with 2+ gold readings 81.4% → 82.6% (私 alone is 4,422 of
 the 5,086 occurrences fixed; 32 got worse, all 何). The hand-written sentences, now 200 of
 43 forms: 95.4% with ruby, 81.7% without.
+
+Forms with rules can now have a model for the occurrences no rule reads. Trained on Aozora
+Bunko and half a, and kept only where it beat Sudachi on half b's: one so far, 辛い (33
+occurrences no rule reads there: Sudachi 45.5%, with the model 66.7%; it answers 85% of
+them). 人気 and 床 read worse or no better, so they stay with Sudachi. Over all of half b
+(`evaluate --all`), macro 93.7% → 93.8%, micro 94.7% (unchanged); the hand-written
+sentences are unchanged.
 
 Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
 

@@ -1,11 +1,14 @@
 """Tests for yurigana.reading_model and the training in yurigana.reading_context (no Sudachi)."""
+import contextlib
 import gzip
+import io
 import json
 import math
 import os
 import tempfile
 import unittest
 from collections import Counter
+from unittest import mock
 
 from yurigana import reading_context as rc
 from yurigana.reading_model import PUBLIC_TABLE, WINDOW, ReadingModel, build_form, features, load_tables, token_window
@@ -63,14 +66,17 @@ class ModelTest(unittest.TestCase):
         ts = tokens('人気 が ない')
         self.assertEqual(self.model.reading('人気がない', ts, 0, '人家', {('人家', 'ひとけ'): 1}), 'ひとけ')
 
-    def test_forms_with_hand_rules_are_left_to_the_rules_and_sudachi(self):
-        # The table says ひとけ for 人気がない; without a cue no rule fires, so Sudachi's にんき stays.
-        from yurigana.readings import context_reading
+    def test_forms_with_hand_rules_load_only_when_the_table_kept_them_where_no_rule_fires(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, 'm.json.gz')
+            with gzip.open(path, 'wt', encoding='utf-8') as f:
+                json.dump({'version': 1, 'forms': {'人家': self.entry, '人気': self.entry, '床': self.entry}}, f)
+            self.assertEqual(set(ReadingModel.load(path).forms), {'人家'})  # an older table: rule forms dropped
+            rc.write_table(path, {'人家': self.entry, '人気': self.entry})
+            self.assertEqual(set(ReadingModel.load(path).forms), {'人家', '人気'})
+        # Kept, it answers where no rule fires (Reader asks it only then).
         known = {('人気', 'ひとけ'): 1, ('人気', 'にんき'): 1}
-        ts = tokens('それ は 人気 が ない')
-        self.assertEqual(self.model.predict('人気', token_window(ts, 2, 0, 99)), 'ひとけ')
-        self.assertIsNone(context_reading('それは人気がない', 3, '人気', '人気', known))
-        self.assertIsNone(self.model.reading('それは人気がない', ts, 2, '人気', known))
+        self.assertEqual(self.model.reading('それは人気がない', tokens('それ は 人気 が ない'), 2, '人気', known), 'ひとけ')
 
     def test_only_readings_jiten_lists_and_only_modelled_forms(self):
         ts = tokens('人気 が ない')
@@ -86,8 +92,8 @@ class ModelTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, 'm.json.gz')
             with gzip.open(path, 'wt', encoding='utf-8') as f:
-                json.dump({'version': 1, 'forms': {'人気': self.entry}}, f)
-            self.assertEqual(ReadingModel.load(path).forms['人気'][0], ['ひとけ', 'にんき'])
+                json.dump({'version': 1, 'forms': {'人家': self.entry}}, f)
+            self.assertEqual(ReadingModel.load(path).forms['人家'][0], ['ひとけ', 'にんき'])
             with gzip.open(path, 'wt', encoding='utf-8') as f:
                 json.dump({'version': 2, 'forms': {}}, f)
             with self.assertRaises(ValueError):
@@ -98,12 +104,12 @@ class TablesTest(unittest.TestCase):
     def test_the_first_table_wins_and_the_next_fill_in(self):
         with tempfile.TemporaryDirectory() as tmp:
             paths = [os.path.join(tmp, name) for name in ('server.json.gz', 'aozora.json.gz', 'broken.json.gz')]
-            for path, forms in zip(paths, ({'人気': 'server'}, {'人気': 'aozora', '床': 'aozora'})):
+            for path, forms in zip(paths, ({'人家': 'server'}, {'人家': 'aozora', '本気': 'aozora'})):
                 with gzip.open(path, 'wt', encoding='utf-8') as f:
                     json.dump({'version': 1, 'forms': forms}, f)
             with open(paths[2], 'w') as f:
                 f.write('not gzip')
-            self.assertEqual(load_tables(paths).forms, {'人気': 'server', '床': 'aozora'})
+            self.assertEqual(load_tables(paths).forms, {'人家': 'server', '本気': 'aozora'})
             self.assertIsNone(load_tables([os.path.join(tmp, 'missing')]))
         self.assertGreater(len(load_tables([PUBLIC_TABLE]).forms), 30)  # the committed table
 
@@ -152,6 +158,37 @@ class TrainingTest(unittest.TestCase):
 
     def test_em_keeps_priors_when_unlabelled_text_says_nothing(self):
         self.assertEqual([round(p, 2) for p in rc.em_priors([[0.0, 0.0]] * 10, [0.3, 0.7])], [0.3, 0.7])
+
+    def test_a_form_with_rules_is_kept_only_if_it_beats_sudachi_where_no_rule_fires(self):
+        entry = build_form({r: c for r, (_, c) in counts(HITOKE + NINKI).items()},
+                           ['L1:に', 'R1:が', 'R2:ない', 'R2:ある', 'R1:の', 'W:店'], [math.log(.5)] * 2)
+
+        def row(n, gold, line, sudachi='にんき'):
+            words = line.split(' ')
+            at = words.index('人気')
+            context = [''.join(words[:at]), '人気', ''.join(words[at + 1:])]
+            return ['b', f'a{n % 3}', '人気', gold, token_window(tokens(line), at, 0, 99), context, sudachi]
+
+        # 人気のない: a rule reads ひとけ. 人気がある: no rule, Sudachi right. 人気がない: no rule, Sudachi にんき.
+        ruled = [row(n, 'ひとけ', '人気 の ない 廊下') for n in range(9)]
+        popular = [row(n, 'にんき', '店 は 人気 が ある') for n in range(9)]
+        known = {('人気', 'にんき'): 1, ('人気', 'ひとけ'): 2}
+
+        def kept(rows):
+            with tempfile.TemporaryDirectory() as tmp, mock.patch.object(rc, 'reading_ranks', lambda _: known), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                with gzip.open(os.path.join(tmp, 'occurrences.jsonl.gz'), 'wt', encoding='utf-8') as f:
+                    f.writelines(json.dumps(r, ensure_ascii=False) + '\n' for r in rows)
+                rc.train(tmp, '', None, given=ReadingModel({'人気': entry}), prune=os.path.join(tmp, 't.json.gz'),
+                         all_splits=True)
+                return set(ReadingModel.load(os.path.join(tmp, 't.json.gz')).forms)
+
+        # Unruled 人気がない is ひとけ (廊下に人気がない): the model's ひとけ beats Sudachi's にんき.
+        self.assertEqual(kept(ruled + popular + [row(n, 'ひとけ', 'それ は 人気 が ない') for n in range(9)]), {'人気'})
+        # Unruled 人気がない is にんき (この店は人気がない): the model would be wrong where no rule fires.
+        self.assertEqual(kept(ruled + popular + [row(n, 'にんき', 'それ は 人気 が ない') for n in range(9)]), set())
+        # Where no rule fires the model only agrees with Sudachi: no gain, so not kept.
+        self.assertEqual(kept(ruled + popular + [row(n, 'ひとけ', '人気 の ない 道') for n in range(9)]), set())
 
     def test_prior_weighted_accuracy(self):
         per = {'ひとけ': (9, 10), 'にんき': (5, 10)}
