@@ -7,4 +7,4 @@ from .text import aozora_text, book_text
 
 __all__ = ['Reader', 'Word', 'context_reading', 'ruby_reading', 'PUBLIC_TABLE', 'RULE_FORMS', 'ReadingModel',
            'load_tables', 'aozora_text', 'book_text']
-__version__ = '0.1.0'
+__version__ = '0.1.1'

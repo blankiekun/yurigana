@@ -1,10 +1,19 @@
 {
   "name": "yurigana",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Readings of Japanese kanji words in context, and which furigana a reader no longer needs",
   "license": "BSD-3-Clause AND CC-BY-SA-4.0",
   "repository": "github:blankiekun/yurigana",
   "type": "module",
+  "main": "./js/index.js",
+  "types": "./js/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "kanji-readings.json": [
+        "yurigana/kanji-readings.json"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./js/index.d.ts",

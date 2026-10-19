@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.1.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.1.1.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-full too (the dictionary at the version the numbers below were measured with). Then:
@@ -173,7 +173,7 @@ Sudachi 88.4%, rules + Sudachi 89.3%, + public table 94.0%, + library table 96.0
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.1.0
+pnpm add github:blankiekun/yurigana#v0.1.1
 ```
 
 ```js
