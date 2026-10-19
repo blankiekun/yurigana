@@ -1,7 +1,7 @@
 import re
 import unittest
 
-from yurigana import cues
+from yurigana import counters, cues
 
 
 class CuesTest(unittest.TestCase):
@@ -15,3 +15,7 @@ class CuesTest(unittest.TestCase):
             if isinstance(value, frozenset):
                 for word in value:
                     self.assertRegex(word, r'^[ぁ-ゖァ-ヺー一-鿿々]+$', name)
+
+    def test_counter_has_the_counters(self):
+        one_kanji = {c for c in counters.COUNTERS if len(c) == 1}
+        self.assertEqual(one_kanji - cues.COUNTER, {'着', '間'})

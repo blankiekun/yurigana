@@ -76,8 +76,11 @@ CUSTOMER_ACT = frozenset({'希望', '利用', '来場', '越し', '持ち', '住
 # Trades and walks of life whose temperament 気質 is, かたぎ: 職人気質, 学生気質.
 OCCUPATION = frozenset({'職人', '商人', '芸人', '役者', '書生', '学生'})
 
-# Counters 何 is なん before (何年, 何冊, 何曜). counters.COUNTERS reads number + counter; the two lists differ (TRADEOFFS T1).
-COUNTER = frozenset('年冊日番時匹台杯分周段箱点画便号名回人度月週歳個枚本階倍頭泊足軒件通語十百千万億兆曜秒')
+# Counters 何 is なん before (何年, 何冊, 何曜, 何単位): every one-kanji counter of counters.COUNTERS (tests check it)
+# but 着 and 間, which start verbs after 何 (何着てる, 何間違えてる: なに).
+COUNTER = (frozenset('年冊日番時匹台杯分周段箱点画便号名回人度月週歳個枚本階倍頭泊足軒件通語十百千万億兆曜秒'
+                     '発版編歩曲巻対羽円銭隻艘寸尺升貫脚町丁列畳晩粒坪袋組頁票')
+           | {'試合', '単位'})
 
 # Food: spicy dishes (カレーが辛い: からい), fresh produce sold at a market (魚の市場: いちば).
 DISH = frozenset({'カレー', '料理', 'スープ', 'ラーメン', '唐辛子', 'わさび', 'キムチ', '味', '味付け', 'ソース'})
