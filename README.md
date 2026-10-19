@@ -96,6 +96,9 @@ token is read on its own; the first step that gives a reading wins:
    日本 にっぽん → にほん is the exception: Tatoeba's machine gold keeps にっぽん often enough
    to miss that bar, but the human ruby of the NDL test set almost never uses it.
    鼻血, 間近, 手近 and 近々 get ぢ, the spelling of their rendaku (Sudachi writes じ).
+   A second batch (箱 ばこ → はこ, 深い ぶかい, 腹 ふく, 沿い そい, 仏 ふつ, 米 べい,
+   鏡 きょう and 28 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
+   right, and no more breaks than fixes on NDL's held-out authors.
 
 ### Numbers and counters
 
