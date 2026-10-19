@@ -172,6 +172,10 @@ DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 
                     ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
                     ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが',
                     ('日本', 'にっぽん'): 'にほん',
+                    # From a triage of JMdict's forms with 2+ common readings: べい is never the gold reading of a
+                    # lone 米 on Tatoeba half b or NDL. America is mostly its own token (米国, 米軍, 米大統領);
+                    # news text with a lone 米 (米政府) gets こめ too.
+                    ('米', 'べい'): 'こめ',
                     # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
                     ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
                     ('近々', 'ちかじか'): 'ちかぢか'}

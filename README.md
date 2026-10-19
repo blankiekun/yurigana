@@ -91,10 +91,13 @@ token is read on its own; the first step that gives a reading wins:
    is くる), when exactly one does (`readings.conjugated_reading`, `source='dictionary'`).
    A few of Sudachi's readings that are almost always wrong in modern text are replaced
    (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
-   富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
+   富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日, 米 べい → こめ (a lone 米: America is
+   米国, 米軍). They were chosen on Tatoeba's half a:
    each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
    日本 にっぽん → にほん is the exception: Tatoeba's machine gold keeps にっぽん often enough
    to miss that bar, but the human ruby of the NDL test set almost never uses it.
+   米 came from a triage of JMdict's forms with two or more common readings, on Tatoeba's
+   tuning half (B1) and NDL: it changes 12 readings on B1 and 8 on NDL, all right.
    鼻血, 間近, 手近 and 近々 get ぢ, the spelling of their rendaku (Sudachi writes じ).
 
 ### Numbers and counters

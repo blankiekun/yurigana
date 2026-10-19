@@ -122,6 +122,11 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
+    def test_rice_default(self):
+        reader = Reader()
+        self.assertEqual(reader.read('米は高い。')[0][2:5], ('米', 'こめ', 'default'))
+        self.assertEqual(reader.read('米大統領が来日した。')[0][3], 'べいだいとうりょう')  # its own token
+
 
 if __name__ == '__main__':
     unittest.main()
