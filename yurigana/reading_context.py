@@ -5,11 +5,14 @@ stem of an inflected word) is that occurrence's reading. Hiding it gives a test 
 that the reading list (--dictionary: a rank-based Yomitan frequency list, e.g. Jiten's) gives
 several readings (人気: にんき/ひとけ) are read, on real text instead of hand-written sentences.
 
-  mine LIBRARY OUT --dictionary frequency-dictionary.zip [--processes 4] [--limit N]
+  mine LIBRARY OUT --dictionary frequency-dictionary.zip [--processes 4] [--limit N] [--books IDS]
       Writes OUT/occurrences.jsonl.gz (one JSON list per occurrence of an ambiguous form:
       book, author, form, gold reading or null, the tokens around it, the text around it,
       Sudachi's reading) and OUT/stats.json. Ruby'd occurrences are the gold; a sample of
       occurrences without ruby (every SAMPLE_EVERY-th line without ruby) is kept unlabelled.
+      Prints each book's rows (`book<TAB>key<TAB>author<TAB>labelled<TAB>unlabelled`).
+      --books: a file of Calibre book ids (one per line, the "(id)" of the book's folder); only
+      those books are mined.
   report OUT --dictionary frequency-dictionary.zip
       Scores the current pipeline (context rules, then Sudachi) on the held-out books.
   train OUT --dictionary … [--model reading-model.json.gz] [--priors ROWS]
@@ -21,7 +24,7 @@ several readings (人気: にんき/ひとけ) are read, on real text instead of
       from fetch_tatoeba.py); with --prune, writes TABLE with only the forms OUT can score
       (MIN_GOLD occurrences of a reading) that read no worse than rules + Sudachi there
       (only the choice of forms comes from OUT: the entries are TABLE's).
-  build [LIBRARY STATE]
+  build [LIBRARY STATE] [--books IDS]
       A server's own table: mine + train into STATE/reading-model.json.gz (default
       $CALIBRE_LIBRARY and $JITEN_STATE_DIR, else /library and /data/state/difficulty, as in
       chimimouryou's difficulty container), with the rows in a scratch folder there, removed after.
@@ -45,9 +48,11 @@ hiragana and a reading the list gives for the form; ruby set in large kana (い�
 found in MIN_AUTHORS authors' books, so one series' own gikun is not taken for a reading.
 What is excluded, and why, is counted.
 
-Held out by author (hash of the author folder, author_of; Calibre's "Unknown" is no
-author, so such books are their own): `split` 0 = test, 1 = dev, else train, so neither a
-book nor its series is on both sides.
+Held out by author (hash of the author folder, author_of): `split` 0 = test, 1 = dev, else
+train, so neither a book nor its series is on both sides. Calibre's "Unknown" (also 不明 or an
+empty name) is no author: such books are grouped by their Calibre series (metadata.opf), else
+by their title without volume numbers (title_stem), and each group is one pseudo-author, for
+the split and for MIN_AUTHORS alike (a 44-volume series without an author counts once).
 
 Scores are per reading (recall), averaged over a form's readings (macro), because ruby is
 biased toward the rare reading: ruby'd 人気 is ひとけ seven times out of eight, the
@@ -60,11 +65,13 @@ Needs SudachiPy and SudachiDict-full (yurigana's dependencies) and the library r
 import argparse
 import bisect
 import gzip
+import html
 import itertools
 import json
 import math
 import os
 import re
+import unicodedata
 import zlib
 from collections import Counter, defaultdict
 
@@ -79,7 +86,10 @@ PLAIN_PER_BOOK = 1  # unlabelled occurrences kept per form in one book
 MIN_AUTHORS = 3
 MIN_GOLD = 5
 BOOK_SUFFIXES = ('.epub', '.txt')
-UNKNOWN_AUTHORS = ('Unknown', '不明')
+UNKNOWN_AUTHORS = ('Unknown', '不明', '')
+_BOOK_ID = re.compile(r' \((\d+)\)$')  # Calibre's book folder: Title (id)
+_SERIES = re.compile(r'<meta name="calibre:series" content="([^"]+)"')
+_TAG_OR_VOLUME = re.compile(r'[\s_\-:・]*(?:[\[(【〈《「『][^\])】〉》」』]*[\])】〉》」』]|(?:vol\.?|第)?[0-9〇一二三四五六七八九十百]+[巻話部]?|[上中下]巻)$|\s+[上中下]$', re.I)
 
 _HIRAGANA = re.compile(r'^[ぁ-ゖー]+$')
 _KATAKANA = re.compile(r'[ァ-ヺ]')
@@ -173,35 +183,80 @@ def mine_book(path: str, book: str, author: str):
 
 
 def _mine(args):
-    return mine_book(*args)
+    return args[1], args[2], *mine_book(*args)
 
 
-def author_of(book: str) -> str:
-    """The first folder of a book's path (Calibre's author folder); Calibre's "Unknown"
-    (more than half of one library's ruby) is no author, so such a book is its own."""
+def title_stem(title: str) -> str:
+    """A book's title without its Calibre id, trailing tags and volume number (NFKC, lower case):
+    the volumes of one series share it (〈本好き〉3 (12), 本好き 第4巻 (13): 本好き)."""
+    stem = title = unicodedata.normalize('NFKC', _BOOK_ID.sub('', title)).strip().lower()
+    while (shorter := _TAG_OR_VOLUME.sub('', stem)) != stem:
+        stem = shorter
+    return stem or title
+
+
+def author_of(book: str, series: str | None = None) -> str:
+    """The first folder of a book's path (Calibre's author folder). Calibre's "Unknown" (more
+    than half of one library's ruby) is no author: such books are one pseudo-author per series
+    (Calibre's, `series`), else per title_stem, under the folder's name."""
     parts = book.split(os.sep)
-    return os.sep.join(parts[:2]) if parts[0] in UNKNOWN_AUTHORS else parts[0]
+    if len(parts) < 2 or parts[0].strip() not in UNKNOWN_AUTHORS:
+        return parts[0]
+    if series:
+        return os.sep.join((parts[0], 'series:' + unicodedata.normalize('NFKC', series).strip().lower()))
+    title = parts[1] if len(parts) > 2 else os.path.splitext(parts[1])[0]
+    return os.sep.join((parts[0], 'title:' + title_stem(title)))
 
 
-def library_books(library: str):
+def calibre_series(folder: str) -> str | None:
+    """The series in a Calibre book folder's metadata.opf, if any."""
+    try:
+        with open(os.path.join(folder, 'metadata.opf'), encoding='utf-8') as f:
+            found = _SERIES.search(f.read())
+    except OSError:
+        return None
+    return html.unescape(found.group(1)) if found else None
+
+
+def book_id(book: str) -> int | None:
+    """Calibre's id of a book key (the "(id)" of its folder)."""
+    found = _BOOK_ID.search(os.path.dirname(book))
+    return int(found.group(1)) if found else None
+
+
+def library_books(library: str, ids: set | None = None):
     """(path, book key, author_of) per book: a folder's EPUB (Calibre keeps one book's formats
-    in a folder), else each of its TXTs (fetch_aozora.py's author folders)."""
+    in a folder), else each of its TXTs (fetch_aozora.py's author folders). `ids`: only the
+    Calibre books with those ids."""
     for folder, _, files in sorted(os.walk(library)):
         books = sorted(f for f in files if f.lower().endswith(BOOK_SUFFIXES) and not f.startswith('._'))
         epubs = [f for f in books if f.lower().endswith('.epub')]
         for name in epubs[:1] or books:
             rel = os.path.relpath(os.path.join(folder, name), library)
-            yield os.path.join(folder, name), rel, author_of(rel)
+            if ids is not None and book_id(rel) not in ids:
+                continue
+            unknown = rel.split(os.sep)[0].strip() in UNKNOWN_AUTHORS
+            yield os.path.join(folder, name), rel, author_of(rel, calibre_series(folder) if unknown else None)
 
 
-def mine(library: str, out: str, dictionary: str, processes: int, limit: int | None):
+def read_ids(path: str | None) -> set | None:
+    """The book ids of a --books file (one per line; blank lines and # comments ignored)."""
+    if not path:
+        return None
+    with open(path, encoding='utf-8') as f:
+        return {int(line.split('#')[0]) for line in f if line.split('#')[0].strip()}
+
+
+def mine(library: str, out: str, dictionary: str, processes: int, limit: int | None, ids: set | None = None):
     from multiprocessing import Pool
     os.makedirs(out, exist_ok=True)
-    books = list(library_books(library))[:limit]
+    books = list(library_books(library, ids))[:limit]
     stats = Counter(books=len(books))
     with Pool(processes, initializer=_init, initargs=(dictionary,)) as pool, \
             gzip.open(os.path.join(out, 'occurrences.jsonl.gz'), 'wt', encoding='utf-8') as f:
-        for n, (rows, excluded) in enumerate(pool.imap_unordered(_mine, books, chunksize=4), 1):
+        for n, (book, author, rows, excluded) in enumerate(pool.imap_unordered(_mine, books, chunksize=4), 1):
+            labelled = sum(row[3] is not None for row in rows)
+            print(f'book\t{book}\t{author}\t{labelled}\t{len(rows) - labelled}', flush=True)
             stats.update(excluded)
             stats['labelled'] += sum(row[3] is not None for row in rows)
             stats['unlabelled'] += sum(row[3] is None for row in rows)
@@ -479,14 +534,14 @@ def write_table(path: str, table: dict):
     print(f'{path}: {len(table)} forms, {os.path.getsize(path) / 1e6:.1f} MB')
 
 
-def build(library: str, state: str, dictionary: str, processes: int):
-    """A server's own model: mines its library into a scratch folder in `state`, trains, writes
-    state/reading-model.json.gz (preferred by the service over the committed public table)
-    and removes the scratch folder."""
+def build(library: str, state: str, dictionary: str, processes: int, ids: set | None = None):
+    """A server's own model: mines its library (only the books `ids` lists, if given) into a
+    scratch folder in `state`, trains, writes state/reading-model.json.gz (preferred by the
+    service over the committed public table) and removes the scratch folder."""
     import shutil
     scratch = os.path.join(state, 'reading-model-scratch')
     try:
-        mine(library, scratch, dictionary, processes, None)
+        mine(library, scratch, dictionary, processes, None, ids)
         train(scratch, dictionary, os.path.join(state, 'reading-model.json.gz'))
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
@@ -505,9 +560,10 @@ if __name__ == '__main__':
     parser.add_argument('--all', action='store_true', help='evaluate: score every row, not the test authors')
     parser.add_argument('--processes', type=int, default=int(os.environ.get('JITEN_WORKERS', os.cpu_count() or 1)))
     parser.add_argument('--limit', type=int)
+    parser.add_argument('--books', help='mine/build: a file of Calibre book ids (one per line); only those books')
     args = parser.parse_args()
     if args.command == 'mine':
-        mine(*args.paths, args.dictionary, args.processes, args.limit)
+        mine(*args.paths, args.dictionary, args.processes, args.limit, read_ids(args.books))
     elif args.command == 'report':
         report(args.paths[-1], args.dictionary)
     elif args.command == 'train':
@@ -518,4 +574,4 @@ if __name__ == '__main__':
     else:
         library, state = args.paths or (os.environ.get('CALIBRE_LIBRARY', '/library'),
                                         os.environ.get('JITEN_STATE_DIR', '/data/state/difficulty'))
-        build(library, state, args.dictionary, args.processes)
+        build(library, state, args.dictionary, args.processes, read_ids(args.books))

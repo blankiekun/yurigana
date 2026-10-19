@@ -53,10 +53,56 @@ class LabelTest(unittest.TestCase):
         self.assertEqual([r[3] for r in rc.gold_rows(lambda: iter(rows), excluded)], ['ほんき'] * 3)
         self.assertEqual(excluded, Counter({'few authors': 2}))
 
-    def test_books_without_an_author_are_their_own(self):
+    def test_books_without_an_author_are_grouped_by_series_or_title(self):
         self.assertEqual(rc.author_of(os.path.join('夏目漱石', 'こころ (1)', 'x.epub')), '夏目漱石')
-        self.assertEqual(rc.author_of(os.path.join('Unknown', 'こころ (1)', 'x.epub')),
-                         os.path.join('Unknown', 'こころ (1)'))
+        self.assertEqual(rc.author_of(os.path.join('Unknown', '本好き 3 (12)', 'x.epub')),
+                         rc.author_of(os.path.join('Unknown', '本好き 第4巻 (13)', 'x.epub')))
+        self.assertEqual(rc.author_of(os.path.join('不明', 'A (1)', 'x.epub'), 'Ｓｅｒｉｅｓ'),
+                         rc.author_of(os.path.join('不明', 'B (2)', 'x.epub'), 'series'))
+        self.assertNotEqual(rc.author_of(os.path.join('Unknown', 'こころ (1)', 'x.epub')),
+                            rc.author_of(os.path.join('Unknown', '三四郎 (2)', 'x.epub')))
+
+    def test_title_stem_drops_ids_tags_and_volumes(self):
+        self.assertEqual(rc.title_stem('魔法科高校の劣等生(2)【電子版特典付き】 (7)'), '魔法科高校の劣等生')
+        self.assertEqual(rc.title_stem('本好きの下剋上 上巻 (3)'), '本好きの下剋上')
+        self.assertEqual(rc.title_stem('坂の上 下 (2)'), '坂の上')
+        self.assertEqual(rc.title_stem('第九 (4)'), '第九')  # nothing left: the whole title
+
+    def test_toy_library_unknown_series_count_once(self):
+        """One 44-volume series without an author is one pseudo-author: its own reading of a word
+        stays below MIN_AUTHORS, and all its volumes fall in the same split."""
+        with tempfile.TemporaryDirectory() as tmp:
+            def book(folder, opf=None):
+                os.makedirs(os.path.join(tmp, folder))
+                open(os.path.join(tmp, folder, 'x.epub'), 'w').close()
+                if opf:
+                    with open(os.path.join(tmp, folder, 'metadata.opf'), 'w', encoding='utf-8') as f:
+                        f.write(f'<meta name="calibre:series" content="{opf}"/>')
+            for i in range(44):
+                book(f'Unknown/Vol {i} ({i + 100})', 'Long &amp; Series')
+            for i in range(3):
+                book(f'Unknown/別の話 {i + 1} ({i + 200})')
+            book('作者A/本 (1)')
+            books = list(rc.library_books(tmp))
+            authors = {author for _, _, author in books}
+            self.assertEqual(authors, {'作者A', os.path.join('Unknown', 'series:long & series'),
+                                       os.path.join('Unknown', 'title:別の話')})
+            rows = [[b, a, '本気', 'まじ'] for _, b, a in books]
+            self.assertEqual(rc.few_author_labels(rows), set())  # 3 authors
+            rows = [r for r in rows if r[1] != '作者A']  # 47 books, but 2 authors
+            self.assertEqual(rc.few_author_labels(rows), {('本気', 'まじ')})
+            self.assertEqual(len({rc.split_of(a) for _, a, _, _ in rows if 'series:' in a}), 1)
+            ids = rc.read_ids(self.ids_file(tmp, '100\n# a comment\n\n1\n'))
+            self.assertEqual(ids, {100, 1})
+            self.assertEqual([b for _, b, _ in rc.library_books(tmp, ids)],
+                             [os.path.join('Unknown', 'Vol 0 (100)', 'x.epub'), os.path.join('作者A', '本 (1)', 'x.epub')])
+
+    @staticmethod
+    def ids_file(tmp, text):
+        path = os.path.join(tmp, 'ids.txt')
+        with open(path, 'w') as f:
+            f.write(text)
+        return path
 
     def test_library_books_take_a_folders_epub_or_each_txt(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -93,6 +139,14 @@ class MineTest(unittest.TestCase):
     def test_per_kanji_and_stem_ruby_are_gold_like_ruby_reading(self):
         rows, _ = self.mine('人《ひと》気《け》のない道。\n道を｜行《い》った。')
         self.assertEqual([(r[2], r[3]) for r in rows], [('人気', 'ひとけ'), ('行く', 'いく')])
+
+    def test_each_book_reports_its_key_and_author(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, 'book.txt')
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write('人気《ひとけ》のない道。')
+            book, author, rows, _ = rc._mine((path, 'A/book.txt', 'A'))
+        self.assertEqual((book, author, len(rows)), ('A/book.txt', 'A', 1))
 
     def test_plain_lines_are_sampled_unlabelled(self):
         lines = ['人気がある。'] * (rc.SAMPLE_EVERY + 1)
