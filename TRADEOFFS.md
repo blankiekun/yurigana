@@ -44,6 +44,7 @@ ruby). Forms and numbers only.
 | T31 | 外 is a rule form (ほか: 外の人, より外, 待つ外ない), so its model no longer answers | #28 | 目的の外は (NDL tune 1) | NDL tune +6/-1, report +3/-0 | #5 |
 | T32 | 何 なに before やら/やって, に使う/について/にする, ごっこ, げない | #28 | 雪かきやら何やら (B1 1), 第二外国語は何にする (B2 1, IPAdic gold) | B1 +18, NDL +5, B2 +8 for 何 | a list cue (Xやら何やら → なん) |
 | T33 | A conjugated word whose form the list lacks takes Sudachi's surface reading (泳げ およげる, 思ひ おもふ) instead of none | #23 | ~10% of these are wrong (往っ: Sudachi's lemma 往る → さる); never shown (source dictionary), but a consumer that uses dictionary readings gets them | B1 +241, B2 +225, NDL +1,955, 0 broken | per-form checks of Sudachi's lemma (往る), JMdict pairs for the form |
+| T34 | default-readings.tsv: NDL (pre-war) nominates, modern text decides; only 身体 からだ, 時 とき, 実 み, 下 した pass. Left out though NDL's ruby supports them: 都 みやこ, 露 つゆ, 側 そば, 表 おもて, 咽喉 のど, 空地 あきち, 跫音 あしおと, 画 え and ~25 more (Tatoeba has too few or mixed cases) | #25 | NDL report: those ~40 fixed/net per form stay unfixed (e.g. 露 52, 都 39, 表 39, 側 36 on the test authors); 実 じつ in older text (NDL 2 broken) | post-war target: their support is mainly pre-war text; modern 側/表 right only 6/11, 5/7 | modern evidence per pair (library ruby/silver, a post-war gold set) to admit more; 側/表 need context (川の側 そば vs 敵の側 がわ) |
 
 ## Resolved
 
