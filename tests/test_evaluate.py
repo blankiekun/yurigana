@@ -29,6 +29,15 @@ class ScoreTest(unittest.TestCase):
         self.assertEqual(score_sentence(sentence, [(0, 2, 'こども', None), (2, 3, 'たち', None)]), [('ok', True, True, False)])
         self.assertEqual(score_sentence(sentence, [(0, 2, None, None)])[0][0], 'none')
 
+    def test_token_cut_at_kanji_runs(self):
+        # gold reads only 頃: a token 幼い頃 is cut at its kanji runs, where its kana place the cut one way
+        sentence = {'text': '幼い頃は', 'spans': [span(2, 3, '頃', 'ころ')]}
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'おさないころ', True), (3, 4, 'は', None)]), [('ok', True, True, True)])
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'おさないこら', True), (3, 4, 'は', None)]), [('ok', False, False, True)])
+        # 姉は母 あねははは could be cut あね|はは or あねは|は: scored as a whole, so the unlabelled 姉 fails alignment
+        sentence = {'text': '姉は母', 'spans': [span(2, 3, '母', 'はは')]}
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'あねははは', None)]), [('align', False, False, False)])
+
     def test_unlabelled_numerals(self):
         # NDL gives 三 no reading: 三人 as one token is scored on 人, other unlabelled kanji still fail
         sentence = {'text': '三人', 'spans': [span(1, 2, '人', 'にん')]}

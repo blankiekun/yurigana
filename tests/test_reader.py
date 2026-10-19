@@ -210,6 +210,18 @@ class ReaderTest(unittest.TestCase):
 
 @unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-full')
 class SudachiReaderTest(unittest.TestCase):
+    def test_lemma_with_extra_kana(self):
+        # Sudachi's lemma for the misspelt 可愛いく is 可愛いい (可愛 read かわ); the list's 可愛い holds the い
+        reader = Reader(known={('可愛い', 'かわいい'), ('可愛い', 'かあいい'), ('終わる', 'おわる')})
+        self.assertIn('可愛[かわい]いくて', reader.furigana('子猫が可愛いくて仕方ない。'))
+        word = next(w for w in reader.read('子猫が可愛いくて仕方ない。') if w.form.startswith('可愛'))
+        self.assertEqual(word[2:4], ('可愛い', 'かわいい'))
+        # an older okurigana (終る) is not the normalized form plus kana: left alone
+        self.assertNotEqual(next(w for w in reader.read('仕事が終った。') if w.form.startswith('終')).form, '終わる')
+        # nor a noun with older okurigana (先き): its surface is the lemma
+        reader = Reader(known={('先', 'さき'), ('先', 'せん')})
+        self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
+
     def test_defaults(self):
         hints = []
         text = aozora_text('夜の公園は人気がなく、静かだった。｜宇宙《そら》を見る。\n学校へ行《い》った。', None, hints)
