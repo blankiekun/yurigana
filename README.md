@@ -207,6 +207,14 @@ python -m yurigana.evaluate sets/tatoeba-b2.jsonl sets/ndl-test.jsonl --known ji
 tools/compare.sh sets  # this tree against origin/main on every set (base cached), misses in sets/.misses.tsv
 ```
 
+Other annotators' output, such as an LLM's furigana, is scored like a system with
+`--predictions NAME=FILE` (`ID | text with 漢字[かな]` lines). Agreement then becomes a review
+queue: `--triage review.tsv` lists items where most systems agree on a reading the gold rejects
+(candidate gold errors) and items where ours is wrong but most others are right (candidate
+fixes). Gold is never changed automatically: a reading found acceptable on review goes in a
+waiver file, `--alts waivers.tsv` (`set, id, surface, reading` per line), which adds it to that
+span's accepted readings without editing the set.
+
 The metrics and the gold format are in `yurigana/evaluate.py`'s docstring. Scoring is by
 union span (the smallest stretch where gold and tokens line up), so segmentation doesn't
 count, only readings: Sudachi's three split modes score alike. Word list folds voicing

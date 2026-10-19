@@ -12,6 +12,15 @@
   python -m yurigana.evaluate SET.jsonl ... [--known jiten_freq_global.zip] [--systems ours,sudachi-C|all]
                               [--compare old.json] [--out report.json] [--bootstrap 1000] [--misses misses.tsv]
       Scores each system on each set; a markdown table per set on stdout.
+      --predictions NAME=FILE (repeatable) scores other annotators' output as system NAME: FILE
+      holds `ID | text with 漢字[かな]` lines (the furigana LLMs write), each bracketed kanji run a
+      token with its reading, every other character its own; a line whose text without the
+      brackets isn't the gold text (or a missing line) fails alignment on all its items.
+      --alts FILE adds accepted readings to the gold without editing it: TSV set, id, surface, reading.
+      --triage FILE writes a review queue as TSV (kind, set, id, surface, gold, majority reading,
+      systems, ours): `gold` where --agree (2) or more systems, a majority of those giving a
+      reading, agree on one reading the gold rejects (candidate gold errors); `ours` where ours
+      is wrong and as many of the others, a majority, are right (candidate fixes). Never gold.
 
 Gold sets are JSONL, one sentence per line: {"id", "text", "spans": [{"b", "e", "surface",
 "reading", "lemma", "alts"}]}: `reading` is the hiragana of text[b:e] as written (行 in 行った:
@@ -233,11 +242,17 @@ def _system_reading(text, b, e, tokens_at):
     return ''.join(out), bool(shown) and all(shown), sources
 
 
-def score_sentence(sentence, tokens, misses=None):
+def score_sentence(sentence, tokens, misses=None, readings=None):
     """One result per item (span with kanji): (status 'ok' | 'none' | 'align', display right,
-    word list right, shown). Stretches read wrong are appended to misses as (id, stretch, gold
-    readings, system reading, sources)."""
+    word list right, shown); all 'align' when tokens is None. Stretches read wrong are appended
+    to misses as (id, stretch, gold readings, system reading, sources), each item's (start, end,
+    reading) of its stretch to readings."""
     text, spans = sentence['text'], sentence['spans']
+    if tokens is None:
+        n = sum(is_item(s['surface']) for s in spans)
+        if readings is not None:
+            readings += [None] * n
+        return [('align', False, False, False)] * n
     spans_at = {s['b']: s for s in spans}
     tokens_at = {}
     for t in tokens:  # the longest token at a start: a counter span (三本) over its own tokens
@@ -259,8 +274,10 @@ def score_sentence(sentence, tokens, misses=None):
         if misses is not None and not result[2]:
             misses.append((sentence.get('id', ''), text[b:e], '/'.join(gold or ()), reading or '', ','.join(sources)))
         for s in inside:
-            results[s['b']] = result
-    return [results[s['b']] for s in spans if is_item(s['surface'])]
+            results[s['b']] = result, (b, e, reading)
+    if readings is not None:
+        readings += [results[s['b']][1] for s in spans if is_item(s['surface'])]
+    return [results[s['b']][0] for s in spans if is_item(s['surface'])]
 
 
 def items_of(sentences):
@@ -398,33 +415,103 @@ def compare(old: dict, new: dict):
                 'new': sum(b == '1' for _, b in pairs) / max(len(pairs), 1)}
 
 
-def evaluate(paths, systems, known=None, rounds=1000, misses=None):
+_FURIGANA = re.compile(r'([㐀-䶿一-鿿豈-﫿々〆ヶ]+)\[([^\[\]]+)\]')
+
+
+def prediction_tokens(annotated: str, text: str):
+    """Tokens from 漢字[かな] furigana: each bracketed run with its reading, every other character
+    its own token; None when the annotation without brackets isn't text."""
+    out, plain, pos = [], '', 0
+    for m in [*_FURIGANA.finditer(annotated), None]:
+        for c in annotated[pos:m.start() if m else len(annotated)]:
+            out.append((len(plain), len(plain) + 1, c, None))
+            plain += c
+        if m:
+            out.append((len(plain), len(plain) + len(m[1]), to_hiragana(m[2]), None))
+            plain, pos = plain + m[1], m.end()
+    return out if plain == text else None
+
+
+def predictions_system(path: str):
+    with open(path, encoding='utf-8') as f:
+        lines = dict(line.rstrip('\n').split(' | ', 1) for line in f if ' | ' in line)
+    return lambda s: prediction_tokens(lines.get(str(s.get('id')), '').strip(), s['text'])
+
+
+def add_alts(sets: dict, path: str):
+    """Merges `set, id, surface, reading` rows into the matching spans' alts."""
+    with open(path, encoding='utf-8') as f:
+        for row in f:
+            if not row.strip() or row.startswith('#'):
+                continue
+            name, sid, surface, reading = row.rstrip('\n').split('\t')
+            spans = [sp for s in sets.get(name, ()) if str(s.get('id')) == sid for sp in s['spans'] if sp['surface'] == surface]
+            if not spans:
+                print(f'--alts: no {surface} in {name} {sid}', file=sys.stderr)
+            for sp in spans:
+                sp['alts'] = [*sp.get('alts', ()), to_hiragana(reading)]
+
+
+def triage(name, sentences, right, readings, agree=2):
+    """Review rows (see the docstring) from each system's right flags and (start, end, reading) per item."""
+    rows, others = [], [s for s in right if s != 'ours']
+    spans = [(s, sp) for s in sentences for sp in s['spans'] if is_item(sp['surface'])]
+    for i, (s, sp) in enumerate(spans):
+        gold = '/'.join([sp['reading'], *sp.get('alts', ())])
+        groups = defaultdict(list)
+        for system in right:
+            r = readings[system][i]
+            if r and r[2] is not None:
+                groups[r[0], r[1], fold(r[2], True)].append(system)
+        ours = readings.get('ours', [None] * len(spans))[i]
+        ours = ours[2] or '' if ours else ''
+        if groups:
+            key, members = max(groups.items(), key=lambda g: len(g[1]))
+            given = sum(map(len, groups.values()))
+            if len(members) >= agree and 2 * len(members) > given and right[members[0]][i] == '0':
+                rows.append(('gold', name, s.get('id'), sp['surface'], gold, readings[members[0]][i][2],
+                             ','.join(members), ours))
+        good = [x for x in others if right[x][i] == '1']
+        if 'ours' in right and right['ours'][i] == '0' and len(good) >= agree and 2 * len(good) > len(others):
+            rows.append(('ours', name, s.get('id'), sp['surface'], gold,
+                         Counter(readings[x][i][2] for x in good).most_common(1)[0][0], ','.join(good), ours))
+    return rows
+
+
+def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(), alts=None, review=None, agree=2):
     sets = {}
     for path in paths:
         with open(path, encoding='utf-8') as f:
             sets[os.path.basename(path).removesuffix('.jsonl')] = [json.loads(line) for line in f if line.strip()]
+    if alts:
+        add_alts(sets, alts)
     report = {'sets': {}, 'notes': []}
     made = {}
     for system in systems:
         try:
-            made[system] = make_system(system, known)
+            made[system] = (lambda f: lambda s: f(s['text']))(make_system(system, known))
         except ImportError as error:
             report['notes'].append(f'{system} skipped: {error.name} is not installed (pip install "yurigana[eval]")')
+    for system, path in predictions:
+        made[system] = predictions_system(path)
     report['notes'] += NOTES
     for name, sentences in sets.items():
         items = items_of(sentences)
         data = report['sets'][name] = {'sentences': len(sentences), 'items': len(items), 'systems': {},
                                        'keys': [it[1] for it in items]}
+        read = {}
         for system, tokens in made.items():
             start = time.time()
-            missed = []
-            results = [r for s in sentences for r in score_sentence(s, tokens(s['text']), missed)]
+            missed, read[system] = [], []
+            results = [r for s in sentences for r in score_sentence(s, tokens(s), missed, read[system])]
             if misses is not None:
                 misses += [(name, system, *m) for m in missed]
             data['systems'][system] = {'metrics': metrics(items, results, len(sentences), rounds),
                                        'seconds': round(time.time() - start, 1),
                                        'right': ''.join('1' if r[2] else '0' for r in results)}
             print(f'{name} {system}: {time.time() - start:.0f} s', file=sys.stderr, flush=True)
+        if review is not None:
+            review += triage(name, sentences, {x: r['right'] for x, r in data['systems'].items()}, read, agree)
     return report
 
 
@@ -566,10 +653,23 @@ def main(argv=None):
     p.add_argument('--out', help='write the report (metrics and per-item results) as JSON')
     p.add_argument('--bootstrap', type=int, default=1000, help='bootstrap rounds for the intervals')
     p.add_argument('--misses', help='write the stretches read wrong as TSV: set, system, id, stretch, gold, reading, source')
+    p.add_argument('--predictions', action='append', default=[], metavar='NAME=FILE',
+                   help='score `ID | 漢字[かな]` lines as system NAME (repeatable)')
+    p.add_argument('--alts', help='TSV of accepted readings (set, id, surface, reading) merged into the gold')
+    p.add_argument('--triage', help='write candidate gold errors and fixes for ours as TSV')
+    p.add_argument('--agree', type=int, default=2, help='systems that must agree for --triage')
     args = p.parse_args(argv)
-    systems = SYSTEMS if args.systems == 'all' else args.systems.split(',')
+    systems = SYSTEMS if args.systems == 'all' else [s for s in args.systems.split(',') if s]
     misses = [] if args.misses else None
-    report = evaluate(args.sets, systems, args.known, args.bootstrap, misses)
+    review = [] if args.triage else None
+    predictions = [x.split('=', 1) for x in args.predictions]
+    report = evaluate(args.sets, systems, args.known, args.bootstrap, misses, predictions, args.alts, review, args.agree)
+    if args.triage:
+        with open(args.triage, 'w', encoding='utf-8') as f:
+            f.write('kind\tset\tid\tsurface\tgold\tmajority\tsystems\tours\n')
+            f.writelines('\t'.join(map(str, r)) + '\n' for r in review)
+        print(f"triage: {sum(r[0] == 'gold' for r in review)} gold, {sum(r[0] == 'ours' for r in review)} ours",
+              file=sys.stderr)
     if args.misses:
         with open(args.misses, 'w', encoding='utf-8') as f:
             f.writelines('\t'.join(map(str, m)) + '\n' for m in misses)
