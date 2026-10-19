@@ -76,16 +76,16 @@ more ways, where tokenisers actually differ (about 60% of a book's words every o
 reads right). yurigana main, 2026-10-19. Sudachi is SudachiDict-full, mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
-| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ |
-|---|---|---|---|---|---|
-| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² |
-| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 |
-| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 |
-| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 |
-| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 |
-| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 |
-| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 |
-| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – |
+| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | wrong words per book⁴ |
+|---|---|---|---|---|---|---|
+| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **about 480** |
+| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | about 930 |
+| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | about 950 |
+| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | about 1,100 |
+| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | about 1,040 |
+| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | about 970 |
+| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | about 1,120 |
+| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – |
 
 - **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
   light novels by authors the tables never saw. The books are a private library, so this set
@@ -99,26 +99,19 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
   is rebuilt without them).
 - ³ One blind annotation run per set.
+- ⁴ Kanji words read wrong in a typical book: the median of 20 post-war library books has about
+  19,000 kanji words (114,000 characters), times each system's error rate on plain sentences of
+  held-out authors, scored against Opus and Sonnet where they agree (no Opus figure, since those
+  labels are partly its own). That reference is itself about 1% wrong, so the numbers are slight
+  overestimates; the test gives no ruby, while a real book's ruby fixes many names and rare words;
+  and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
+  furigana yurigana marks as sure (about 12,000 a book), about 25 are wrong (0.2%).
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
   about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
   from pykakasi; the ranking doesn't change without those items.
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.1% of
 the time on the modern books and cover 71% of their words; the rest are left for the reader.
-In a typical book (median of 20 post-war library books: 114,000 characters, about 19,000 kanji
-words, of which about 12,000 get furigana marked as sure), on plain text without the book's ruby:
-
-| | rate | per book |
-|---|---|---|
-| any kanji word read wrong (word list) | 2.5% (1.7–3.3%) | about 475 (320–630) |
-| furigana marked as sure and wrong | 0.2% of those shown (0–0.5%) | about 25 (0–60) |
-| Sudachi alone, any word wrong | 4.9% | about 930 |
-
-Rates come from plain sentences of held-out authors scored against Opus and Sonnet where they
-agree, which is itself about 1% wrong, so these are slight overestimates. A real book's own ruby
-fixes many names and rare words, and a misread word counts every time it appears, so the number
-of distinct wrong words is much lower.
-
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
