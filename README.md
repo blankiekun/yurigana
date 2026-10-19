@@ -295,7 +295,8 @@ The word lists the rules look for are shared, named classes in `yurigana/cues.py
 `PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` and `JEWELRY` (金 きん), `FEW` and `EDGE`
 (ほんの/最初の: 十分 as minutes, 一行 いちぎょう), `SOCIETY`, `ISSUE` and `ACTIVITY` (今日 こんにち, 明日, 目下 もっか),
 `PRAISE` and `CUSTOMER_ACT` (方 かた), `OCCUPATION` (気質 かたぎ), `COUNTER` (何 なん), `DISH` (辛い からい),
-`PRODUCE` (市場 いちば), `VESSEL` (縁 ふち).
+`PRODUCE` (市場 いちば), `VESSEL` (縁 ふち), `OPEN_HOURS` (開く あく),
+`TRAFFIC` (空く すく), `HALTED` (止める とめる).
 A class is a frozenset of plain words; `cues.words(...)` turns classes (and single words) into a
 regex alternation for a rule:
 

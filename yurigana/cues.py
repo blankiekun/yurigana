@@ -25,6 +25,13 @@ PLACE = REALM | SETTLEMENT | BUILDING | ROOM | GROUNDS | STREET | VICINITY
 
 BODY = frozenset({'体', '身体', 'からだ'})
 
+# Places with opening hours: 店が開いてますか, 図書館は開いてる (開く あく).
+OPEN_HOURS = frozenset({'店', 'お店', '図書館', '銀行', '郵便局', '病院', '博物館', '美術館', 'デパート', 'スーパー', '駐車場'})
+# Roads and transport that are empty or crowded: 道が空いている (空く すく). 道 needs a guard (海道) and stays in rules.
+TRAFFIC = frozenset({'道路', '電車', 'バス'})
+# Machines and flows one stops: エンジンを止める, 息を止める (止める とめる).
+HALTED = frozenset({'車', 'エンジン', 'ガス', '水', '水道', '電気', '息', '血', '機械', 'タクシー', '足', '手'})
+
 # Family and rank words a name-like 君 follows as ぎみ (尼君, 姫君, 母君).
 KIN_TITLE = frozenset({'尼', '姫', '婿', '姉', '妹', '兄', '弟', '若', '母', '父'})
 # Terms and sessions 今 is こん before (今学期, 今年度, 今シーズン).
