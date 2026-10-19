@@ -64,7 +64,8 @@ class ConjugatedReadingTest(unittest.TestCase):
 class ContextReadingTest(unittest.TestCase):
     known = {('人気', 'ひとけ'), ('人気', 'にんき'), ('明日', 'あした'), ('明日', 'あす'), ('上手', 'かみて'),
              ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん'),
-             ('中', 'じゅう'), ('中', 'ちゅう')}
+             ('中', 'じゅう'), ('中', 'ちゅう'),
+             ('種', 'しゅ'), ('下', 'した'), ('下', 'もと'), ('音', 'ね'), ('風', 'ふう'), ('風', 'かぜ')}
 
     def reading(self, text, form, surface=None, known=None):
         return context_reading(text, text.index(form), surface or form, form, self.known if known is None else known)
@@ -90,6 +91,16 @@ class ContextReadingTest(unittest.TestCase):
             self.assertEqual(self.reading(text, '中'), 'じゅう', text)
         for text in ('授業中に寝た。', '今週中に出す。', '数日中に届く。', '一両日中に決まる。', '箱の中に入れた。'):
             self.assertIsNone(self.reading(text, '中'), text)  # Sudachi's ちゅう/なか stays
+
+    def test_common_homographs(self):
+        cases = [('この種の本', '種', 'しゅ'), ('数種の気体', '種', 'しゅ'), ('種をまく', '種', None),
+                 ('他の追随を許さない', '他', 'た'), ('他言語から', '他', 'た'), ('他の人', '他', None),
+                 ('木の下で休む', '下', 'した'), ('先生の指導の下で学ぶ', '下', 'もと'), ('机の下に', '下', None),
+                 ('琴の音が聞こえる', '音', 'ね'), ('ぐうの音も出ない', '音', 'ね'), ('雨の音', '音', None),
+                 ('こんな風に書く', '風', 'ふう'), ('知らない風を装う', '風', 'ふう'), ('花びらが風に舞う', '風', 'かぜ'),
+                 ('風が吹く', '風', 'かぜ'), ('西洋風の家', '風', None)]
+        for text, form, reading in cases:
+            self.assertEqual(self.reading(text, form), reading, text)
 
     def test_hitoke_needs_a_cue(self):
         for text in ('人気のない路地', '人気も無い', '人気が少ない', '人気が絶えた', '周囲に人気がない', '人気がない場所に',

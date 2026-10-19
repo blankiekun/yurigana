@@ -75,7 +75,23 @@ _CONTEXT_RULES = {
              ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:場所|所|ところ|道|通り|廊下|路地|部屋|時|とき'
               r'|のを確|ことを確|、?(?:静|しん|ひっそり))'),
              ('ひとけ', _HITOKE_PLACE, r'[がは](?:まったく|全く|ほとんど|全然|一切)?(?:な[いくかけ]|無[いくかけ])', 'and')],
-    '他': [('た', r'その$', None)],
+    # 他 is ほか in plain text (DEFAULT_READINGS); た in その他, set phrases and as a prefix (他言語).
+    '他': [('た', r'その$', r'の(?:追随|追従|干渉|介入|模範)|を(?:圧倒|寄せ付け|凌|しの)|に(?:類|例|比類)を(?:見|み)|[一-鿿]')],
+    # 種 is たね (DEFAULT_READINGS) except as "kind": この種の, 数種, 百種.
+    '種': [('しゅ', r'(?:この|その|あの|どの|ある|各|同|異|別|[数何一二三四五六七八九十百千0-9０-９])$', None)],
+    # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
+    '下': [('もと', r'(?:指導|監督|支配|管理|統治|指揮|命令|条件|体制|制度|方針|影響|庇護|保護|名|法|旗|約束|前提|協力|仮定'
+              r'|環境|状況|状態|気候|先生|師|師匠|上司|親|両親|父母|主君)の$', None),
+          ('した', r'の$', r'で', 'and')],
+    # 音: ね for instruments and insects (琴の音, 虫の音) and ぐうの音; Sudachi's おと otherwise.
+    '音': [('ね', r'(?:琴|箏|筝|(?<![霧汽警])笛|虫|琵琶|三味線|尺八|胡弓|弦|絃|ぐう|グウ)の$', None)],
+    # 風: ふう for manner (こんな風に, 知らない風で), かぜ for the wind.
+    '風': [('かぜ', None, r'の吹き回し'),
+           ('ふう', r'(?:[こそあど]んな|(?:[こそど]う|ああ)(?:いう|いった|言う|云う|言った|云った)'
+              r'|と(?:いう|いった|言う|云う|言った|云った)|ような|ふうな)$', None),
+           ('ふう', r'ない$', r'[にでをも]', 'and'),
+           ('かぜ', None, r'に(?:そよ|揺|ゆれ|なび|吹|舞|乱|あお|煽|任|散|飛|はため|翻|ひるがえ|鳴|運ば|乗)'
+              r'|が(?:吹|強|弱|やみ|止|冷|涼|出|そよ)|を(?:受け|切|感じ|起こ)|の(?:音|便り)')],
     # 中 after a stretch of time or a place, "all through" (一日中, 世界中): じゅう; Sudachi says ちゅう,
     # right after activities (授業中), 午前, 今週/今月 (こんしゅうちゅう) and 数日 (within days).
     '中': [('じゅう', r'(?:(?<![十両数])[一１1]日|今日|明日|一晩|一夜|今夜|一年|今年|(?<![今来])年|[春夏秋冬]|一生'
@@ -127,9 +143,11 @@ _CONTEXT_RULES = {
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
-# (fixes 10+ occurrences, right 90%+ of the times it changes one; see README).
+# (fixes 10+ occurrences, right 90%+ of the times it changes one; see README). 他, 種 and 白髪
+# were added later on the same half: 24/27, 8/9 and 4/4 of their changes right.
 DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 'いう', ('富士山', 'ふじやま'): 'ふじさん',
-                    ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって'}
+                    ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
+                    ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが'}
 
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in _CONTEXT_RULES.items()}
