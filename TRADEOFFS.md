@@ -16,7 +16,7 @@ ruby). Forms and numbers only.
 | T2 | Conjugated words take Sudachi's surface reading when it fits the list, so Sudachi's wrong surface readings come through (開い ひらい, 辛く つらく, 上っ のぼっ) instead of no reading | #4 | ~1% of new readings on Tatoeba, ~6% on NDL; certainty stays None | 5,353 had no reading and got the right one | context rules per form (辛い: #5); certainty hygiene keeps them out of shown furigana |
 | T3 | Compounds are read as one word only when the reading list has them; phrases with particles/auxiliaries or ending in kana are never joined | #9 | Jiten-list noise (行く方 ゆくかた, 時女 ときめ, 弘氏 ひろし) | joining phrases gave NDL 3,249 fixed / 2,406 broken | a cleaner list (JMdict pairs, #2) |
 | T4 | 他 defaults to ほか | #10 | NDL 17, half a 3 (older text's た: 他の章) | NDL's ruby is ほか ~80% (149/189) | a た cue for formal/older text (他国, 他の + abstract nouns) |
-| T5 | 下 もと only after listed nouns | #10 | NDL 6 (社会の下で, 感化の下で) | 28 fixed on NDL | widen the noun list or a POS cue (abstract noun + の下で) |
+| T5 | 下 もと only after `cues.ABSTRACT`/`SUPERIOR` nouns (hand list plus WordNet's abstract and group nouns, PR B) | #10 | NDL ~6 (日の下, 夕月の下, 曇り空の下 もと in older text) | 28 fixed on NDL (#10), 4 more NDL + 1 library ruby with WordNet | a sky/celestial class lost (NDL tune +3/-5: 空の下 is した as often); needs period-text evidence, not a class |
 | T6 | 白髪 defaults to しらが | #10 | NDL 2 (白髪の老紳士 はくはつ) | 3 fixed on NDL, 4/4 half a | literary/older-text cue |
 | T8 | 日本 defaults to にほん (owner-approved) | #11 | にっぽん names (日本銀行, 大日本帝国) | にほん is the common reading | names/compounds keep にっぽん (default-guard agent) |
 | T9 | 一歩 reads いっぽ | #15 | NDL 1 (author's ひとあし) | 一歩 いっぽ is standard | none needed (author choice) |

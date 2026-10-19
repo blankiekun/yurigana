@@ -237,6 +237,12 @@ The word lists the rules look for are shared, named classes in `yurigana/cues.py
 `NIGHT`, `BODY`, `PERSON`, `ROLE`, `SUPERIOR`, `ABSTRACT`, `INSTRUMENT`, `INSECT`, `FOOTWEAR`,
 `DURATION_BEFORE`, `DURATION_AFTER` (十分 as minutes, `counters.TEN_MINUTES_*`), `KIN_TITLE` (君 ぎみ), `TERM` (今 こん),
 `PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` (金 きん).
+`ABSTRACT` also takes the Japanese WordNet's kanji nouns whose senses are all acts, thoughts,
+states, communication, attributes, relations, feelings, motives or groups (`cue-words.json.gz`,
+built by `tools/cue_words.py`). Other WordNet expansions were measured and left out: instruments
+and birds for 音 ね (鐘/オルガン/ベルの音 are おと), people for 方 かた (彼女の方 is ほう), time
+periods for 中 じゅう (勤務時間中 is ちゅう), the sky and the heavens for 下 もと (空の下 is
+した as often); places, buildings, insects, footwear and body parts changed nothing.
 A class is a frozenset of plain words; `cues.words(...)` turns classes (and single words) into a
 regex alternation for a rule:
 

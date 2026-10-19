@@ -6,8 +6,16 @@ that needs, say, a place. Words that need a guard (笛 but not 汽笛) stay in t
 
 Add a word to the class it belongs to, not to one rule: every rule using the class gets it, so
 check the rules that use it (grep the class name) and evaluate before and after.
+
+Some classes add words from cue-words.json.gz, built from WordNet by tools/cue_words.py.
 """
+import gzip
+import json
+import os
 import re
+
+with gzip.open(os.path.join(os.path.dirname(__file__), 'cue-words.json.gz'), 'rt', encoding='utf-8') as _f:
+    _DATA = json.load(_f)
 
 # Stretches of time: 一日中, 一年中, 今夜中 (中 じゅう). 一日 and 年 need guards (十一日, 今年) and stay in rules.
 TIME_SPAN = frozenset({'今日', '明日', '一晩', '一夜', '今夜', '一年', '今年', '春', '夏', '秋', '冬', '一生'})
@@ -52,9 +60,12 @@ PERSON = frozenset({'学生', '女性', '男性', '年寄り', '通訳', '家族
 # What a person is described by: 担当の方, 経験の方, 初心の方.
 ROLE = frozenset({'担当', '係', '係り', '窓口', '受付', '年配', '高齢', '専門', '教徒', '出身', '経験', '初心'})
 
-# Authority, conditions and circumstances one is under: 指導の下に, 条件の下で (下 もと).
-ABSTRACT = frozenset({'指導', '監督', '支配', '管理', '統治', '指揮', '命令', '条件', '体制', '制度', '方針', '影響',
-                      '庇護', '保護', '名', '法', '旗', '約束', '前提', '協力', '仮定', '環境', '状況', '状態', '気候'})
+# Authority, conditions and circumstances one is under: 指導の下に, 条件の下で (下 もと), plus WordNet's
+# nouns that are only acts, thoughts, states, communication, attributes, relations, feelings or groups
+# (感化の下で, 一笑の下に, 社会の下で).
+ABSTRACT = frozenset(_DATA['ABSTRACT']) | frozenset({
+    '指導', '監督', '支配', '管理', '統治', '指揮', '命令', '条件', '体制', '制度', '方針', '影響', '庇護', '保護', '名',
+    '法', '旗', '約束', '前提', '協力', '仮定', '環境', '状況', '状態', '気候'})
 
 # Sound makers whose sound is ね (琴の音, 虫の音). 笛 needs a guard (汽笛, 霧笛, 警笛) and stays in rules.
 INSTRUMENT = frozenset({'琴', '箏', '筝', '琵琶', '三味線', '尺八', '胡弓', '弦', '絃'})

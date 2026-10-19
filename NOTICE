@@ -16,6 +16,12 @@ from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
 readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,
 licensed under CC BY 2.0 FR; neither text is included.
 
+yurigana/cue-words.json.gz (word classes for yurigana.cues) is derived from the
+Japanese WordNet (NICT, Francis Bond and Takayuki Kuribayashi,
+https://github.com/bond-lab/wnja) and Princeton WordNet 3.0
+(https://wordnet.princeton.edu/), under their licences, whose notices the file
+carries (`_notice`). tools/cue_words.py builds it.
+
 yurigana/tatoeba-b2-ids.txt.gz lists the IDs of Tatoeba sentences that
 yurigana.evaluate reports on; no sentence text is included.
 
