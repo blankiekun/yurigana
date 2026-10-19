@@ -11,7 +11,7 @@
       --lines lines each, spread over the work.
   python -m yurigana.evaluate SET.jsonl ... [--known jiten_freq_global.zip] [--systems ours,sudachi-C|all]
                               [--compare old.json] [--out report.json] [--bootstrap 1000] [--misses misses.tsv]
-                              [--exclude noise.tsv] [--classes classes.tsv]
+                              [--exclude noise.tsv] [--classes classes.tsv] [--tags report.json]
       Scores each system on each set; a markdown table per set on stdout.
       --predictions NAME=FILE (repeatable) scores other annotators' output as system NAME: FILE
       holds `ID | text with 漢字[かな]` lines (the furigana LLMs write), each bracketed kanji run a
@@ -22,6 +22,11 @@
       systems, ours): `gold` where --agree (2) or more systems, a majority of those giving a
       reading, agree on one reading the gold rejects (candidate gold errors); `ours` where ours
       is wrong and as many of the others, a majority, are right (candidate fixes). Never gold.
+      --tags REPORT.json takes every set's per-item tags (clean, hard, ...) from an earlier --out
+      report instead of computing them, so --known isn't needed for them; each set must be in it
+      with exactly the same item keys, or it stops naming the set. For the second environment:
+        python -m yurigana.evaluate SETS... --known LIST --systems all --out main.json
+        PYTHONPATH=. python -m yurigana.evaluate SETS... --systems ginza,yomikata --tags main.json
 
 Gold sets are JSONL, one sentence per line: {"id", "text", "spans": [{"b", "e", "surface",
 "reading", "lemma", "alts"}]}: `reading` is the hiragana of text[b:e] as written (行 in 行った:
@@ -50,16 +55,17 @@ environment with yurigana on PYTHONPATH:
   pip install --no-deps yomikata && pip install torch transformers fugashi unidic jaconv speach pynvml rich
   python -m unidic download && python -m yomikata download
 
-Per-item tags (with --known; in --out as `tags`, and as TSV with --classes: set, key, listed,
+Per-item tags (with --known or --tags; in --out as `tags`, and as TSV with --classes: set, key, listed,
 partial, kanjidic_only, proper, number, excluded, clean, hard; keys only, no text): `listed`
 the readings the list gives the form (lemma when given, else the Sudachi-C word over the span
 when it is longer, as 行く over 行, else the surface; distinct as word list compares them),
 `proper` a Sudachi 固有名詞 over the span, `number` a kanji numeral or a 数詞/助数詞 over it.
-Without SudachiPy the form is the lemma or surface, and proper/number come from numerals only.
+Without SudachiPy the form is the lemma or surface, and proper/number come from numerals only
+(the second environment's case: give it the main environment's tags with --tags).
 
 Metrics, each with a 95% interval from a bootstrap over sentences:
 - word list: share of items read right (voicing folded), over all kanji words;
-- clean: word list without items the gold itself makes unscorable or doubtful (needs --known):
+- clean: word list without items the gold itself makes unscorable or doubtful (needs --known or --tags):
   `partial` (a kanji next to the span that no span reads and isn't a kanji numeral: ruby over
   part of a word, which no tokeniser can score), `kanjidic_only` (the form isn't in the list and
   the reading is only spelled out by its kanji's KANJIDIC readings: mostly names and invented
@@ -616,7 +622,8 @@ def triage(name, sentences, right, readings, agree=2):
 
 
 def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(), alts=None, review=None, agree=2,
-             exclude=frozenset(), classes=None):
+             exclude=frozenset(), classes=None, tags=None):
+    """tags: an earlier report's 'sets' whose per-item tags are used instead of computing them."""
     sets = {}
     for path in paths:
         with open(path, encoding='utf-8') as f:
@@ -627,7 +634,7 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
     if isinstance(known, str):
         from .yomitan import reading_ranks
         known = reading_ranks(known)
-    tokenizer = sudachi_tokenizer() if known is not None else None
+    tokenizer = sudachi_tokenizer() if known is not None and tags is None else None
     made = {}
     for system in systems:
         try:
@@ -644,11 +651,17 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
         data = report['sets'][name] = {'sentences': len(sentences), 'items': len(items), 'systems': {},
                                        'keys': [it[1] for it in items]}
         subsets = None
-        if known is not None:
-            tags = data['tags'] = item_tags(name, sentences, known, exclude, tokenizer)
-            subsets = {x: {k for k, f in zip(data['keys'], tags[x]) if f == '1'} for x in ('clean', 'hard')}
+        if tags is not None:
+            if name not in tags or tags[name].get('keys') != data['keys'] or 'tags' not in tags[name]:
+                raise ValueError(f'--tags: set {name} is missing from the report, has no tags, or its keys differ')
+            data['tags'] = tags[name]['tags']
+        elif known is not None:
+            data['tags'] = item_tags(name, sentences, known, exclude, tokenizer)
+        if 'tags' in data:
+            item = data['tags']
+            subsets = {x: {k for k, f in zip(data['keys'], item[x]) if f == '1'} for x in ('clean', 'hard')}
             if classes is not None:
-                classes += [(name, k, tags['listed'][i], *(tags[t][i] for t in TAGS)) for i, k in enumerate(data['keys'])]
+                classes += [(name, k, item['listed'][i], *(item[t][i] for t in TAGS)) for i, k in enumerate(data['keys'])]
         read = {}
         for system, tokens in made.items():
             start = time.time()
@@ -817,15 +830,23 @@ def main(argv=None):
     p.add_argument('--triage', help='write candidate gold errors and fixes for ours as TSV')
     p.add_argument('--agree', type=int, default=2, help='systems that must agree for --triage')
     p.add_argument('--exclude', help='TSV of reviewed gold noise (set, id, surface) left out of clean and hard')
-    p.add_argument('--classes', help='write each item\'s tags as TSV (needs --known): set, key, listed, ' + ', '.join(TAGS))
+    p.add_argument('--classes', help='write each item\'s tags as TSV (needs --known or --tags): set, key, listed, ' + ', '.join(TAGS))
+    p.add_argument('--tags', help='an earlier --out report: take every set\'s per-item tags from it instead of computing '
+                   'them (keys must match; --known not needed for them)')
     args = p.parse_args(argv)
+    if args.tags and args.exclude:
+        p.error('--exclude has no effect with --tags: the report\'s tags already hold its exclusions')
     systems = SYSTEMS if args.systems == 'all' else [s for s in args.systems.split(',') if s]
     misses = [] if args.misses else None
     review = [] if args.triage else None
     predictions = [x.split('=', 1) for x in args.predictions]
     classes = [] if args.classes else None
+    tags = None
+    if args.tags:
+        with open(args.tags, encoding='utf-8') as f:
+            tags = json.load(f)['sets']
     report = evaluate(args.sets, systems, args.known, args.bootstrap, misses, predictions, args.alts, review, args.agree,
-                      read_exclude(args.exclude) if args.exclude else frozenset(), classes)
+                      read_exclude(args.exclude) if args.exclude else frozenset(), classes, tags)
     if args.classes:
         with open(args.classes, 'w', encoding='utf-8') as f:
             f.write('set\tkey\tlisted\t' + '\t'.join(TAGS) + '\n')
