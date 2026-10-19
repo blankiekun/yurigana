@@ -43,6 +43,33 @@ table was pruned on all of half b, B2 included, so ours is slightly optimistic t
 NDL works are Aozora Bunko texts, some of which the public table was trained on (with their
 ruby, not NDL's readings).
 
+## The sanity list
+
+`eval/sanity.tsv` is a regression list of 890 rows, checked by `tests/test_sanity.py` in CI. Each
+row is a sentence, a span in it, the expected reading and other accepted ones (`alts`, `|`
+between them). The test runs `Reader().read` on the sentence (no ruby, no reading list) and
+compares the reading of the word that is exactly the span, else the readings of the words inside
+it joined with its kana (三 + 本 gives さんほん). Kinds:
+
+- `frequent` (500): the most frequent forms of Tatoeba's half a that its transcriptions read one
+  way 90%+ of 10+ times, ordered by Jiten's frequency list (used only to choose them); expected is
+  JMdict's only reading with a priority tag, else half a's majority; one half-a sentence each.
+- `counter` (326): numbers 1-10, 百, 千 and 何 with 25 counters, and a few dates, written from
+  standard grammar (いっぽん, さんびき, なんばい, ついたち, はつか).
+- `convention` (20): words with two standard readings (明日 あした/あす, 家 いえ/うち).
+- `probe` (44): numbers with counters in real Tatoeba sentences.
+
+Rows the reader gets wrong are marked `xfail` in the `status` column, with what it gives in the
+note, so the list measures progress. The test fails when a passing row starts failing or an
+`xfail` row starts passing, and prints the pass counts per kind. When a change fixes rows,
+remove their `xfail`; when it breaks one on purpose (the old reading was wrong, or a better rule
+costs it), mark it `xfail` and say why in the note, or correct its expected reading or alts, in
+the same pull request, so the waiver is reviewed with it.
+
+`tools/sanity_list.py` built the list (Tatoeba's `jpn_transcriptions.tsv.bz2`, `JMdict_e.gz`,
+optionally `--rank jiten_freq_global.zip`); since then it is edited by hand, so don't rerun it
+over it.
+
 ## Older measurements
 
 With Jiten's list as the reading list, 2026-10-19 (the full table with intervals is in the

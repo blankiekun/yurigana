@@ -36,6 +36,12 @@ no text is included.
 yurigana/tatoeba-b2-ids.txt.gz lists the IDs of Tatoeba sentences that
 yurigana.evaluate reports on; no sentence text is included.
 
+eval/sanity.tsv, the regression list, holds sentences from Tatoeba (CC BY 2.0
+FR; the note column gives each one's sentence id) and readings taken from JMdict
+by the Electronic Dictionary Research and Development Group
+(https://www.edrdg.org/jmdict/j_jmdict.html, CC BY-SA 4.0); the file is
+distributed under CC BY-SA 4.0.
+
 The reading list the tools and Reader(known=...) take is not included. The
 numbers in README.md were measured with Jiten's frequency list
 (https://jiten.moe/frequency-dictionaries), which is not distributed here.
