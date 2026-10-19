@@ -18,12 +18,14 @@ several readings (人気: にんき/ひとけ) are read, on real text instead of
   train OUT --dictionary … [--model reading-model.json.gz] [--priors ROWS]
       Trains reading_model.py's classifier per form on the training authors, keeps a
       form's model only where it beats rules + Sudachi on the dev authors, prints the
-      scores on the test authors and writes the kept forms (retrained on all gold).
+      scores on the test authors and writes the kept forms (retrained on all gold). Forms
+      with context rules are trained and judged only on the occurrences no rule reads.
   evaluate OUT --dictionary … --model TABLE [--all] [--prune KEPT]
       Scores a table on OUT's test authors (--all: on every row, e.g. Tatoeba's sentences
       from fetch_tatoeba.py); with --prune, writes TABLE with only the forms OUT can score
-      (MIN_GOLD occurrences of a reading) that read no worse than rules + Sudachi there
-      (only the choice of forms comes from OUT: the entries are TABLE's).
+      (MIN_GOLD occurrences of a reading) that read no worse than rules + Sudachi there,
+      and, for forms with rules, better than Sudachi where no rule fires (only the choice of
+      forms comes from OUT: the entries are TABLE's).
   build [LIBRARY STATE] [--books IDS]
       A server's own table: mine + train into STATE/reading-model.json.gz (default
       $CALIBRE_LIBRARY and $JITEN_STATE_DIR, else /library and /data/state/difficulty, as in
@@ -75,7 +77,7 @@ import unicodedata
 import zlib
 from collections import Counter, defaultdict
 
-from .readings import HAS_KANJI, _small_kana, context_reading, ruby_reading, to_hiragana
+from .readings import DEFAULT_READINGS, HAS_KANJI, _small_kana, context_reading, ruby_reading, to_hiragana
 from .reading_model import RULE_FORMS, WINDOW, ReadingModel, build_form, features, token_window  # noqa: F401
 from .yomitan import reading_ranks
 
@@ -430,21 +432,29 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
     forms = ambiguous_forms(known)
     few = few_author_labels(read_rows(out))
     excluded = Counter()
+
+    def ruled(form, context):
+        """A context rule's reading, for forms with rules: the model is asked, so trained and
+        judged, only where none fires."""
+        if form not in RULE_FORMS:
+            return None
+        before, surface, after = context
+        return context_reading(before + surface + after, len(before), surface, form, known)
+
     train_gold = Counter((row[2], row[3]) for row in read_rows(out)
-                         if row[3] is not None and (row[2], row[3]) not in few and split_of(row[1]) == 2)
+                         if row[3] is not None and (row[2], row[3]) not in few and split_of(row[1]) == 2
+                         and not ruled(row[2], row[5]))
     readings_ok = defaultdict(set)
     for (form, reading), n in train_gold.items():
         if n >= MIN_TRAIN:
             readings_ok[form].add(reading)
-    # Forms with hand rules are never modelled (ReadingModel.reading skips them too).
-    eligible = set(given.forms) if given else {form for form, readings in readings_ok.items()
-                                               if len(readings) > 1 and form not in RULE_FORMS}
+    eligible = set(given.forms) if given else {form for form, readings in readings_ok.items() if len(readings) > 1}
 
     counts = defaultdict(lambda: defaultdict(lambda: [0, Counter()]))
     held, held_n, plain = defaultdict(list), Counter(), defaultdict(list)
     for number, (_, author, form, gold, window, context, sudachi) in enumerate(read_rows(out)):
         if gold is None:
-            if form in eligible and len(plain[form]) < CAP:
+            if form in eligible and len(plain[form]) < CAP and not ruled(form, context):
                 plain[form].append(features(window))
             continue
         if (form, gold) in few:
@@ -452,22 +462,23 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
             continue
         split = 0 if all_splits else split_of(author)
         if split == 2:
-            if form in eligible and gold in readings_ok[form] and \
+            if form in eligible and gold in readings_ok[form] and not ruled(form, context) and \
                     zlib.crc32(number.to_bytes(8, 'little')) % train_gold[form, gold] < TRAIN_CAP:
                 entry = counts[form][gold]
                 entry[0] += 1
                 entry[1].update(features(window))
         elif held_n[form, gold, split] < CAP:
             held_n[form, gold, split] += 1
-            before, surface, after = context
-            rule = context_reading(before + surface + after, len(before), surface, form, known)
-            plain_reading = sudachi or min(forms[form], key=forms[form].get)
+            rule = ruled(form, context)
+            default = DEFAULT_READINGS.get((form, sudachi))  # as Reader replaces Sudachi's
+            plain_reading = (default if default and (form, default) in known else sudachi) \
+                or min(forms[form], key=forms[form].get)
             held[form].append((split, gold, rule, rule or plain_reading, features(window) if form in eligible else None,
                                plain_reading))
 
     shares = defaultdict(Counter)
     for row in read_rows(priors_from) if priors_from else ():
-        if row[3] is not None:
+        if row[3] is not None and not ruled(row[2], row[5]):
             shares[row[2]][row[3]] += 1
     kept, priors = {}, {}
     if given:
@@ -478,7 +489,7 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
         if not fitted:
             continue
         model = ReadingModel({form: fitted[0]})
-        dev = [h for h in held[form] if h[0] == 1]
+        dev = [h for h in held[form] if h[0] == 1 and not h[2]]  # where no rule fires
         base = score({form: Counter((g, b == g) for _, g, _, b, _, _ in dev)}).get(form)
         mine = score({form: Counter((g, model.predict_features(form, f) == g) for _, g, _, _, f, _ in dev)}).get(form)
         if base and mine and mine[0] >= base[0] + GATE and \
@@ -486,16 +497,23 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
             kept[form], priors[form] = model, fitted[1]
 
     results = {name: defaultdict(Counter)
-               for name in ('Sudachi alone', 'baseline', 'model, then rules', 'rules, then model')}
+               for name in ('Sudachi alone', 'baseline', 'model, then rules', 'rules, then model',
+                            'no rule fires: Sudachi', 'no rule fires: model, then Sudachi')}
+    unruled = defaultdict(Counter)  # forms with rules, where none fires
     for form, rows in held.items():
         for split, gold, rule, base, found, plain_reading in rows:
             if split:
                 continue
-            guess = kept[form].predict_features(form, found) if form in kept and form not in RULE_FORMS else None
+            guess = kept[form].predict_features(form, found) if form in kept else None
             results['Sudachi alone'][form][gold, plain_reading == gold] += 1
             results['baseline'][form][gold, base == gold] += 1
             results['model, then rules'][form][gold, (guess or base) == gold] += 1
             results['rules, then model'][form][gold, (rule or guess or base) == gold] += 1
+            if form in RULE_FORMS and not rule:
+                unruled[form].update(n=1, sudachi=base == gold, answered=guess is not None,
+                                     model=(guess or base) == gold)
+                results['no rule fires: Sudachi'][form][gold, base == gold] += 1
+                results['no rule fires: model, then Sudachi'][form][gold, (guess or base) == gold] += 1
     print(f'{len(eligible)} forms with enough gold, {len(kept)} kept (beat rules + Sudachi on the dev books)')
     print('ruby left out of the gold:', dict(excluded))
     scores = {name: score(r) for name, r in results.items()}
@@ -510,9 +528,19 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
               + ' '.join(f'{r} {p:.0%}' for r, p in priors[form].items()) + '\t'
               + ', '.join(f'{g} {r}/{n}' for g, (r, n) in sorted(new[form][1].items(), key=lambda x: -x[1][1])))
 
+    alone, helped = scores['no rule fires: Sudachi'], scores['no rule fires: model, then Sudachi']
+    print('form with rules\tno rule fires\tSudachi\tmodel, then Sudachi\tmodel answers (0.7)\tmacro before → after')
+    for form, c in sorted(unruled.items(), key=lambda x: -x[1]['n']):
+        print(f"{form}\t{c['n']}\t{c['sudachi'] / c['n']:.1%}\t{c['model'] / c['n']:.1%}\t"
+              f"{c['answered'] / c['n']:.1%}\t"
+              + (f'{alone[form][0]:.1%} → {helped[form][0]:.1%}' if form in alone else 'too few'))
+
     if given and prune:
         unscored = sorted(f for f in given.forms if f not in base or f not in new)
         worse = sorted(f for f in given.forms if f not in unscored and new[f][0] < base[f][0])
+        # A form with rules must also read better than Sudachi where no rule fires.
+        worse += sorted(f for f in given.forms if f in RULE_FORMS and f not in unscored + worse
+                        and not (f in alone and helped[f][0] > alone[f][0]))
         print('dropped, too few occurrences:', ' '.join(unscored) or 'none')
         print('dropped, worse than rules + Sudachi:', ' '.join(worse) or 'none')
         write_table(prune, {f: e for f, e in given.forms.items() if f not in unscored + worse})
@@ -528,8 +556,10 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
 
 
 def write_table(path: str, table: dict):
+    """Forms with rules in `table` were trained and kept where no rule fires (ruleForms)."""
     with gzip.open(path + '.tmp', 'wt', encoding='utf-8') as f:
-        json.dump({'version': 1, 'forms': table}, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump({'version': 1, 'forms': table, 'ruleForms': sorted(RULE_FORMS & set(table))},
+                  f, ensure_ascii=False, separators=(',', ':'))
     os.replace(path + '.tmp', path)
     print(f'{path}: {len(table)} forms, {os.path.getsize(path) / 1e6:.1f} MB')
 
