@@ -54,7 +54,7 @@ class Word(NamedTuple):
     source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi),
     # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
-    certainty: float | None  # see the README; None when unknown
+    certainty: float | None  # see docs/how-it-works.md; None when unknown
 
 
 def _end(token):

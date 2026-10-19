@@ -57,7 +57,7 @@ ruby). Forms and numbers only.
 
 Rules and defaults whose support is mainly period or classical text (NDL's Genji and 吉川英治) but that
 change nothing on the modern sets (B1, B2, library ruby/silver; round-5e data audit). Kept because they
-are harmless there; new ones need majority support from post-war text (README, contributing).
+are harmless there; new ones need majority support from post-war text (README, docs/evaluation.md).
 
 | rule or default | from | fires on |
 |---|---|---|

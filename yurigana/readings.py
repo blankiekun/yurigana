@@ -213,7 +213,7 @@ _CONTEXT_RULES = {
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
-# (fixes 10+ occurrences, right 90%+ of the times it changes one; see README). 他, 種 and 白髪
+# (fixes 10+ occurrences, right 90%+ of the times it changes one; see docs/how-it-works.md). 他, 種 and 白髪
 # were added later on the same half: 24/27, 8/9 and 4/4 of their changes right. 日本 にっぽん → にほん
 # misses that bar on Tatoeba (its MeCab gold says にっぽん 18% of the time) but books' own ruby
 # almost never does (under 2% on NDL's held-out authors: +46/-1 there, +8/-3 on Tatoeba's half a).
