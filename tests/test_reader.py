@@ -19,7 +19,8 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞'), '日本': ('日本', 'ニッポン', '名詞'),
            'プレハブ': ('プレハブ', 'プレハブ', '名詞'), '小屋': ('小屋', 'コヤ', '名詞'), 'この': ('この', 'コノ', '連体詞'),
            '箱': ('箱', 'バコ', '名詞'), '深い': ('深い', 'ブカイ', '形容詞'), '沿い': ('沿い', 'ソイ', '接尾辞'),
-           '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞'), '泳げ': ('泳げる', 'オヨゲ', '動詞')}
+           '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞'), '泳げ': ('泳げる', 'オヨゲ', '動詞'),
+           '身体': ('身体', 'シンタイ', '名詞')}
 
 
 class ToyTokenizer:
@@ -74,6 +75,9 @@ class ReaderTest(unittest.TestCase):
     def test_default_readings_replace_sudachis(self):
         words = self.reader({('日本', 'にほん'), ('日本', 'にっぽん')}).read('日本。')
         self.assertEqual(words[0], Word(0, 2, '日本', 'にほん', 'default', None))
+        # from default-readings.tsv (NDL's ruby): fiction's からだ, when the list has it
+        self.assertEqual(self.reader({('身体', 'からだ'), ('身体', 'しんたい')}).read('身体。')[0].reading, 'からだ')
+        self.assertEqual(self.reader({('身体', 'しんたい')}).read('身体。')[0].reading, 'しんたい')
 
     def test_defaults_batch_2(self):
         known = {('箱', 'はこ'), ('深い', 'ふかい'), ('沿い', 'ぞい')}

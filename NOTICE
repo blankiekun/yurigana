@@ -16,6 +16,16 @@ from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
 readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,
 licensed under CC BY 2.0 FR; neither text is included.
 
+yurigana/default-readings.tsv (form, Sudachi's reading, reading given instead,
+with counts) is derived from NDL Lab's huriganacorpus-aozora
+(https://github.com/ndl-lab/huriganacorpus-aozora, readings of Aozora Bunko's
+public-domain works; no known copyright restrictions), Tatoeba's transcriptions
+(CC BY 2.0 FR) and JMdict by the Electronic
+Dictionary Research and Development Group (https://www.edrdg.org/jmdict/),
+licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/);
+it is distributed under the same licence. tools/default_readings.py builds it;
+no text is included.
+
 yurigana/tatoeba-b2-ids.txt.gz lists the IDs of Tatoeba sentences that
 yurigana.evaluate reports on; no sentence text is included.
 

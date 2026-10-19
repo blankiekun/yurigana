@@ -110,6 +110,14 @@ reading wins:
    right, and no more breaks than fixes on NDL's held-out authors. 一日 as one token
    (Sudachi's ついたち) is いちにち except after 月 (来月の一日, a context rule); 一塊
    いっかい → ひとかたまり.
+   More come from `yurigana/default-readings.tsv`, built by `tools/default_readings.py` from
+   human readings of public-domain fiction (NDL's huriganacorpus-aozora, its training and dev
+   authors only) and checked on Tatoeba's half a and JMdict: readings fiction uses that
+   Sudachi's dictionary lacks or ranks low, such as 身体 しんたい → からだ, 側 がわ → そば,
+   表 ひょう → おもて, 咽喉 → のど, 空地 → あきち. A pair is kept only where it reads better than
+   Sudachi on the dev authors and no worse on modern Tatoeba text, and is not used for a
+   one-kanji word glued to kanji or digits (郵便局側 stays がわ, 3位 い); the hand-picked ones
+   above win over it.
    Where Sudachi's reading of a word of 3+ characters is one voicing away from the one the
    list gives it, the list's is taken (睡眠不足 ふそく → ぶそく, `source='only'`).
    金 きん → かね: alone, 金 is money unless a rule finds the metal (銀 or 鉄 nearby, 金のくさり,
