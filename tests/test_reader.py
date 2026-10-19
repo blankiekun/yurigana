@@ -71,6 +71,11 @@ class ReaderTest(unittest.TestCase):
         text = aozora_text('人気《ひとき》', None, hints)
         self.assertEqual(reader.read(text, hints)[0][3:5], ('にんき', 'dictionary'))  # not listed
 
+    def test_conjugated_word_takes_the_listed_reading_sudachi_says(self):
+        reader = self.reader({('行く', 'いく'), ('行く', 'ゆく')})
+        self.assertEqual(reader.read('行った。')[0], Word(0, 2, '行く', 'いく', 'dictionary', None))
+        self.assertEqual(self.reader({('行く', 'ゆく'), ('行く', 'おこなう')}).read('行った。')[0][3:5], (None, 'dictionary'))
+
     def test_default_replaces_a_wrong_sudachi_reading(self):
         self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'default', None))
         hints = []

@@ -1,7 +1,7 @@
 """Tests for yurigana.readings: ruby and context rules."""
 import unittest
 
-from yurigana.readings import context_reading, ruby_reading
+from yurigana.readings import conjugated_reading, context_reading, ruby_reading
 
 
 class RubyReadingTest(unittest.TestCase):
@@ -44,6 +44,23 @@ class RubyReadingTest(unittest.TestCase):
         self.assertIsNone(ruby_reading({0: (2, 'つか')}, 0, '目下', '目下', {('目下', 'っか')}))  # never a leading っ
 
 
+class ConjugatedReadingTest(unittest.TestCase):
+    def test_the_one_listed_reading_that_conjugates_to_sudachis(self):
+        self.assertEqual(conjugated_reading('行っ', '行く', 'いっ', ['いく', 'ゆく']), 'いく')
+        self.assertEqual(conjugated_reading('行か', '行く', 'ゆか', ['いく', 'ゆく']), 'ゆく')
+        self.assertEqual(conjugated_reading('行っ', '行く', 'いつ', ['いく', 'ゆく']), 'いく')  # small kana folded
+        self.assertEqual(conjugated_reading('早く', '早い', 'はやく', ['はやい', 'はやーい']), 'はやい')
+        self.assertEqual(conjugated_reading('上っ', '上る', 'のぼっ', ['あがる', 'のぼる']), 'のぼる')
+        self.assertIsNone(conjugated_reading('行っ', '行く', 'おこなっ', ['いく', 'ゆく']))  # none matches
+        self.assertIsNone(conjugated_reading('言わ', '言う', 'いわ', []))
+        self.assertIsNone(conjugated_reading('云っ', '言う', 'いっ', ['いう']))  # stem spelled apart
+
+    def test_kuru(self):
+        for surface, sudachi in (('来', 'き'), ('来', 'こ'), ('来よう', 'こよう'), ('来い', 'こい'), ('来れ', 'くれ')):
+            self.assertEqual(conjugated_reading(surface, '来る', sudachi, ['きたる', 'くる']), 'くる', surface)
+        self.assertIsNone(conjugated_reading('来', '来る', 'き', ['きたる']))  # くる not listed
+
+
 class ContextReadingTest(unittest.TestCase):
     known = {('人気', 'ひとけ'), ('人気', 'にんき'), ('明日', 'あした'), ('明日', 'あす'), ('上手', 'かみて'),
              ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん')}
@@ -76,6 +93,18 @@ class ContextReadingTest(unittest.TestCase):
                      'この作家はまだ人気がない', '作家は人気がない', '市場では人気がない', 'パン屋は人気がない',
                      '驚くほど人気がない', 'この店は全く人気がない', '北海道では人気がない', '長所は人気がないことだ'):
             self.assertIsNone(self.reading(text, '人気'), text)  # no cue: Sudachi's にんき
+
+    def test_iru_after_ki_ni_and_jin_after_places(self):
+        known = {('入る', 'いる'), ('入る', 'はいる'), ('人', 'じん'), ('人', 'ひと'), ('人', 'にん')}
+        for text, reading in (('服が気に入っている', 'いる'), ('家族水入らずで', 'いる'), ('部屋に入った', None),
+                              ('水が入らない', None)):
+            begin = text.index('入')
+            self.assertEqual(context_reading(text, begin, text[begin:begin + 2], '入る', known), reading, text)
+        self.assertEqual(self.reading('カナダ人です', '人', known=known), 'じん')
+        place = ('名詞', '固有名詞', '地名', '一般', '*', '*')
+        self.assertEqual(context_reading('東京人は', 2, '人', '人', known, place), 'じん')
+        self.assertIsNone(context_reading('東京人は', 2, '人', '人', known))
+        self.assertIsNone(context_reading('東京人は', 2, '人', '人', known, ('名詞', '普通名詞', '一般', '*', '*', '*')))
 
     def test_only_the_line_and_listed_readings(self):
         self.assertIsNone(self.reading('舞台の\n上手から', '上手'))

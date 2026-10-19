@@ -115,6 +115,10 @@ _CONTEXT_RULES = {
            ('かね', None, r'を(?:貸|借|払|稼|返|出|使|積|ため|貯|盗|渡|持)|が(?:な[いく]|無|足り|か[かけ]|要|い[るり]|あ[るれっ])'
             r'|に(?:困|な[るら])|で(?:買|解決|雇)|持ち|目当て|づる|遣い|儲け')],
     '見物': [('みもの', None, r'だ(?:な|ね|ぞ|わ)?(?:[。！」]|$)|である|です')],
+    # 気に入る, 水入らず: いる; Sudachi says はいる.
+    '入る': [('いる', r'気に$', None), ('いる', r'水$', r'ず', 'and')],
+    # 人 right after a katakana word (カナダ人); after a place name, see context_reading.
+    '人': [('じん', r'[ァ-ヺー]$', None)],
     '一行': [('いちぎょう', r'(?:最初の|最後の|文章の|冒頭の|手紙の|ほんの|たった)$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
@@ -128,9 +132,12 @@ _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.c
 _CONTEXT = 12  # characters looked at on each side
 
 
-def context_reading(text: str, begin: int, surface: str, form: str, known) -> str | None:
+def context_reading(text: str, begin: int, surface: str, form: str, known, previous_pos=None) -> str | None:
     """The reading _CONTEXT_RULES give a word whose head token `surface` starts at `begin` in
-    `text`, if `known` lists it for the form (as in ruby_reading)."""
+    `text`, if `known` lists it for the form (as in ruby_reading). previous_pos: the part of
+    speech of the token ending where the word starts, if any (人 after a place name is じん)."""
+    if form == '人' and previous_pos and tuple(previous_pos[1:3]) == ('固有名詞', '地名') and (form, 'じん') in known:
+        return 'じん'
     rules = _CONTEXT_RULES.get(form)
     if not rules:
         return None
@@ -143,3 +150,23 @@ def context_reading(text: str, begin: int, surface: str, form: str, known) -> st
         if (all(hits) if both else any(hits)) and (form, reading) in known:
             return reading
     return None
+
+
+_LARGE = str.maketrans('ぁぃぅぇぉっゃゅょゎ', 'あいうえおつやゆよわ')
+
+
+def conjugated_reading(surface: str, form: str, sudachi: str, readings) -> str | None:
+    """The one reading of `form` among `readings` whose stem, with the surface's kana after it,
+    is Sudachi's reading of the conjugated `surface` (`sudachi`, hiragana; small kana not
+    told apart): 行っ read いっ is 行く いく, not ゆく. None when none or several match.
+    来る's stem is read き, こ or く."""
+    stem, okurigana = re.fullmatch(r'(.*?)([ぁ-ゖ]*)', form).groups()
+    tail = surface[len(stem):]
+    if not stem or not surface.startswith(stem) or not re.fullmatch(r'[ぁ-ゖァ-ヺー]*', tail):
+        return None
+    tail = to_hiragana(tail)
+    if form == '来る' and 'くる' in readings and sudachi[:1] in ('き', 'こ', 'く') and sudachi[1:] == tail:
+        return 'くる'
+    matches = [r for r in readings if r.endswith(okurigana) and len(r) > len(okurigana)
+               and (r[:len(r) - len(okurigana)] + tail).translate(_LARGE) == sudachi.translate(_LARGE)]
+    return matches[0] if len(matches) == 1 else None

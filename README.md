@@ -42,8 +42,9 @@ gives it one reading).
 `read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
 kanji: its character offsets in `text`, its dictionary form (行った: 行く), the reading of
 that form in hiragana, where the reading came from and how certain it is. `reading` is
-None when nothing gives one (a conjugated word without ruby, rule or model, when no
-reading list says the form has only one reading).
+None when nothing gives one (without a reading list: a conjugated word without ruby, rule or
+model; with one: a conjugated word none or several of whose listed readings fit Sudachi's
+reading of it).
 
 `book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
 paragraph per line, without tables of contents or colophons, and its ruby as hints.
@@ -70,14 +71,18 @@ The first step that gives a reading wins:
    lemma's okurigana added (行《い》った is 行く read いく); ruby set in large kana, as older
    books do (いつしよ gives いっしょ).
 2. **A context rule** (`context_reading`): about 30 forms whose reading depends on the
-   words around them (人気, 今日, 明日, 上手, 市場, 金 …), in `readings._CONTEXT_RULES`.
+   words around them (人気, 今日, 明日, 上手, 市場, 金, 気に入る いる, カナダ人 じん …), in
+   `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき.
 3. **The reading model** (`ReadingModel`): a small naive Bayes classifier per form, over
    the two tokens on each side, their pairs and the content words within six tokens of the
    line. It answers only when its best reading's posterior is at least 0.7, and never for a
    form that has rules.
-4. **Sudachi's reading** of the token, for an unconjugated word.
+4. **Sudachi's reading** of the token, for an unconjugated word. For a conjugated one
+   (行っ, 言わ, 早く), with a reading list: the one listed reading of its form that conjugates
+   to Sudachi's reading of the surface (行っ read いっ is 行く いく, not ゆく; 来 read き or こ
+   is くる), when exactly one does (`readings.conjugated_reading`, `source='dictionary'`).
    A few of Sudachi's readings that are almost always wrong in modern text are replaced
    (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
    富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
@@ -147,8 +152,11 @@ The tables below are for 0.1. Since then, the default readings above and a wider
 (なに before か, する, verbs and ？) give, on all of Tatoeba's half b with no ruby (72,838
 occurrences, scored on spans as the sentences mark them), micro 79.4% → 86.3%, macro
 79.7% → 80.2%, micro over forms with 2+ gold readings 81.4% → 82.6% (私 alone is 4,422 of
-the 5,086 occurrences fixed; 32 got worse, all 何). The hand-written sentences, now 200 of
-43 forms: 95.4% with ruby, 81.7% without.
+the 5,086 occurrences fixed; 32 got worse, all 何). Conjugated words read from Sudachi's
+reading of the surface and the 気に入る and 〜人 rules then make it micro 80.1% → 87.5%,
+macro 75.6% → 81.3% (scored with a missing reading as wrong; 5,353 occurrences that had none
+got the right one, 64 a wrong one, none that were right changed). The hand-written
+sentences, now 213 of 50 forms, macro: 96.0% with ruby, 92.2% without.
 
 Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
 
