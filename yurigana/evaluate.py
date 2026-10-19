@@ -31,7 +31,8 @@ Scoring is by union span: the smallest stretch where the gold spans and the syst
 both start and end (何度 as one token against gold 何 + 度 is scored as なんど). The gold
 reading of that stretch is its spans' readings with the kana between them; the system's is
 its tokens' readings. An item fails alignment when the stretch holds a kanji or other
-non-kana character no gold span reads (a token swallowed an unlabelled kanji), except kanji
+non-kana character no gold span reads (a token swallowed an unlabelled kanji; a token with two
+kanji runs is first cut at them when its kana place the cut one way only: 幼い頃 against gold 頃), except kanji
 numerals, which match any reading (NDL gives 漢数字 no kana: 三人 is scored on 人). Small kana are
 folded everywhere (ゃ = や); `display` is strict about voicing (さんぼん ≠ さんほん: furigana
 must be right), the other metrics fold it, as word lists do.
@@ -81,6 +82,7 @@ import time
 import zlib
 from collections import Counter, defaultdict
 
+from .reader import split_reading
 from .readings import HAS_KANJI, surface_reading, to_hiragana
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -273,6 +275,23 @@ def _system_reading(text, b, e, tokens_at):
     return ''.join(out), bool(shown) and all(shown), sources
 
 
+def _kanji_runs(text, tokens):
+    """Tokens with a reading cut at their kanji runs where the kana between them place the cut
+    one way only (幼い頃 おさないころ: 幼 おさな, い, 頃 ころ; not 吾輩は猫, which could be わが|いはねこ),
+    so a gold span over one run is scored even when the gold leaves the token's other runs unread."""
+    for t in tokens:
+        surface = text[t[0]:t[1]]
+        pieces = split_reading(surface, t[2]) if t[2] else ()
+        backwards = [(p[::-1], r and r[::-1]) for p, r in reversed(split_reading(surface[::-1], t[2][::-1]))] if t[2] else ()
+        if sum(r is not None for _, r in pieces) < 2 or pieces != backwards:
+            yield t
+            continue
+        start = t[0]
+        for piece, reading in pieces:
+            yield (start, start + len(piece), reading, *t[3:])
+            start += len(piece)
+
+
 def score_sentence(sentence, tokens, misses=None, readings=None):
     """One result per item (span with kanji): (status 'ok' | 'none' | 'align', display right,
     word list right, shown); all 'align' when tokens is None. Stretches read wrong are appended
@@ -284,6 +303,7 @@ def score_sentence(sentence, tokens, misses=None, readings=None):
         if readings is not None:
             readings += [None] * n
         return [('align', False, False, False)] * n
+    tokens = list(_kanji_runs(text, tokens))
     spans_at = {s['b']: s for s in spans}
     tokens_at = {}
     for t in tokens:  # the longest token at a start: a counter span (三本) over its own tokens

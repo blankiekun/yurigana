@@ -235,11 +235,25 @@ class Reader:
             surface, form = token.surface(), token.dictionary_form()
             if not HAS_KANJI.search(surface):
                 continue
+            # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
+            # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
+            # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
+            # an unconjugated 先き, whose kana would be read twice).
+            normalized, lemma = token.normalized_form(), None
+            if (surface != form and form not in self.readings and form.startswith(normalized)
+                    and re.fullmatch('[ぁ-ゖ]+', form[len(normalized):])):
+                lemma = unlisted_reading(surface, form, to_hiragana(token.reading_form()))
+                if (normalized, lemma) in self.known and normalized in self.readings:
+                    form = normalized
+                else:
+                    lemma = None
             if carry is None:
                 reading, source, certainty = self._checked(form, *self._reading(text, tokens, i, surface, form, hint_at))
             else:
                 reading, source, certainty = self._checked(form, *self._carried(text, tokens, i, surface, form, hint_at,
                                                                                  covering, parts, carry))
+            if reading is None and lemma:
+                reading, source = lemma, 'dictionary'
             if reading and source not in ('ruby', 'counter', 'book'):
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
