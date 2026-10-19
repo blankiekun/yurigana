@@ -75,8 +75,8 @@ token is read on its own; the first step that gives a reading wins:
    (人《ひと》気《け》 gives ひとけ); ruby over the kanji stem of an inflected word, with the
    lemma's okurigana added (行《い》った is 行く read いく); ruby set in large kana, as older
    books do (いつしよ gives いっしょ).
-2. **A context rule** (`context_reading`): about 30 forms whose reading depends on the
-   words around them (人気, 今日, 明日, 上手, 市場, 金, 気に入る いる, カナダ人 じん …), in
+2. **A context rule** (`context_reading`): about 40 forms whose reading depends on the
+   words around them (人気, 今日, 明日, 上手, 市場, 金, 方, 間, 気に入る いる, カナダ人 じん …), in
    `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき.
