@@ -234,7 +234,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('金', 'きん'): 'かね',
                  # Sudachi dictionary bugs: a particle or extra kana in the reading (中宮 ちゅうぐうの).
                  ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',
-                 ('土堤', 'どてい'): 'どて'}
+                 ('土堤', 'どてい'): 'どて',
+                 # 鬼 alone is おに; glued (善鬼 ぜんき, 餓鬼) it keeps Sudachi's き (GLUED_CHECKED).
+                 ('鬼', 'き'): 'おに'}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:
@@ -250,7 +252,7 @@ DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
-GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ')})
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き')})
 
 
 def glued(text: str, begin: int, end: int) -> bool:
@@ -272,6 +274,11 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     speech of the token ending where the word starts, if any (人 after a place name is じん)."""
     if form == '人' and previous_pos and tuple(previous_pos[1:3]) == ('固有名詞', '地名') and (form, 'じん') in known:
         return 'じん'
+    # 気味 is ぎみ as a suffix: right after a noun (風邪気味) or a verb's 連用形 (太り気味); Sudachi says きみ.
+    if form == '気味' and previous_pos and (form, 'ぎみ') in known and (
+            previous_pos[0] in ('名詞', '接尾辞') and previous_pos[2] != '副詞可能'
+            or previous_pos[0] == '動詞' and ''.join(previous_pos[5:6]).startswith('連用形')):
+        return 'ぎみ'
     rules = _CONTEXT_RULES.get(form)
     if not rules:
         return None

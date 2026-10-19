@@ -255,11 +255,15 @@ class Reader:
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
             if reading:
                 return reading, 'dictionary', None
-        default = DEFAULT_READINGS.get((form, sudachi))
+        default, listed = DEFAULT_READINGS.get((form, sudachi)), True
+        if not default and sudachi and 'にっぽん' in sudachi and '日本' in form:
+            # 日本 is にほん in Sudachi's compounds and phrases too (日本一, 日本の伝統), unless the list
+            # reads the form only with にっぽん (日本銀行, 日本男児).
+            default, listed = sudachi.replace('にっぽん', 'にほん'), form in self.readings
         if default and ((form, sudachi) not in HAND_DEFAULTS or (form, sudachi) in GLUED_CHECKED) \
                 and glued(text, begin, begin + len(surface)):
             default = None  # the table's readings are of words on their own (郵便局側 is がわ)
-        if default and (form, default) in self.known:
+        if default and ((form, default) in self.known or not listed):
             return default, 'default', None
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
