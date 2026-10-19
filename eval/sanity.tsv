@@ -6,7 +6,7 @@ sentence	span	reading	alts	kind	status	note
 彼は私に親切だ。	私	わたし		frequent		tatoeba 106026; majority; half a わたし 4354/4355
 最近食欲が無い。	無い	ない		frequent		tatoeba 156873; JMdict; half a ない 47/49
 私は公園に行く。	行く	いく		frequent		tatoeba 157179; majority; half a いく 1752/1758
-父は今不在です。	今	いま		frequent	xfail	tatoeba 84575; JMdict; half a いま 564/568; 0.2.0.dev0 gives こん
+父は今不在です。	今	いま		frequent		tatoeba 84575; JMdict; half a いま 564/568
 俺は知らないよ。	俺	おれ		frequent		tatoeba 188354; JMdict; half a おれ 373/373
 お前の物はどこ？	物	もの		frequent		tatoeba 10118065; JMdict; half a もの 90/91
 あなたは聞くべきだ。	聞く	きく		frequent		tatoeba 8579873; JMdict; half a きく 451/451
@@ -150,7 +150,7 @@ sentence	span	reading	alts	kind	status	note
 秋になりました。	秋	あき		frequent		tatoeba 148220; majority; half a あき 32/32
 理由聞いてもいい？	理由	りゆう		frequent		tatoeba 3559174; JMdict; half a りゆう 79/80
 怠けていると君は困る事になるだろう。	困る	こまる		frequent		tatoeba 137919; JMdict; half a こまる 42/42
-黙っていなさい。	黙っ	だまる		frequent	xfail	tatoeba 80043; JMdict; half a だまる 53/53; 0.2.0.dev0 gives None
+黙っていなさい。	黙っ	だまる		frequent		tatoeba 80043; JMdict; half a だまる 53/53
 空港まで送るよ。	送る	おくる		frequent		tatoeba 179328; JMdict; half a おくる 122/122
 あの人はすぐ怒る。	怒る	おこる		frequent		tatoeba 230740; JMdict; half a おこる 124/125
 ウサギは耳が長い。	長い	ながい		frequent		tatoeba 527274; JMdict; half a ながい 150/155
@@ -164,7 +164,7 @@ sentence	span	reading	alts	kind	status	note
 家族といえども言葉で伝えるのは大事。	伝える	つたえる		frequent		tatoeba 10979956; JMdict; half a つたえる 60/60
 他の仕事を探すよ。	探す	さがす		frequent		tatoeba 10565448; JMdict; half a さがす 117/117
 最近食欲が無い。	最近	さいきん		frequent		tatoeba 156873; JMdict; half a さいきん 158/158
-トムを連れてきて。	連れ	つれる		frequent	xfail	tatoeba 3480363; JMdict; half a つれる 37/37; 0.2.0.dev0 gives None
+トムを連れてきて。	連れ	つれる		frequent		tatoeba 3480363; JMdict; half a つれる 37/37
 芝生の上を歩くな。	歩く	あるく		frequent		tatoeba 149265; JMdict; half a あるく 208/208
 とても大きいね。	大きい	おおきい		frequent		tatoeba 200577; JMdict; half a おおきい 133/133
 口を閉じなさい。	口	くち		frequent		tatoeba 173909; JMdict; half a くち 111/113
@@ -207,7 +207,7 @@ sentence	span	reading	alts	kind	status	note
 彼は根が優しい。	優しい	やさしい		frequent		tatoeba 107023; JMdict; half a やさしい 40/40
 彼は結局正しかった。	結局	けっきょく		frequent		tatoeba 107802; JMdict; half a けっきょく 43/43
 朝は空気が新鮮だ。	朝	あさ		frequent		tatoeba 126225; JMdict; half a あさ 152/156
-答えて頂きたいです。	頂き	いただく		frequent	xfail	tatoeba 2000097; JMdict; half a いただく 16/16; 0.2.0.dev0 gives None
+答えて頂きたいです。	頂き	いただく		frequent		tatoeba 2000097; JMdict; half a いただく 16/16
 一杯いかがですか。	一杯	いっぱい		frequent		tatoeba 190221; JMdict; half a いっぱい 88/88
 彼は存在しません。	存在	そんざい		frequent		tatoeba 1634737; JMdict; half a そんざい 38/38
 別のをください。	別	べつ		frequent		tatoeba 11156616; JMdict; half a べつ 60/60
@@ -490,7 +490,7 @@ sentence	span	reading	alts	kind	status	note
 暗い嵐の夜だった。	暗い	くらい		frequent		tatoeba 630555; JMdict; half a くらい 73/81
 味はいかがですか。	味	あじ		frequent		tatoeba 81065; JMdict; half a あじ 53/53
 今でもまだ悲しい？	悲しい	かなしい		frequent		tatoeba 8777776; JMdict; half a かなしい 31/31
-トムは犬に襲われた。	襲わ	おそう		frequent	xfail	tatoeba 8762337; JMdict; half a おそう 15/15; 0.2.0.dev0 gives None
+トムは犬に襲われた。	襲わ	おそう		frequent		tatoeba 8762337; JMdict; half a おそう 15/15
 彼の愛は冷めていった。	愛	あい		frequent		tatoeba 118192; JMdict; half a あい 31/31
 押すとジャリジャリする。	押す	おす		frequent		tatoeba 10979942; JMdict; half a おす 37/37
 それが重要な点です。	点	てん		frequent		tatoeba 205871; JMdict; half a てん 52/52
@@ -500,85 +500,85 @@ sentence	span	reading	alts	kind	status	note
 母は早起きです。	母	はは		frequent		tatoeba 82899; JMdict; half a はは 168/168
 彼は頭が切れる。	切れる	きれる		frequent		tatoeba 101704; JMdict; half a きれる 37/37
 壁にもたれるな。	壁	かべ		frequent		tatoeba 83468; JMdict; half a かべ 41/41
-鉛筆を一本買った。	一本	いっぽん		counter	xfail	0.2.0.dev0 gives いちほん
+鉛筆を一本買った。	一本	いっぽん		counter		
 鉛筆を二本買った。	二本	にほん		counter		
-鉛筆を三本買った。	三本	さんぼん		counter	xfail	0.2.0.dev0 gives さんほん
+鉛筆を三本買った。	三本	さんぼん		counter		
 鉛筆を四本買った。	四本	よんほん		counter		
 鉛筆を五本買った。	五本	ごほん		counter		
-鉛筆を六本買った。	六本	ろっぽん		counter	xfail	0.2.0.dev0 gives ろくほん
+鉛筆を六本買った。	六本	ろっぽん		counter		
 鉛筆を七本買った。	七本	ななほん	しちほん	counter		
 鉛筆を八本買った。	八本	はっぽん	はちほん	counter		
 鉛筆を九本買った。	九本	きゅうほん		counter		
-鉛筆を十本買った。	十本	じゅっぽん	じっぽん	counter	xfail	0.2.0.dev0 gives じゅうほん
-鉛筆を百本買った。	百本	ひゃっぽん		counter	xfail	0.2.0.dev0 gives ひゃくほん
-鉛筆を千本買った。	千本	せんぼん		counter	xfail	0.2.0.dev0 gives せんほん
+鉛筆を十本買った。	十本	じゅっぽん	じっぽん	counter		
+鉛筆を百本買った。	百本	ひゃっぽん		counter		
+鉛筆を千本買った。	千本	せんぼん		counter		
 鉛筆を何本買った。	何本	なんぼん		counter		
-庭に猫が一匹いる。	一匹	いっぴき		counter	xfail	0.2.0.dev0 gives いちひき
+庭に猫が一匹いる。	一匹	いっぴき		counter		
 庭に猫が二匹いる。	二匹	にひき		counter		
-庭に猫が三匹いる。	三匹	さんびき		counter	xfail	0.2.0.dev0 gives さんひき
+庭に猫が三匹いる。	三匹	さんびき		counter		
 庭に猫が四匹いる。	四匹	よんひき		counter		
 庭に猫が五匹いる。	五匹	ごひき		counter		
-庭に猫が六匹いる。	六匹	ろっぴき		counter	xfail	0.2.0.dev0 gives ろくひき
+庭に猫が六匹いる。	六匹	ろっぴき		counter		
 庭に猫が七匹いる。	七匹	ななひき	しちひき	counter		
 庭に猫が八匹いる。	八匹	はっぴき	はちひき	counter		
 庭に猫が九匹いる。	九匹	きゅうひき		counter		
-庭に猫が十匹いる。	十匹	じゅっぴき	じっぴき	counter	xfail	0.2.0.dev0 gives じゅうひき
-庭に猫が百匹いる。	百匹	ひゃっぴき		counter	xfail	0.2.0.dev0 gives ひゃくひき
-庭に猫が千匹いる。	千匹	せんびき		counter	xfail	0.2.0.dev0 gives せんひき
-庭に猫が何匹いる。	何匹	なんびき		counter	xfail	0.2.0.dev0 gives なんひき
+庭に猫が十匹いる。	十匹	じゅっぴき	じっぴき	counter		
+庭に猫が百匹いる。	百匹	ひゃっぴき		counter		
+庭に猫が千匹いる。	千匹	せんびき		counter		
+庭に猫が何匹いる。	何匹	なんびき		counter		
 コーヒーを一杯飲んだ。	一杯	いっぱい		counter		
-コーヒーを二杯飲んだ。	二杯	にはい		counter	xfail	0.2.0.dev0 gives にばい
+コーヒーを二杯飲んだ。	二杯	にはい		counter		
 コーヒーを三杯飲んだ。	三杯	さんばい		counter		
-コーヒーを四杯飲んだ。	四杯	よんはい		counter	xfail	0.2.0.dev0 gives よんばい
-コーヒーを五杯飲んだ。	五杯	ごはい		counter	xfail	0.2.0.dev0 gives ごばい
-コーヒーを六杯飲んだ。	六杯	ろっぱい		counter	xfail	0.2.0.dev0 gives ろくばい
-コーヒーを七杯飲んだ。	七杯	ななはい	しちはい	counter	xfail	0.2.0.dev0 gives しちばい
-コーヒーを八杯飲んだ。	八杯	はっぱい	はちはい	counter	xfail	0.2.0.dev0 gives はちばい
-コーヒーを九杯飲んだ。	九杯	きゅうはい		counter	xfail	0.2.0.dev0 gives きゅうばい
-コーヒーを十杯飲んだ。	十杯	じゅっぱい	じっぱい	counter	xfail	0.2.0.dev0 gives じゅうばい
-コーヒーを百杯飲んだ。	百杯	ひゃっぱい		counter	xfail	0.2.0.dev0 gives ひゃくばい
+コーヒーを四杯飲んだ。	四杯	よんはい		counter		
+コーヒーを五杯飲んだ。	五杯	ごはい		counter		
+コーヒーを六杯飲んだ。	六杯	ろっぱい		counter		
+コーヒーを七杯飲んだ。	七杯	ななはい	しちはい	counter		
+コーヒーを八杯飲んだ。	八杯	はっぱい	はちはい	counter		
+コーヒーを九杯飲んだ。	九杯	きゅうはい		counter		
+コーヒーを十杯飲んだ。	十杯	じゅっぱい	じっぱい	counter		
+コーヒーを百杯飲んだ。	百杯	ひゃっぱい		counter		
 コーヒーを千杯飲んだ。	千杯	せんばい		counter		
 コーヒーを何杯飲んだ。	何杯	なんばい		counter		
-事務所はビルの一階にある。	一階	いっかい		counter	xfail	0.2.0.dev0 gives いちかい
+事務所はビルの一階にある。	一階	いっかい		counter		
 事務所はビルの二階にある。	二階	にかい		counter		
 事務所はビルの三階にある。	三階	さんがい	さんかい	counter		
 事務所はビルの四階にある。	四階	よんかい		counter		
 事務所はビルの五階にある。	五階	ごかい		counter		
-事務所はビルの六階にある。	六階	ろっかい		counter	xfail	0.2.0.dev0 gives ろくかい
+事務所はビルの六階にある。	六階	ろっかい		counter		
 事務所はビルの七階にある。	七階	ななかい	しちかい	counter		
 事務所はビルの八階にある。	八階	はっかい	はちかい	counter		
 事務所はビルの九階にある。	九階	きゅうかい		counter		
-事務所はビルの十階にある。	十階	じゅっかい	じっかい	counter	xfail	0.2.0.dev0 gives じゅうかい
-事務所はビルの百階にある。	百階	ひゃっかい		counter	xfail	0.2.0.dev0 gives ひゃくかい
+事務所はビルの十階にある。	十階	じゅっかい	じっかい	counter		
+事務所はビルの百階にある。	百階	ひゃっかい		counter		
 事務所はビルの千階にある。	千階	せんかい	せんがい	counter		
 事務所はビルの何階にある。	何階	なんがい	なんかい	counter		
-りんごを一個食べた。	一個	いっこ		counter	xfail	0.2.0.dev0 gives いちこ
+りんごを一個食べた。	一個	いっこ		counter		
 りんごを二個食べた。	二個	にこ		counter		
 りんごを三個食べた。	三個	さんこ		counter		
 りんごを四個食べた。	四個	よんこ		counter		
 りんごを五個食べた。	五個	ごこ		counter		
-りんごを六個食べた。	六個	ろっこ		counter	xfail	0.2.0.dev0 gives ろくこ
+りんごを六個食べた。	六個	ろっこ		counter		
 りんごを七個食べた。	七個	ななこ	しちこ	counter		
 りんごを八個食べた。	八個	はっこ	はちこ	counter		
 りんごを九個食べた。	九個	きゅうこ		counter		
-りんごを十個食べた。	十個	じゅっこ	じっこ	counter	xfail	0.2.0.dev0 gives じゅうこ
-りんごを百個食べた。	百個	ひゃっこ		counter	xfail	0.2.0.dev0 gives ひゃくこ
+りんごを十個食べた。	十個	じゅっこ	じっこ	counter		
+りんごを百個食べた。	百個	ひゃっこ		counter		
 りんごを千個食べた。	千個	せんこ		counter		
 りんごを何個食べた。	何個	なんこ		counter		
-その映画を一回見た。	一回	いっかい		counter	xfail	0.2.0.dev0 gives いちかい
+その映画を一回見た。	一回	いっかい		counter		
 その映画を二回見た。	二回	にかい		counter		
 その映画を三回見た。	三回	さんかい		counter		
 その映画を四回見た。	四回	よんかい		counter		
 その映画を五回見た。	五回	ごかい		counter		
-その映画を六回見た。	六回	ろっかい		counter	xfail	0.2.0.dev0 gives ろくかい
+その映画を六回見た。	六回	ろっかい		counter		
 その映画を七回見た。	七回	ななかい	しちかい	counter		
 その映画を八回見た。	八回	はっかい	はちかい	counter		
 その映画を九回見た。	九回	きゅうかい		counter		
-その映画を十回見た。	十回	じゅっかい	じっかい	counter	xfail	0.2.0.dev0 gives じゅうかい
-その映画を百回見た。	百回	ひゃっかい		counter	xfail	0.2.0.dev0 gives ひゃくかい
+その映画を十回見た。	十回	じゅっかい	じっかい	counter		
+その映画を百回見た。	百回	ひゃっかい		counter		
 その映画を千回見た。	千回	せんかい		counter		
 その映画を何回見た。	何回	なんかい		counter		
-図書館で一冊借りた。	一冊	いっさつ		counter	xfail	0.2.0.dev0 gives いちさつ
+図書館で一冊借りた。	一冊	いっさつ		counter		
 図書館で二冊借りた。	二冊	にさつ		counter		
 図書館で三冊借りた。	三冊	さんさつ		counter		
 図書館で四冊借りた。	四冊	よんさつ		counter		
@@ -587,39 +587,39 @@ sentence	span	reading	alts	kind	status	note
 図書館で七冊借りた。	七冊	ななさつ	しちさつ	counter		
 図書館で八冊借りた。	八冊	はっさつ	はちさつ	counter		
 図書館で九冊借りた。	九冊	きゅうさつ		counter		
-図書館で十冊借りた。	十冊	じゅっさつ	じっさつ	counter	xfail	0.2.0.dev0 gives じゅうさつ
+図書館で十冊借りた。	十冊	じゅっさつ	じっさつ	counter		
 図書館で百冊借りた。	百冊	ひゃくさつ	ひゃっさつ	counter		
 図書館で千冊借りた。	千冊	せんさつ		counter		
 図書館で何冊借りた。	何冊	なんさつ		counter		
-息子は一歳になった。	一歳	いっさい		counter	xfail	0.2.0.dev0 gives いちさい
+息子は一歳になった。	一歳	いっさい		counter		
 息子は二歳になった。	二歳	にさい		counter		
 息子は三歳になった。	三歳	さんさい		counter		
 息子は四歳になった。	四歳	よんさい		counter		
 息子は五歳になった。	五歳	ごさい		counter		
 息子は六歳になった。	六歳	ろくさい		counter		
 息子は七歳になった。	七歳	ななさい	しちさい	counter		
-息子は八歳になった。	八歳	はっさい		counter	xfail	0.2.0.dev0 gives はちさい
+息子は八歳になった。	八歳	はっさい		counter		
 息子は九歳になった。	九歳	きゅうさい		counter		
-息子は十歳になった。	十歳	じゅっさい	じっさい	counter	xfail	0.2.0.dev0 gives じゅうさい
+息子は十歳になった。	十歳	じゅっさい	じっさい	counter		
 息子は百歳になった。	百歳	ひゃくさい		counter		
 息子は何歳になった。	何歳	なんさい		counter		
-駅まで一分かかった。	一分	いっぷん		counter	xfail	0.2.0.dev0 gives いちふん
+駅まで一分かかった。	一分	いっぷん		counter		
 駅まで二分かかった。	二分	にふん		counter		
-駅まで三分かかった。	三分	さんぷん		counter	xfail	0.2.0.dev0 gives さんふん
-駅まで四分かかった。	四分	よんぷん		counter	xfail	0.2.0.dev0 gives よんふん
+駅まで三分かかった。	三分	さんぷん		counter		
+駅まで四分かかった。	四分	よんぷん		counter		
 駅まで五分かかった。	五分	ごふん		counter		
-駅まで六分かかった。	六分	ろっぷん		counter	xfail	0.2.0.dev0 gives ろくふん
+駅まで六分かかった。	六分	ろっぷん		counter		
 駅まで七分かかった。	七分	ななふん	しちふん	counter		
 駅まで八分かかった。	八分	はっぷん	はちふん	counter		
 駅まで九分かかった。	九分	きゅうふん		counter		
-駅まで十分かかった。	十分	じゅっぷん	じっぷん	counter	xfail	0.2.0.dev0 gives じゅうぶん
-駅まで百分かかった。	百分	ひゃっぷん		counter	xfail	0.2.0.dev0 gives ひゃくぶん
-駅まで千分かかった。	千分	せんぷん		counter	xfail	0.2.0.dev0 gives せんふん
-駅まで何分かかった。	何分	なんぷん		counter	xfail	0.2.0.dev0 gives なにぶん
+駅まで十分かかった。	十分	じゅっぷん	じっぷん	counter		
+駅まで百分かかった。	百分	ひゃっぷん		counter	xfail	main gives ひゃくぶん
+駅まで千分かかった。	千分	せんぷん		counter		
+駅まで何分かかった。	何分	なんぷん		counter	xfail	main gives なにぶん
 部屋に一人いた。	一人	ひとり		counter		
 部屋に二人いた。	二人	ふたり		counter		
 部屋に三人いた。	三人	さんにん		counter		
-部屋に四人いた。	四人	よにん		counter	xfail	0.2.0.dev0 gives よんにん
+部屋に四人いた。	四人	よにん		counter		
 部屋に五人いた。	五人	ごにん		counter		
 部屋に六人いた。	六人	ろくにん		counter		
 部屋に七人いた。	七人	ななにん	しちにん	counter		
@@ -630,36 +630,36 @@ sentence	span	reading	alts	kind	status	note
 部屋に千人いた。	千人	せんにん		counter		
 部屋に何人いた。	何人	なんにん		counter		
 来月の一日に会おう。	一日	ついたち		counter		
-来月の二日に会おう。	二日	ふつか		counter	xfail	0.2.0.dev0 gives ふたか
+来月の二日に会おう。	二日	ふつか		counter		
 来月の三日に会おう。	三日	みっか		counter		
-来月の四日に会おう。	四日	よっか		counter	xfail	0.2.0.dev0 gives よんか
+来月の四日に会おう。	四日	よっか		counter		
 来月の五日に会おう。	五日	いつか		counter		
 来月の六日に会おう。	六日	むいか		counter		
-来月の七日に会おう。	七日	なのか	なぬか	counter	xfail	0.2.0.dev0 gives ななにち
+来月の七日に会おう。	七日	なのか	なぬか	counter		
 来月の八日に会おう。	八日	ようか		counter		
 来月の九日に会おう。	九日	ここのか		counter		
-来月の十日に会おう。	十日	とおか		counter	xfail	0.2.0.dev0 gives とうか
+来月の十日に会おう。	十日	とおか		counter		
 来月の何日に会おう。	何日	なんにち		counter		
 弟は一月に生まれた。	一月	いちがつ		counter		
 弟は二月に生まれた。	二月	にがつ		counter		
 弟は三月に生まれた。	三月	さんがつ		counter		
-弟は四月に生まれた。	四月	しがつ		counter	xfail	0.2.0.dev0 gives よんがつ
+弟は四月に生まれた。	四月	しがつ		counter		
 弟は五月に生まれた。	五月	ごがつ		counter		
 弟は六月に生まれた。	六月	ろくがつ		counter		
-弟は七月に生まれた。	七月	しちがつ		counter	xfail	0.2.0.dev0 gives なながつ
+弟は七月に生まれた。	七月	しちがつ		counter		
 弟は八月に生まれた。	八月	はちがつ		counter		
-弟は九月に生まれた。	九月	くがつ		counter	xfail	0.2.0.dev0 gives きゅうがつ
+弟は九月に生まれた。	九月	くがつ		counter		
 弟は十月に生まれた。	十月	じゅうがつ		counter		
 弟は何月に生まれた。	何月	なんがつ		counter		
 毎朝一時に起きる。	一時	いちじ		counter		
 毎朝二時に起きる。	二時	にじ		counter		
 毎朝三時に起きる。	三時	さんじ		counter		
-毎朝四時に起きる。	四時	よじ		counter	xfail	0.2.0.dev0 gives よんじ
+毎朝四時に起きる。	四時	よじ		counter		
 毎朝五時に起きる。	五時	ごじ		counter		
 毎朝六時に起きる。	六時	ろくじ		counter		
 毎朝七時に起きる。	七時	しちじ	ななじ	counter		
 毎朝八時に起きる。	八時	はちじ		counter		
-毎朝九時に起きる。	九時	くじ		counter	xfail	0.2.0.dev0 gives きゅうじ
+毎朝九時に起きる。	九時	くじ		counter		
 毎朝十時に起きる。	十時	じゅうじ		counter		
 毎朝何時に起きる。	何時	なんじ		counter		
 紙を一枚使った。	一枚	いちまい		counter		
@@ -688,7 +688,7 @@ sentence	span	reading	alts	kind	status	note
 駐車場に車が百台ある。	百台	ひゃくだい		counter		
 駐車場に車が千台ある。	千台	せんだい		counter		
 駐車場に車が何台ある。	何台	なんだい		counter		
-靴を一足買った。	一足	いっそく		counter	xfail	0.2.0.dev0 gives ひとあし
+靴を一足買った。	一足	いっそく		counter		
 靴を二足買った。	二足	にそく		counter		
 靴を三足買った。	三足	さんぞく	さんそく	counter		
 靴を四足買った。	四足	よんそく		counter		
@@ -697,24 +697,24 @@ sentence	span	reading	alts	kind	status	note
 靴を七足買った。	七足	ななそく	しちそく	counter		
 靴を八足買った。	八足	はっそく	はちそく	counter		
 靴を九足買った。	九足	きゅうそく		counter		
-靴を十足買った。	十足	じゅっそく	じっそく	counter	xfail	0.2.0.dev0 gives じゅうそく
-靴を百足買った。	百足	ひゃくそく		counter	xfail	0.2.0.dev0 gives むかで
+靴を十足買った。	十足	じゅっそく	じっそく	counter		
+靴を百足買った。	百足	ひゃくそく		counter	xfail	main gives むかで
 靴を千足買った。	千足	せんぞく	せんそく	counter		
 靴を何足買った。	何足	なんぞく	なんそく	counter		
-通りに家が一軒ある。	一軒	いっけん		counter	xfail	0.2.0.dev0 gives いちけん
+通りに家が一軒ある。	一軒	いっけん		counter		
 通りに家が二軒ある。	二軒	にけん		counter		
 通りに家が三軒ある。	三軒	さんげん	さんけん	counter		
-通りに家が四軒ある。	四軒	よんけん		counter	xfail	0.2.0.dev0 gives しけん
+通りに家が四軒ある。	四軒	よんけん		counter	xfail	main gives しけん
 通りに家が五軒ある。	五軒	ごけん		counter		
-通りに家が六軒ある。	六軒	ろっけん		counter	xfail	0.2.0.dev0 gives ろくけん
+通りに家が六軒ある。	六軒	ろっけん		counter		
 通りに家が七軒ある。	七軒	ななけん	しちけん	counter		
 通りに家が八軒ある。	八軒	はっけん	はちけん	counter		
 通りに家が九軒ある。	九軒	きゅうけん		counter		
-通りに家が十軒ある。	十軒	じゅっけん	じっけん	counter	xfail	0.2.0.dev0 gives じゅうけん
-通りに家が百軒ある。	百軒	ひゃっけん		counter	xfail	0.2.0.dev0 gives ひゃくけん
+通りに家が十軒ある。	十軒	じゅっけん	じっけん	counter		
+通りに家が百軒ある。	百軒	ひゃっけん		counter		
 通りに家が千軒ある。	千軒	せんげん	せんけん	counter		
 通りに家が何軒ある。	何軒	なんげん	なんけん	counter		
-シャツを一着買った。	一着	いっちゃく		counter	xfail	0.2.0.dev0 gives いちちゃく
+シャツを一着買った。	一着	いっちゃく		counter		
 シャツを二着買った。	二着	にちゃく		counter		
 シャツを三着買った。	三着	さんちゃく		counter		
 シャツを四着買った。	四着	よんちゃく		counter		
@@ -723,11 +723,11 @@ sentence	span	reading	alts	kind	status	note
 シャツを七着買った。	七着	ななちゃく	しちちゃく	counter		
 シャツを八着買った。	八着	はっちゃく	はちちゃく	counter		
 シャツを九着買った。	九着	きゅうちゃく		counter		
-シャツを十着買った。	十着	じゅっちゃく	じっちゃく	counter	xfail	0.2.0.dev0 gives じゅうちゃく
+シャツを十着買った。	十着	じゅっちゃく	じっちゃく	counter		
 シャツを百着買った。	百着	ひゃくちゃく		counter		
 シャツを千着買った。	千着	せんちゃく		counter		
-シャツを何着買った。	何着	なんちゃく		counter	xfail	0.2.0.dev0 gives なにちゃく
-テストで一点取った。	一点	いってん		counter	xfail	0.2.0.dev0 gives いちてん
+シャツを何着買った。	何着	なんちゃく		counter		
+テストで一点取った。	一点	いってん		counter		
 テストで二点取った。	二点	にてん		counter		
 テストで三点取った。	三点	さんてん		counter		
 テストで四点取った。	四点	よんてん		counter		
@@ -736,11 +736,11 @@ sentence	span	reading	alts	kind	status	note
 テストで七点取った。	七点	ななてん	しちてん	counter		
 テストで八点取った。	八点	はってん	はちてん	counter		
 テストで九点取った。	九点	きゅうてん		counter		
-テストで十点取った。	十点	じゅってん	じってん	counter	xfail	0.2.0.dev0 gives じゅうてん
+テストで十点取った。	十点	じゅってん	じってん	counter		
 テストで百点取った。	百点	ひゃくてん		counter		
 テストで千点取った。	千点	せんてん		counter		
 テストで何点取った。	何点	なんてん		counter		
-牧場に牛が一頭いる。	一頭	いっとう		counter	xfail	0.2.0.dev0 gives いちとう
+牧場に牛が一頭いる。	一頭	いっとう		counter		
 牧場に牛が二頭いる。	二頭	にとう		counter		
 牧場に牛が三頭いる。	三頭	さんとう		counter		
 牧場に牛が四頭いる。	四頭	よんとう		counter		
@@ -749,24 +749,24 @@ sentence	span	reading	alts	kind	status	note
 牧場に牛が七頭いる。	七頭	ななとう	しちとう	counter		
 牧場に牛が八頭いる。	八頭	はっとう	はちとう	counter		
 牧場に牛が九頭いる。	九頭	きゅうとう		counter		
-牧場に牛が十頭いる。	十頭	じゅっとう	じっとう	counter	xfail	0.2.0.dev0 gives じゅうとう
+牧場に牛が十頭いる。	十頭	じゅっとう	じっとう	counter		
 牧場に牛が百頭いる。	百頭	ひゃくとう		counter		
 牧場に牛が千頭いる。	千頭	せんとう		counter		
 牧場に牛が何頭いる。	何頭	なんとう		counter		
-空を鳥が一羽飛んでいる。	一羽	いちわ		counter	xfail	0.2.0.dev0 gives ひとわ
-空を鳥が二羽飛んでいる。	二羽	にわ		counter	xfail	0.2.0.dev0 gives ふたわ
-空を鳥が三羽飛んでいる。	三羽	さんわ	さんば	counter	xfail	0.2.0.dev0 gives みっわ
+空を鳥が一羽飛んでいる。	一羽	いちわ		counter		
+空を鳥が二羽飛んでいる。	二羽	にわ		counter		
+空を鳥が三羽飛んでいる。	三羽	さんわ	さんば	counter		
 空を鳥が四羽飛んでいる。	四羽	よんわ	よんば	counter		
-空を鳥が五羽飛んでいる。	五羽	ごわ		counter	xfail	0.2.0.dev0 gives いつわ
-空を鳥が六羽飛んでいる。	六羽	ろくわ	ろっぱ	counter	xfail	0.2.0.dev0 gives むいわ
+空を鳥が五羽飛んでいる。	五羽	ごわ		counter		
+空を鳥が六羽飛んでいる。	六羽	ろくわ	ろっぱ	counter		
 空を鳥が七羽飛んでいる。	七羽	ななわ	しちわ	counter		
-空を鳥が八羽飛んでいる。	八羽	はちわ	はっぱ	counter	xfail	0.2.0.dev0 gives ようわ
-空を鳥が九羽飛んでいる。	九羽	きゅうわ		counter	xfail	0.2.0.dev0 gives ここのわ
-空を鳥が十羽飛んでいる。	十羽	じゅうわ	じゅっぱ|じっぱ	counter	xfail	0.2.0.dev0 gives とうわ
+空を鳥が八羽飛んでいる。	八羽	はちわ	はっぱ	counter		
+空を鳥が九羽飛んでいる。	九羽	きゅうわ		counter		
+空を鳥が十羽飛んでいる。	十羽	じゅうわ	じゅっぱ|じっぱ	counter		
 空を鳥が百羽飛んでいる。	百羽	ひゃくわ	ひゃっぱ	counter		
 空を鳥が千羽飛んでいる。	千羽	せんわ	せんば	counter		
-空を鳥が何羽飛んでいる。	何羽	なんわ	なんば	counter	xfail	0.2.0.dev0 gives なにわ
-旅行は一週間続いた。	一週間	いっしゅうかん		counter	xfail	0.2.0.dev0 gives いちしゅうかん
+空を鳥が何羽飛んでいる。	何羽	なんわ	なんば	counter		
+旅行は一週間続いた。	一週間	いっしゅうかん		counter		
 旅行は二週間続いた。	二週間	にしゅうかん		counter		
 旅行は三週間続いた。	三週間	さんしゅうかん		counter		
 旅行は四週間続いた。	四週間	よんしゅうかん		counter		
@@ -775,14 +775,14 @@ sentence	span	reading	alts	kind	status	note
 旅行は七週間続いた。	七週間	ななしゅうかん	しちしゅうかん	counter		
 旅行は八週間続いた。	八週間	はっしゅうかん	はちしゅうかん	counter		
 旅行は九週間続いた。	九週間	きゅうしゅうかん		counter		
-旅行は十週間続いた。	十週間	じゅっしゅうかん	じっしゅうかん	counter	xfail	0.2.0.dev0 gives じゅうしゅうかん
+旅行は十週間続いた。	十週間	じゅっしゅうかん	じっしゅうかん	counter		
 旅行は百週間続いた。	百週間	ひゃくしゅうかん		counter		
 旅行は千週間続いた。	千週間	せんしゅうかん		counter		
 旅行は何週間続いた。	何週間	なんしゅうかん		counter		
 東京に一年住んだ。	一年	いちねん		counter		
 東京に二年住んだ。	二年	にねん		counter		
 東京に三年住んだ。	三年	さんねん		counter		
-東京に四年住んだ。	四年	よねん		counter	xfail	0.2.0.dev0 gives よんねん
+東京に四年住んだ。	四年	よねん		counter		
 東京に五年住んだ。	五年	ごねん		counter		
 東京に六年住んだ。	六年	ろくねん		counter		
 東京に七年住んだ。	七年	ななねん	しちねん	counter		
@@ -795,7 +795,7 @@ sentence	span	reading	alts	kind	status	note
 全部で一円だった。	一円	いちえん		counter		
 全部で二円だった。	二円	にえん		counter		
 全部で三円だった。	三円	さんえん		counter		
-全部で四円だった。	四円	よえん		counter	xfail	0.2.0.dev0 gives よんえん
+全部で四円だった。	四円	よえん		counter		
 全部で五円だった。	五円	ごえん		counter		
 全部で六円だった。	六円	ろくえん		counter		
 全部で七円だった。	七円	ななえん	しちえん	counter		
@@ -818,9 +818,9 @@ sentence	span	reading	alts	kind	status	note
 彼には百度言った。	百度	ひゃくど		counter		
 彼には千度言った。	千度	せんど		counter		
 彼には何度言った。	何度	なんど		counter		
-来月の二十日に会おう。	二十日	はつか		counter	xfail	0.2.0.dev0 gives にとうか
-来月の十四日に会おう。	十四日	じゅうよっか		counter	xfail	0.2.0.dev0 gives じゅうよんか
-仕事に一日かかった。	一日	いちにち		counter	xfail	0.2.0.dev0 gives ついたち
+来月の二十日に会おう。	二十日	はつか		counter		
+来月の十四日に会おう。	十四日	じゅうよっか		counter		
+仕事に一日かかった。	一日	いちにち		counter		
 仕事に百日かかった。	百日	ひゃくにち		counter		
 娘は二十歳になった。	二十歳	はたち	にじゅっさい|にじっさい	counter		
 一つください。	一つ	ひとつ		counter		
@@ -836,8 +836,8 @@ sentence	span	reading	alts	kind	status	note
 昨日、駅で彼に会った。	昨日	きのう	さくじつ	convention		
 今年の冬は寒い。	今年	ことし	こんねん	convention		
 今年は海外へ行くつもりだ。	今年	ことし	こんねん	convention		
-一昨日、雨が降った。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	0.2.0.dev0 gives いっさくひ
-一昨日の新聞を読んだ。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	0.2.0.dev0 gives いっさくひ
+一昨日、雨が降った。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	main gives いっさくひ
+一昨日の新聞を読んだ。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	main gives いっさくひ
 皆、元気です。	皆	みんな	みな	convention		
 皆で歌を歌った。	皆	みんな	みな	convention		
 家に帰りたい。	家	いえ	うち	convention		
@@ -850,42 +850,42 @@ sentence	span	reading	alts	kind	status	note
 妹が三人いる。	三人	さんにん		probe		tatoeba 6705562
 今日、一人で来たの？	一人	ひとり		probe		tatoeba 430408
 二人は結婚した。	二人	ふたり		probe		tatoeba 123072
-私は四人姉妹ではありません。	四人	よにん		probe	xfail	tatoeba 2349192; 0.2.0.dev0 gives よんにん
+私は四人姉妹ではありません。	四人	よにん		probe		tatoeba 2349192
 彼女には兄が五人いる。	五人	ごにん		probe		tatoeba 2520543
-本が一冊棚から落ちた。	一冊	いっさつ		probe	xfail	tatoeba 81671; 0.2.0.dev0 gives いちさつ
+本が一冊棚から落ちた。	一冊	いっさつ		probe		tatoeba 81671
 私は図書館から本を三冊借りました。	三冊	さんさつ		probe		tatoeba 2062302
-彼は家に帰ると本を十冊読む。	十冊	じゅっさつ	じっさつ	probe	xfail	tatoeba 109290; 0.2.0.dev0 gives じゅうさつ
+彼は家に帰ると本を十冊読む。	十冊	じゅっさつ	じっさつ	probe		tatoeba 109290
 彼女はピアノの上に本が何冊かあるのを見た。	何冊	なんさつ		probe		tatoeba 91679
 電車はあと五分で到着の予定です。	五分	ごふん		probe		tatoeba 124790
-三分間目を閉じなさい。	三分	さんぷん		probe	xfail	tatoeba 169479; 0.2.0.dev0 gives None
-これ何分チンしたらいい？	何分	なんぷん		probe	xfail	tatoeba 3162657; 0.2.0.dev0 gives なにぶん
-今朝リスを一匹見かけた。	一匹	いっぴき		probe	xfail	tatoeba 5021684; 0.2.0.dev0 gives いちひき
+三分間目を閉じなさい。	三分	さんぷん		probe	xfail	tatoeba 169479; main gives None
+これ何分チンしたらいい？	何分	なんぷん		probe	xfail	tatoeba 3162657; main gives なにぶん
+今朝リスを一匹見かけた。	一匹	いっぴき		probe		tatoeba 5021684
 犬を二匹飼っています。一匹は白くてもう一匹は黒です。	二匹	にひき		probe		tatoeba 1037828
-彼は犬を三匹飼っていたが交通事故で一匹失った。	三匹	さんびき		probe	xfail	tatoeba 107712; 0.2.0.dev0 gives さんひき
-何匹かのサルが木に登っているのを見た。	何匹	なんびき		probe	xfail	tatoeba 187316; 0.2.0.dev0 gives なんひき
+彼は犬を三匹飼っていたが交通事故で一匹失った。	三匹	さんびき		probe		tatoeba 107712
+何匹かのサルが木に登っているのを見た。	何匹	なんびき		probe		tatoeba 187316
 車が一台こちらのほうへ近づいてきた。	一台	いちだい		probe		tatoeba 149134
 うちにはテレビが三台あります。	三台	さんだい		probe		tatoeba 10984813
-もう一回挑戦してみたいです。	一回	いっかい		probe	xfail	tatoeba 2976139; 0.2.0.dev0 gives いちかい
+もう一回挑戦してみたいです。	一回	いっかい		probe		tatoeba 2976139
 週に何回そのサッカーチームは練習するんですか。	何回	なんかい		probe		tatoeba 148147
 この曲、千回以上は聴いてる。	千回	せんかい		probe		tatoeba 11027758
-私は酒屋でビールを一本買った。	一本	いっぽん		probe	xfail	tatoeba 148437; 0.2.0.dev0 gives いちほん
-チョークを三本ください。	三本	さんぼん		probe	xfail	tatoeba 202876; 0.2.0.dev0 gives さんほん
+私は酒屋でビールを一本買った。	一本	いっぽん		probe		tatoeba 148437
+チョークを三本ください。	三本	さんぼん		probe		tatoeba 202876
 あなたは何本の鉛筆をもってますか。	何本	なんぼん		probe		tatoeba 232190
 二本の道はそこでクロスしている。	二本	にほん		probe		tatoeba 75827
-十進法は、両手の十本の指を数えることから起こった。	十本	じゅっぽん	じっぽん	probe	xfail	tatoeba 11014036; 0.2.0.dev0 gives じゅうほん
+十進法は、両手の十本の指を数えることから起こった。	十本	じゅっぽん	じっぽん	probe		tatoeba 11014036
 今夜は何杯飲んだの？	何杯	なんばい		probe		tatoeba 10138169
 私は彼らにチケットをもう一枚送ってくれるように頼んだ。	一枚	いちまい		probe		tatoeba 4740
 鉛筆１本と紙を何枚か下さい。	何枚	なんまい		probe		tatoeba 188631
-息子は十歳です。	十歳	じゅっさい	じっさい	probe	xfail	tatoeba 935927; 0.2.0.dev0 gives じゅうさい
+息子は十歳です。	十歳	じゅっさい	じっさい	probe		tatoeba 935927
 彼は彼女より三歳年上です。	三歳	さんさい		probe		tatoeba 1116409
 何歳ですか。	何歳	なんさい		probe		tatoeba 5325
 私の妹は四歳です。	四歳	よんさい		probe		tatoeba 10979890
-彼女は私に素晴らしいくつを一足くれた。	一足	いっそく		probe	xfail	tatoeba 89482; 0.2.0.dev0 gives ひとあし
+彼女は私に素晴らしいくつを一足くれた。	一足	いっそく		probe		tatoeba 89482
 靴って、何足持ってる？	何足	なんそく	なんぞく	probe		tatoeba 11502811
 私の事務所は五階にある。	五階	ごかい		probe		tatoeba 163509
 彼らは二階の部屋を学生に貸した。	二階	にかい		probe		tatoeba 1749320
 皆さんの教室は三階です。	三階	さんがい	さんかい	probe		tatoeba 10901816
-靴下の売り場は一階にあります。	一階	いっかい		probe	xfail	tatoeba 11013892; 0.2.0.dev0 gives いちかい
+靴下の売り場は一階にあります。	一階	いっかい		probe		tatoeba 11013892
 部屋は何階ですか？	何階	なんがい	なんかい	probe		tatoeba 11065678
 野原には六頭の羊がいた。	六頭	ろくとう		probe		tatoeba 79611
 牛は何頭飼ってるんですか？	何頭	なんとう		probe		tatoeba 12146470
