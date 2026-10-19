@@ -206,8 +206,9 @@ sentence. Use it to sort or flag, not as a probability.
 
 ### Building a table from your own library
 
-The committed table (`reading-model-public.json.gz`, 25 forms) is trained on public-domain
-works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
+The committed table (`reading-model-public.json.gz`, 177 forms) is trained on public-domain
+works from Aozora Bunko, NDL Lab's huriganacorpus-aozora (Aozora works with every kanji word
+read, from braille data; period fiction left out) and half of Tatoeba's reviewed sentences. A table trained on your
 own library reads far more forms (403 on one library of 19,000 books):
 
 ```sh
@@ -223,12 +224,17 @@ a table built from copyrighted books.
 The steps one by one (`mine`, `report`, `train`, `evaluate`) and how the public table was
 built are in `yurigana/reading_context.py`'s docstring:
 
-1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`
-   (Aozora works by the authors the NDL test set holds out are left out);
-2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b1`;
-3. `train` on the Aozora and half a rows together (the files concatenated), `--priors` half a's rows;
-4. `evaluate` on B1's rows with `--all --prune`, which keeps the forms B1 can score that read
-   no worse than rules + Sudachi. B2 stays unseen.
+1. `python -m yurigana.fetch_aozora AOZORA`, `python -m yurigana.fetch_tatoeba TATOEBA` and
+   `python -m yurigana.fetch_ndl aozora_dataset.zip NDL --dictionary …` (works by the authors
+   the NDL test set holds out are left out of both);
+2. `reading_context mine` each of `AOZORA`, `NDL`, `TATOEBA/a` and `TATOEBA/b1`;
+3. `train` on the Aozora and half a rows (the files concatenated), `--priors` half a's rows,
+   and `evaluate` on B1's rows with `--all --prune`: the base table;
+4. `train` the same with the NDL rows added, and `evaluate` on B1's rows with `--all --prune
+   --keep-unscored` (literary forms are too rare in Tatoeba to be scored; they passed the dev
+   gate on NDL's fully labelled text);
+5. per form, step 4's entry where it doesn't lose items on B1 nor on a modern held-out check
+   set, else the base table's; the base table's other forms are added. B2 stays unseen.
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.
@@ -285,8 +291,8 @@ count, only readings: Sudachi's three split modes score alike. Word list folds v
 
 Read the Tatoeba numbers with care: its gold is machine furigana made with MeCab + IPAdic,
 mostly never corrected, so MeCab + IPAdic's lead there is partly an artefact. The public
-table was pruned on B1 only, and trained on no Aozora work by an author the NDL test set holds
-out.
+table was pruned on B1 only, and trained on no work (Aozora ruby or NDL readings) by an
+author the NDL test set holds out.
 
 With Jiten's list as the reading list, 2026-10-19 (the full table with intervals is in the
 pull request that added `evaluate`):

@@ -16,11 +16,13 @@ several readings (人気: にんき/ひとけ) are read, on real text instead of
       Trains reading_model.py's classifier per form on the training authors, keeps a
       form's model only where it beats rules + Sudachi on the dev authors, prints the
       scores on the test authors and writes the kept forms (retrained on all gold).
-  evaluate OUT --dictionary … --model TABLE [--all] [--prune KEPT]
+  evaluate OUT --dictionary … --model TABLE [--all] [--prune KEPT [--keep-unscored]]
       Scores a table on OUT's test authors (--all: on every row, e.g. Tatoeba's sentences
       from fetch_tatoeba.py); with --prune, writes TABLE with only the forms OUT can score
       (MIN_GOLD occurrences of a reading) that read no worse than rules + Sudachi there
-      (only the choice of forms comes from OUT: the entries are TABLE's).
+      (only the choice of forms comes from OUT: the entries are TABLE's). --keep-unscored
+      also keeps the forms OUT can't score: they passed train's dev gate, which is honest
+      when the dev authors include fully labelled text (fetch_ndl.py).
   build [LIBRARY STATE]
       A server's own table: mine + train into STATE/reading-model.json.gz (default
       $CALIBRE_LIBRARY and $JITEN_STATE_DIR, else /library and /data/state/difficulty, as in
@@ -28,7 +30,8 @@ several readings (人気: にんき/ひとけ) are read, on real text instead of
 
 The rows hold the books' text, so OUT is scratch space: never commit it, nor a table built
 from copyrighted books (`reading-model-public.json.gz` is built only from fetch_aozora.py's
-public-domain works and half a of fetch_tatoeba.py's sentences, and pruned on B1 of half b).
+and fetch_ndl.py's public-domain works and half a of fetch_tatoeba.py's sentences, and pruned
+on B1 of the other half).
 
 The classifier. Ruby'd text overstates the rare reading, so the prior that the table keeps
 is not the share among gold: it is re-estimated on unlabelled occurrences of the form
@@ -362,7 +365,7 @@ def prior_weighted(per: dict, prior: dict) -> float:
 
 
 def train(out: str, dictionary: str, model_path: str | None, top: int = 30, given=None, prune=None,
-          all_splits=False, priors_from: str | None = None):
+          all_splits=False, priors_from: str | None = None, keep_unscored=False):
     """Trains a model per form on the training authors, keeps it where it beats rules + Sudachi
     on the dev authors, prints the scores on the test authors, and writes the kept forms'
     models (retrained on all gold) to `model_path`. With `given` (a ReadingModel), scores that
@@ -458,9 +461,10 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
     if given and prune:
         unscored = sorted(f for f in given.forms if f not in base or f not in new)
         worse = sorted(f for f in given.forms if f not in unscored and new[f][0] < base[f][0])
-        print('dropped, too few occurrences:', ' '.join(unscored) or 'none')
+        print('kept' if keep_unscored else 'dropped', 'too few occurrences:', ' '.join(unscored) or 'none')
         print('dropped, worse than rules + Sudachi:', ' '.join(worse) or 'none')
-        write_table(prune, {f: e for f, e in given.forms.items() if f not in unscored + worse})
+        dropped = set(worse) if keep_unscored else set(unscored + worse)
+        write_table(prune, {f: e for f, e in given.forms.items() if f not in dropped})
     if model_path and not given:
         table = {}
         for form in kept:
@@ -502,6 +506,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='train: where to write the table (reading-model.json.gz); evaluate: the table')
     parser.add_argument('--priors', help='train: rows of fully labelled text (Tatoeba) whose shares are the priors')
     parser.add_argument('--prune', help='evaluate: write the table with only the forms it reads no worse')
+    parser.add_argument('--keep-unscored', action='store_true', help="evaluate --prune: keep the forms it can't score")
     parser.add_argument('--all', action='store_true', help='evaluate: score every row, not the test authors')
     parser.add_argument('--processes', type=int, default=int(os.environ.get('JITEN_WORKERS', os.cpu_count() or 1)))
     parser.add_argument('--limit', type=int)
@@ -514,7 +519,7 @@ if __name__ == '__main__':
         train(args.paths[-1], args.dictionary, args.model, priors_from=args.priors)
     elif args.command == 'evaluate':
         train(args.paths[-1], args.dictionary, None, given=ReadingModel.load(args.model), prune=args.prune,
-              all_splits=args.all)
+              all_splits=args.all, keep_unscored=args.keep_unscored)
     else:
         library, state = args.paths or (os.environ.get('CALIBRE_LIBRARY', '/library'),
                                         os.environ.get('JITEN_STATE_DIR', '/data/state/difficulty'))

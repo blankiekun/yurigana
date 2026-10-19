@@ -12,9 +12,13 @@ Group (https://www.edrdg.org/kanjidic/), licensed under CC BY-SA 4.0
 same licence. tools/kanji_readings.py builds it.
 
 yurigana/reading-model-public.json.gz is a model trained on public-domain works
-from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
-readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,
-licensed under CC BY 2.0 FR; neither text is included.
+from Aozora Bunko (https://www.aozora.gr.jp/), on the readings of NDL Lab's
+振り仮名注釈コーパス（青空文庫コーパス） (huriganacorpus-aozora, National Diet
+Library, https://github.com/ndl-lab/huriganacorpus-aozora; Aozora Bunko texts
+read from the Sapie braille library's data), released under the Public Domain
+Mark 1.0, and on sentences with reviewed readings from Tatoeba
+(https://tatoeba.org/), by Tatoeba's contributors, licensed under CC BY 2.0 FR;
+none of the texts is included.
 
 yurigana/tatoeba-b2-ids.txt.gz lists the IDs of Tatoeba sentences that
 yurigana.evaluate reports on; no sentence text is included.
