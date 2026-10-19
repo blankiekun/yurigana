@@ -87,7 +87,8 @@ it joined with its kana (三 + 本 gives さんほん). Kinds:
 
 - `frequent` (500): the most frequent forms of Tatoeba's half a that its transcriptions read one
   way 90%+ of 10+ times, ordered by Jiten's frequency list (used only to choose them); expected is
-  JMdict's only reading with a priority tag, else half a's majority; one half-a sentence each.
+  JMdict's only reading with a priority tag, else half a's majority; one half-a sentence each, or a hand-written one
+  where half a's sentence joins the form into a JMdict compound (10 rows).
 - `counter` (326): numbers 1-10, 百, 千 and 何 with 25 counters, and a few dates, written from
   standard grammar (いっぽん, さんびき, なんばい, ついたち, はつか).
 - `convention` (20): words with two standard readings (明日 あした/あす, 家 いえ/うち).

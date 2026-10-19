@@ -314,6 +314,8 @@ class Reader:
                     reading = None
                     if form in self.one_x:
                         return i + n, Word(begin, end, form, self.one_x[form], 'default', None)
+            if reading and self._particle_inserted(span, reading):
+                reading = None  # お腹|空く is おなか|すく, not おなかがすく: が isn't in the text
             if reading:
                 # a joined form JMdict lacks is mostly a name or noise (三日後 みひりあ, 利根川 さねがわ): not shown
                 if form in self.jmdict and form in self.only:
@@ -324,6 +326,19 @@ class Reader:
             if default and (form, default) in self.known:
                 return i + n, Word(begin, end, form, default, 'default', None)
         return None
+
+    def _particle_inserted(self, span, reading: str) -> bool:
+        """The reading is the tokens' readings with a particle the text doesn't write between two
+        of them (お腹|空く: おなか が すく; JMdict lists such phrases: お腹空く おなかがすく). Not a
+        reading that only starts with a particle's kana (世知|辛い せち|がらい)."""
+        prefix = ''
+        for a, b in zip(span, span[1:]):
+            prefix += to_hiragana(a.reading_form())
+            rest = reading[len(prefix) + 1:]
+            if reading.startswith(prefix) and reading[len(prefix):len(prefix) + 1] in tuple('がのをにはとへ') and any(
+                    r and rest.startswith(r) for r in (to_hiragana(b.reading_form()), *self.readings.get(b.dictionary_form(), ()))):
+                return True
+        return False
 
     def _checked(self, form, reading, source, certainty):
         """Certainty hygiene for a reading not from ruby: one that isn't hiragana or ー (Sudachi's

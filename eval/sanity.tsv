@@ -37,7 +37,7 @@ sentence	span	reading	alts	kind	status	note
 二枚舌を使うな。	使う	つかう		frequent		tatoeba 123007; JMdict; half a つかう 290/290
 僕は家にいるよ。	家	いえ		frequent		tatoeba 81982; majority; half a いえ 726/759
 今、何回の裏ですか。	裏	うら		frequent		tatoeba 172924; majority; half a うら 17/17
-ご苦労様でした。	様	さま		frequent		tatoeba 217173; majority; half a さま 40/44
+田中様がお見えです。	様	さま		frequent		hand-written (tatoeba 217173's sentence joins a JMdict compound); majority; half a さま 40/44
 手を洗いなさい。	手	て		frequent		tatoeba 148622; JMdict; half a て 307/308
 この男の人、誰？	男	おとこ		frequent		tatoeba 2125116; JMdict; half a おとこ 173/173
 目を開けなさい。	目	め		frequent		tatoeba 79943; JMdict; half a め 330/330
@@ -67,7 +67,7 @@ sentence	span	reading	alts	kind	status	note
 これは本当です。	本当	ほんとう		frequent		tatoeba 2349350; JMdict; half a ほんとう 436/440
 これ、気持ちいい！	気持ち	きもち		frequent		tatoeba 10497503; JMdict; half a きもち 86/86
 喜怒哀楽を見せるな。	見せる	みせる		frequent		tatoeba 183532; JMdict; half a みせる 119/119
-僕には相談相手がない。	相手	あいて		frequent		tatoeba 82286; JMdict; half a あいて 37/37
+相手は強かった。	相手	あいて		frequent		hand-written (tatoeba 82286's sentence joins a JMdict compound); JMdict; half a あいて 37/37
 生きる意味って何だろう？	生きる	いきる		frequent		tatoeba 1772512; JMdict; half a いきる 83/83
 駅はこのすぐ先だ。	先	さき		frequent		tatoeba 188898; majority; half a さき 48/48
 コーヒーに砂糖は入れる？	入れる	いれる		frequent		tatoeba 1614431; JMdict; half a いれる 219/233
@@ -186,7 +186,7 @@ sentence	span	reading	alts	kind	status	note
 猿も木から落ちる。	落ちる	おちる		frequent		tatoeba 188721; JMdict; half a おちる 85/85
 水以外何も見えない。	以外	いがい		frequent		tatoeba 143702; JMdict; half a いがい 42/42
 彼は嫌な思い出が消えることを願っている。	消える	きえる		frequent		tatoeba 5304; JMdict; half a きえる 36/36
-早い者勝ちですよ。	早い	はやい		frequent		tatoeba 140582; JMdict; half a はやい 235/243
+朝が早い。	早い	はやい		frequent		hand-written (tatoeba 140582's sentence joins a JMdict compound); JMdict; half a はやい 235/243
 君は選ぶ必要がある。	選ぶ	えらぶ		frequent		tatoeba 7577114; JMdict; half a えらぶ 72/72
 私たちは夫婦だ。	私たち	わたしたち		frequent		tatoeba 1003749; JMdict; half a わたしたち 576/576
 人は皆必ず死ぬ。	必ず	かならず		frequent		tatoeba 144518; JMdict; half a かならず 99/99
@@ -226,7 +226,7 @@ sentence	span	reading	alts	kind	status	note
 音を大きくして。	音	おと		frequent		tatoeba 76314; majority; half a おと 101/106
 そう悪くないように思えるな。	思える	おもえる		frequent		tatoeba 1620952; majority; half a おもえる 32/32
 時間は任せるよ。	任せる	まかせる		frequent		tatoeba 9689449; JMdict; half a まかせる 30/30
-野暮用があるんだ。	用	よう		frequent		tatoeba 11127114; JMdict; half a よう 47/47
+用があるんだ。	用	よう		frequent		hand-written (tatoeba 11127114's sentence joins a JMdict compound); JMdict; half a よう 47/47
 二度確認しました。	確認	かくにん		frequent		tatoeba 2040907; JMdict; half a かくにん 40/40
 遊びは終わりだ。	終わり	おわり		frequent		tatoeba 79197; JMdict; half a おわり 26/26
 説明しましょうか。	説明	せつめい		frequent		tatoeba 142049; JMdict; half a せつめい 91/91
@@ -295,10 +295,10 @@ sentence	span	reading	alts	kind	status	note
 親子で楽しむプラモデル講座に興味はないですか？	楽しむ	たのしむ		frequent		tatoeba 11029976; JMdict; half a たのしむ 71/71
 住む場所を探す必要がある。	住む	すむ		frequent		tatoeba 8400565; JMdict; half a すむ 334/334
 過程が大切です。	大切	たいせつ		frequent		tatoeba 705390; JMdict; half a たいせつ 83/83
-それは高過ぎる。	過ぎる	すぎる		frequent		tatoeba 1056471; JMdict; half a すぎる 67/67
+約束の時間が過ぎる。	過ぎる	すぎる		frequent		hand-written (tatoeba 1056471's sentence joins a JMdict compound); JMdict; half a すぎる 67/67
 ここからでも声は届くよ。	届く	とどく		frequent		tatoeba 224786; JMdict; half a とどく 43/43
 結果は意外だった？	結果	けっか		frequent		tatoeba 8727211; JMdict; half a けっか 52/52
-彼は泥酔状態だった。	状態	じょうたい		frequent		tatoeba 9857731; JMdict; half a じょうたい 20/20
+部屋の状態が悪い。	状態	じょうたい		frequent		hand-written (tatoeba 9857731's sentence joins a JMdict compound); JMdict; half a じょうたい 20/20
 今とても忙しい。	忙しい	いそがしい		frequent		tatoeba 172773; JMdict; half a いそがしい 138/138
 私は最高に幸せだ。	最高	さいこう		frequent		tatoeba 156866; JMdict; half a さいこう 38/38
 謝ることないよ。	謝る	あやまる		frequent		tatoeba 10802012; JMdict; half a あやまる 56/56
@@ -348,10 +348,10 @@ sentence	span	reading	alts	kind	status	note
 金を借りるのも貸すのも嫌だ。	借りる	かりる		frequent		tatoeba 179699; JMdict; half a かりる 85/85
 私は姉に相談した。	相談	そうだん		frequent		tatoeba 156583; JMdict; half a そうだん 24/24
 この瞬間を楽しみたい。	瞬間	しゅんかん		frequent		tatoeba 10776899; JMdict; half a しゅんかん 12/12
-私達は隣同士です。	隣	となり		frequent		tatoeba 151234; JMdict; half a となり 49/49
+隣に座った。	隣	となり		frequent		hand-written (tatoeba 151234's sentence joins a JMdict compound); JMdict; half a となり 49/49
 パソコンは使える？	使える	つかえる		frequent		tatoeba 1158892; majority; half a つかえる 36/36
 演奏会がとても不安だ。	不安	ふあん		frequent		tatoeba 188768; JMdict; half a ふあん 25/25
-竜は想像上の動物だ。	想像	そうぞう		frequent		tatoeba 1125130; JMdict; half a そうぞう 17/17
+想像してみて。	想像	そうぞう		frequent		hand-written (tatoeba 1125130's sentence joins a JMdict compound); JMdict; half a そうぞう 17/17
 服を着ましたか。	服	ふく		frequent		tatoeba 83889; JMdict; half a ふく 115/116
 事業に失敗した。	失敗	しっぱい		frequent		tatoeba 150903; JMdict; half a しっぱい 68/68
 怒りは敵と思え。	敵	てき		frequent		tatoeba 124416; JMdict; half a てき 24/24
@@ -387,7 +387,7 @@ sentence	span	reading	alts	kind	status	note
 その件は検討中だ。	件	けん		frequent		tatoeba 211062; JMdict; half a けん 42/43
 太陽は光を放つ。	光	ひかり		frequent		tatoeba 138107; JMdict; half a ひかり 25/25
 彼女は先輩を追い越して昇進した。	先輩	せんぱい		frequent		tatoeba 88233; JMdict; half a せんぱい 10/10
-予定通りですよ。	予定	よてい		frequent		tatoeba 12254399; JMdict; half a よてい 94/94
+明日の予定は何ですか。	予定	よてい		frequent		hand-written (tatoeba 12254399's sentence joins a JMdict compound); JMdict; half a よてい 94/94
 風は種を遠くへ運ぶ。	運ぶ	はこぶ		frequent		tatoeba 84010; JMdict; half a はこぶ 21/21
 我慢できません。	我慢	がまん		frequent		tatoeba 11252743; JMdict; half a がまん 54/54
 機械は仕事から創造的な興味を奪う。	奪う	うばう		frequent		tatoeba 183358; JMdict; half a うばう 18/18
@@ -418,7 +418,7 @@ sentence	span	reading	alts	kind	status	note
 音楽に興味ある？	興味	きょうみ		frequent		tatoeba 9096671; JMdict; half a きょうみ 96/96
 ご協力に感謝致します。	協力	きょうりょく		frequent		tatoeba 217179; JMdict; half a きょうりょく 15/15
 嘘は決してつくな！	決して	けっして		frequent		tatoeba 189506; JMdict; half a けっして 51/51
-トムは外向的だ。	的	てき		frequent		tatoeba 8634683; majority; half a てき 32/35
+トム的にはどうなの？	的	てき		frequent		hand-written (tatoeba 8634683's sentence joins a JMdict compound); majority; half a てき 32/35
 トムから返事来た？	返事	へんじ		frequent		tatoeba 3395376; JMdict; half a へんじ 57/57
 悪銭身につかず。	身	み		frequent		tatoeba 473849; majority; half a み 38/38
 足の向くままに歩いた。	向く	むく		frequent		tatoeba 139865; JMdict; half a むく 14/14
@@ -836,8 +836,8 @@ sentence	span	reading	alts	kind	status	note
 昨日、駅で彼に会った。	昨日	きのう	さくじつ	convention		
 今年の冬は寒い。	今年	ことし	こんねん	convention		
 今年は海外へ行くつもりだ。	今年	ことし	こんねん	convention		
-一昨日、雨が降った。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	main gives いっさくひ
-一昨日の新聞を読んだ。	一昨日	おととい	おとつい|いっさくじつ	convention	xfail	main gives いっさくひ
+一昨日、雨が降った。	一昨日	おととい	おとつい|いっさくじつ	convention		
+一昨日の新聞を読んだ。	一昨日	おととい	おとつい|いっさくじつ	convention		
 皆、元気です。	皆	みんな	みな	convention		
 皆で歌を歌った。	皆	みんな	みな	convention		
 家に帰りたい。	家	いえ	うち	convention		
