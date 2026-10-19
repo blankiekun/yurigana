@@ -106,7 +106,7 @@ reading wins:
    to miss that bar, but the human ruby of the NDL test set almost never uses it.
    鼻血, 間近, 手近 and 近々 get ぢ, the spelling of their rendaku (Sudachi writes じ).
    A second batch (箱 ばこ → はこ, 深い ぶかい, 腹 ふく, 沿い そい, 仏 ふつ, 米 べい,
-   鏡 きょう and 28 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
+   鏡 きょう and 27 more) uses a lower bar on half a and B1 together: 2+ net fixes, 90%+
    right, and no more breaks than fixes on NDL's held-out authors. 一日 as one token
    (Sudachi's ついたち) is いちにち except after 月 (来月の一日, a context rule); 一塊
    いっかい → ひとかたまり.
@@ -262,6 +262,13 @@ grep the class name and evaluate (`--compare`) before and after.
 ## Accuracy
 
 Known trade-offs (what each reading change breaks, and the way out) are listed in [TRADEOFFS.md](TRADEOFFS.md).
+
+yurigana targets post-war Japanese (modern fiction, light novels, everyday text). A new default or
+context rule needs majority support from post-war text: tune on Tatoeba (B1), judge on modern sets,
+and when NDL's ruby nominates it, check its split by the author's era (most of NDL's held-out
+authors wrote before 1946, 17% of it is Genji) and leave it out if most of its support is pre-war,
+period or classical. Rules kept from earlier that only such text supports are tagged
+"period-justified" in TRADEOFFS.md.
 
 `python -m yurigana.evaluate` scores the shipped `Reader.read` (no ruby in the input) next to
 other tokenisers' readings, on gold sets with 95% intervals (bootstrap over sentences):
