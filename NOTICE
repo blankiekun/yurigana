@@ -16,6 +16,9 @@ from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
 readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,
 licensed under CC BY 2.0 FR; neither text is included.
 
+yurigana/tatoeba-b2-ids.txt.gz lists the IDs of Tatoeba sentences that
+yurigana.evaluate reports on; no sentence text is included.
+
 The reading list the tools and Reader(known=...) take is not included. The
 numbers in README.md were measured with Jiten's frequency list
 (https://jiten.moe/frequency-dictionaries), which is not distributed here.
