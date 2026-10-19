@@ -205,15 +205,13 @@ over 宇宙. Such ruby is never a reading:
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `default`, `counter` | None |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
-| `name` | None: a person's name (Sudachi's 固有名詞-人名) not under ruby; its reading is Sudachi's or the list's guess |
 
 Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
 reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that
 isn't hiragana or ー (Sudachi's reading of a word it doesn't know is the word's own kanji, 於)
 is None. Loanword readings keep ー (ラーメン屋 らーめんや): fine in a word list, never shown
-(the list's reading of such a word is katakana, so it is never `only`). Names are never
-`only`, `rule` or `model`. To show furigana only where they are
-likely right, show `ruby`, `rule`, `model` and `only`.
+(the list's reading of such a word is katakana, so it is never `only`). To show furigana
+only where they are likely right, show `ruby`, `rule`, `model` and `only`.
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule
 says; the model's posterior is a naive Bayes posterior, which is overconfident, and the only

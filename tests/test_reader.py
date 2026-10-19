@@ -143,7 +143,7 @@ class ReaderTest(unittest.TestCase):
                         Token('学校', '学校', '学校', noun, 'ガッコウ', 7)]
         known = {('健', 'けん'), ('珈琲', 'コーヒー'), ('廊下', 'ろうか'), ('学校', 'がくこう')}
         words = Reader(known, tokenizer=Fixed()).read('健珈琲鵝毛廊下学校')
-        self.assertEqual(words[0][2:], ('健', 'けん', 'name', None))  # a name is never 'only'
+        self.assertEqual(words[0][2:], ('健', 'けん', 'only', 1.0))  # names keep their source
         self.assertEqual([w.reading for w in words[1:3]], ['こーひー', None])  # ー is kept; an unknown word's kanji is not
         self.assertEqual(words[3][3:], ('ろうか', 'only', 1.0))
         self.assertEqual(words[4][3:], ('がっこう', 'dictionary', 0.0))  # not a listed reading
