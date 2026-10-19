@@ -1,0 +1,24 @@
+yurigana
+Copyright (c) 2026, blankiekun
+
+The code is licensed under the BSD 3-Clause License (see LICENSE). It was
+written for chimimouryou (https://github.com/blankiekun/chimimouryou) and moved
+here; none of it is ported from ッツ Ebook Reader or from Jiten.
+
+yurigana/kanji-readings.json (on and kun readings of 常用 and 人名用 kanji) is
+derived from KANJIDIC2 by the Electronic Dictionary Research and Development
+Group (https://www.edrdg.org/kanjidic/), licensed under CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/); it is distributed under the
+same licence. tools/kanji_readings.py builds it.
+
+yurigana/reading-model-public.json.gz is a model trained on public-domain works
+from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
+readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,
+licensed under CC BY 2.0 FR; neither text is included.
+
+The reading list the tools and Reader(known=...) take is not included. The
+numbers in README.md were measured with Jiten's frequency list
+(https://jiten.moe/frequency-dictionaries), which is not distributed here.
+
+yurigana depends on SudachiPy (Apache License 2.0) and SudachiDict-full
+(Apache License 2.0, Works Applications), installed separately by pip.

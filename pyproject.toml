@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yurigana"
+version = "0.1.0"
+description = "Readings of Japanese kanji words in context: a book's ruby, hand rules, a small reading model and Sudachi"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause AND CC-BY-SA-4.0"
+license-files = ["LICENSE", "NOTICE"]
+# The dictionary is pinned: readings (and the numbers in README.md) depend on its version.
+dependencies = ["SudachiPy>=0.7,<0.8", "SudachiDict-full==20260723.1"]
+
+[project.urls]
+Source = "https://github.com/blankiekun/yurigana"
+
+[tool.setuptools]
+packages = ["yurigana"]
+
+[tool.setuptools.package-data]
+yurigana = ["*.json", "*.json.gz", "*.tsv"]

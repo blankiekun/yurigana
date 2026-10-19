@@ -1,0 +1,202 @@
+# yurigana
+
+Readings of Japanese kanji words in context. Given a text, and the ruby (furigana) the
+book prints if it has any, yurigana says how each kanji word is read there: 人気 as にんき
+in この店は人気だ and as ひとけ in 人気のない道. It also decides which of a book's ruby a reader
+no longer needs (the JS package).
+
+It was written for [chimimouryou](https://github.com/blankiekun/chimimouryou), a
+self-hosted reader for Japanese books, where it gives the difficulty service's word lists
+their readings and the reader its "Known" furigana style.
+
+## Python
+
+```sh
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.1.0.tar.gz"
+```
+
+That installs SudachiPy and SudachiDict-full too (the dictionary at the version the numbers below were measured with). Then:
+
+```python
+from yurigana import Reader, aozora_text
+
+reader = Reader()
+hints = []  # the book's ruby: (start, end, reading) offsets in the plain text
+text = aozora_text('夜の公園は人気がなく、静かだった。\n｜宇宙《そら》を見上げ、学校へ行《い》った。', None, hints)
+for word in reader.read(text, hints):
+    print(word)
+# Word(start=0, end=1, form='夜', reading='よる', source='dictionary', certainty=None)
+# Word(start=2, end=4, form='公園', reading='こうえん', source='dictionary', certainty=None)
+# Word(start=5, end=7, form='人気', reading='ひとけ', source='rule', certainty=1.0)
+# Word(start=11, end=13, form='静か', reading='しずか', source='dictionary', certainty=None)
+# Word(start=18, end=20, form='宇宙', reading='うちゅう', source='dictionary', certainty=None)
+# Word(start=21, end=24, form='見上げる', reading=None, source='dictionary', certainty=None)
+# Word(start=25, end=27, form='学校', reading='がっこう', source='dictionary', certainty=None)
+# Word(start=28, end=30, form='行く', reading='いく', source='ruby', certainty=1.0)
+```
+
+そら over 宇宙 is flavour ruby, so 宇宙 keeps its dictionary reading. With a reading list,
+`Reader(known='jiten_freq_global.zip')`, 見上げる gets みあげる (`source='only'`: the list
+gives it one reading).
+
+`read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
+kanji: its character offsets in `text`, its dictionary form (行った: 行く), the reading of
+that form in hiragana, where the reading came from and how certain it is. `reading` is
+None when nothing gives one (a conjugated word without ruby, rule or model, when no
+reading list says the form has only one reading).
+
+`book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
+paragraph per line, without tables of contents or colophons, and its ruby as hints.
+
+Options, all optional:
+
+- `Reader(known=...)`: the (form, reading) pairs a reading must be one of: a set, a dict
+  keyed by them, or the path of a rank-based Yomitan frequency list with readings (e.g.
+  [Jiten's](https://jiten.moe/frequency-dictionaries), `jiten_freq_global.zip`, not
+  included). With one, readings outside the list are never given, and forms the list gives
+  a single reading get `source='only'`. Without one, ruby must be spelled by its kanji's
+  readings (`kanji-readings.json`) and the rules and the model are trusted.
+- `Reader(tables=[path])`: reading-model tables built from your own library (below), tried
+  before the public one. A missing file is skipped, so you can always pass the path.
+- `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;
+  the default is SudachiDict-full in split mode C.
+
+### The order of readings
+
+The first step that gives a reading wins:
+
+1. **The book's ruby** (`ruby_reading`): ruby over the token, as one span or kanji by kanji
+   (人《ひと》気《け》 gives ひとけ); ruby over the kanji stem of an inflected word, with the
+   lemma's okurigana added (行《い》った is 行く read いく); ruby set in large kana, as older
+   books do (いつしよ gives いっしょ).
+2. **A context rule** (`context_reading`): about 30 forms whose reading depends on the
+   words around them (人気, 今日, 明日, 上手, 市場, 金 …), in `readings._CONTEXT_RULES`.
+   人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
+   周囲に人気がない); この店は人気がない stays にんき.
+3. **The reading model** (`ReadingModel`): a small naive Bayes classifier per form, over
+   the two tokens on each side, their pairs and the content words within six tokens of the
+   line. It answers only when its best reading's posterior is at least 0.7, and never for a
+   form that has rules.
+4. **Sudachi's reading** of the token, for an unconjugated word.
+
+### The flavour rule
+
+Books use ruby for flavour as well as for readings: マジ over 本気, スキル over 異能, そら
+over 宇宙. Such ruby is never a reading:
+
+- katakana ruby;
+- ruby containing kanji;
+- gikun or any reading the list doesn't give for the form (with no list: a reading not
+  spelled by the kanji's own readings);
+- ruby over part of a compound (魚《うお》市場).
+
+### Certainty
+
+`source` and `certainty`:
+
+| source | certainty |
+|---|---|
+| `ruby`, `rule`, `only` | 1.0 |
+| `model` | the model's posterior for its reading (0.7 or more) |
+| `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
+
+Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule
+says; the model's posterior is a naive Bayes posterior, which is overconfident, and the only
+calibration behind it is the 0.7 threshold, chosen because 0.5 changed hand-checked plain
+sentences Sudachi had right. The dictionary value is a base rate, not a judgement of the
+sentence. Use it to sort or flag, not as a probability.
+
+### Building a table from your own library
+
+The committed table (`reading-model-public.json.gz`, 42 forms) is trained on public-domain
+works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
+own library reads far more forms (403 on one library of 19,000 books):
+
+```sh
+python -m yurigana.reading_context build LIBRARY STATE --dictionary jiten_freq_global.zip
+```
+
+`LIBRARY` is a folder of EPUBs and Aozora-style TXTs (a Calibre library works; the first
+folder level is taken as the author, for the held-out split), `STATE` where
+`reading-model.json.gz` goes; pass that file to `Reader(tables=[...])`. It needs a few GB of
+memory and about half an hour per 20,000 books on 3 processes (`--processes`). Don't publish
+a table built from copyrighted books.
+
+The steps one by one (`mine`, `report`, `train`, `evaluate`) and how the public table was
+built are in `yurigana/reading_context.py`'s docstring:
+
+1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`;
+2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b`;
+3. `train` on the Aozora and half a rows together, `--priors` half a's rows;
+4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
+   that read no worse than rules + Sudachi.
+
+`python -m yurigana.eval_readings --dictionary jiten_freq_global.zip` scores the hand-written
+sentences in `readings-test.tsv`; add rows with every new rule.
+
+## Accuracy
+
+Measured with Jiten's frequency list as the reading list (2026-10-18).
+
+Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
+
+| | with ruby | without ruby |
+|---|---|---|
+| no model | 95.0% | 80.3% |
+| public table | 95.0% | 80.3% |
+| table from one library | 95.0% | 79.8% |
+
+Tatoeba's half b (54,086 reviewed sentences, never trained on): every occurrence of a form
+the list gives 2+ readings that the transcription marks with a listed reading, 56,443
+occurrences of 1,599 forms, 23,141 of them in the 210 forms with 2+ gold readings:
+
+| | micro, all | micro, 210 forms | macro (per reading, 5+) |
+|---|---|---|---|
+| Sudachi alone | 83.6% | 85.1% | 91.8% |
+| rules + Sudachi | 85.6% | 90.0% | 92.2% |
+| + public table | 86.4% | 91.7% | 93.1% |
+| + table from one library | 86.8% | 92.3% | 94.0% |
+
+On one library's own ruby, hidden, held-out authors (macro / micro over 4,184 forms; macro
+over the 1,210 with 2+ readings):
+
+| | all forms | 2+ readings |
+|---|---|---|
+| rules, then Sudachi | 74.2% / 77.1% | 51.3% |
+| + public table | 74.3% / 77.9% | 51.7% |
+| + table from the library | 76.7% / 83.1% | 59.0% |
+
+For scale: on the same Tatoeba half b occurrences of yomikata's forms (2,545 of 65 forms),
+without 明日 (where Tatoeba's あした and yomikata's あす are both right), yomikata 92.9%,
+Sudachi 88.4%, rules + Sudachi 89.3%, + public table 94.0%, + library table 96.0%.
+
+## JavaScript: "Known" furigana
+
+```sh
+pnpm add github:blankiekun/yurigana#v0.1.0
+```
+
+```js
+import { hideKnownRuby, isPlainReading } from 'yurigana';
+const readings = (await import('yurigana/kanji-readings.json')).default;
+
+isPlainReading('学校', 'がっこう', readings); // true
+isPlainReading('宇宙', 'そら', readings); // false: gikun
+// kanjiTotals: how often the reader has met each kanji
+hideKnownRuby('人間', 'にんげん', { 人: 12, 間: 30 }, readings); // true
+```
+
+`hideKnownRuby(base, reading, kanjiTotals, readings, minCount = 10)` is true when the ruby
+is hiragana, every kanji of the base was met at least `minCount` times, and the reading is
+spelled by the kanji's on and kun readings (常用 and 人名用 kanji, KANJIDIC2) and the base's
+kana, with rendaku (ひと → びと) and a final っ (がく → がっ). Katakana ruby, ruby with kanji,
+gikun (そら over 宇宙) and jukujikun (きょう over 今日) always stay.
+
+## Tests
+
+`python -m unittest` (the Sudachi tests skip without SudachiPy) and `node --test js/*.test.js`.
+
+## Licence
+
+BSD 3-Clause (LICENSE), except `kanji-readings.json`, which is CC BY-SA 4.0 (KANJIDIC2).
+The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.

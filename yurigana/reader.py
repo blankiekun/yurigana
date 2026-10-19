@@ -1,0 +1,127 @@
+"""The one-call entry point: Reader().read(text, hints) gives each kanji word's reading."""
+import json
+import math
+import os
+from collections import Counter
+from typing import NamedTuple
+
+from .readings import HAS_KANJI, _HIRAGANA_WORD, context_reading, is_kanji, ruby_reading, to_hiragana
+from .reading_model import PUBLIC_TABLE, load_tables
+
+KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
+
+
+class Word(NamedTuple):
+    start: int  # offset of the word's token in the text
+    end: int
+    form: str  # dictionary form (行った: 行く)
+    reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading) or 'dictionary' (Sudachi)
+    certainty: float | None  # see the README; None when unknown
+
+
+class _Any:
+    """Every reading is known: no list given."""
+    def __contains__(self, item):
+        return True
+
+
+_VOICED = {'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'さ': 'ざ', 'し': 'じ', 'す': 'ず',
+           'せ': 'ぜ', 'そ': 'ぞ', 'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど', 'は': 'ばぱ',
+           'ひ': 'びぴ', 'ふ': 'ぶぷ', 'へ': 'べぺ', 'ほ': 'ぼぽ'}
+
+
+class PlainReadings:
+    """(form, reading) is known when the reading is spelled by the form's kanji readings (on and
+    kun of 常用/人名用 kanji, KANJIDIC2) and its kana, with rendaku and a final っ: the JS
+    isPlainReading. The ruby check without a list: gikun (そら over 宇宙) and jukujikun don't pass."""
+
+    def __init__(self, path: str = KANJI_READINGS):
+        with open(path, encoding='utf-8') as f:
+            self.readings = {k: v.split(' ') for k, v in json.load(f).items()}
+
+    @staticmethod
+    def _variants(reading: str):
+        for start in reading[0] + _VOICED.get(reading[0], ''):
+            word = start + reading[1:]
+            yield word
+            if len(word) > 1 and word[-1] in 'つちくき':
+                yield word[:-1] + 'っ'
+
+    def __contains__(self, item) -> bool:
+        base, reading = item
+
+        def match(i: int, j: int) -> bool:
+            if i == len(base):
+                return j == len(reading)
+            char = base[i]
+            if not is_kanji(char) and char != '々':
+                return reading[j:j + 1] == to_hiragana(char) and match(i + 1, j + 1)
+            own = self.readings.get(base[i - 1] if char == '々' and i > 0 else char, ())
+            return any(reading.startswith(form, j) and match(i + 1, j + len(form))
+                       for r in own for form in self._variants(r))
+        return match(0, 0)
+
+
+class Reader:
+    """Readings of kanji words in context. The first that gives one wins: the book's ruby
+    (`hints`), a context rule, the reading model, then Sudachi's dictionary reading.
+
+    known: (form, reading) pairs a reading must be one of (a set, the keys of a dict, or the
+        path of a rank-based Yomitan frequency list). Without one, ruby must be a plain reading
+        of its kanji (PlainReadings) and rules and the model are trusted.
+    tables: reading-model tables built from your own library, tried before the public one;
+        missing files are skipped.
+    tokenizer: anything with tokens(text) like SudachiTokenizer (the default)."""
+
+    def __init__(self, known=None, tables=(), tokenizer=None):
+        if isinstance(known, str):
+            from .yomitan import reading_ranks
+            known = reading_ranks(known)
+        self.known = _Any() if known is None else known
+        self.ruby_known = PlainReadings() if known is None else known
+        # Forms the list gives exactly one hiragana reading.
+        counts = Counter(form for form, reading in known if _HIRAGANA_WORD.match(reading)) if known is not None else {}
+        self.only = {form: reading for form, reading in (known or ()) if counts.get(form) == 1
+                     and _HIRAGANA_WORD.match(reading)}
+        self.model = load_tables([*tables, PUBLIC_TABLE])
+        if tokenizer is None:
+            from .tokens import SudachiTokenizer
+            tokenizer = SudachiTokenizer()
+        self.tokenizer = tokenizer
+
+    def read(self, text: str, hints=()) -> list:
+        """A Word per token with kanji in `text`. `hints`: the ruby, (start, end, reading) offsets
+        in `text`, as yurigana.text's aozora_text and book_text give them."""
+        hint_at = {start: (end, reading) for start, end, reading in hints}
+        tokens = list(self.tokenizer.tokens(text))
+        words = []
+        for i, token in enumerate(tokens):
+            surface, form = token.surface(), token.dictionary_form()
+            if not HAS_KANJI.search(surface):
+                continue
+            words.append(Word(token.begin, token.begin + len(surface), form,
+                              *self._reading(text, tokens, i, surface, form, hint_at)))
+        return words
+
+    def _reading(self, text, tokens, i, surface, form, hint_at):
+        begin = tokens[i].begin
+        reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.ruby_known)
+        if reading:
+            return reading, 'ruby', 1.0
+        reading = context_reading(text, begin, surface, form, self.known)
+        if reading:
+            return reading, 'rule', 1.0
+        reading = self.model and self.model.reading(text, tokens, i, form, self.known)
+        if reading:
+            return reading, 'model', round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
+        # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
+        sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
+        only = self.only.get(form)
+        if only and sudachi in (None, only):
+            return only, 'only', 1.0
+        entry = self.model and self.model.forms.get(form)
+        if entry and sudachi in entry[0]:  # the reading's share in the table's prior
+            priors = [math.exp(p) for p in entry[1]]
+            return sudachi, 'dictionary', round(priors[entry[0].index(sudachi)] / sum(priors), 3)
+        return sudachi, 'dictionary', None
