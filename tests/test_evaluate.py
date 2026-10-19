@@ -154,6 +154,26 @@ class TagsTest(unittest.TestCase):
         self.assertEqual((c['clean']['fixed'], c['clean']['broken'], c['clean']['new']), (2, 0, 1.0))
         self.assertEqual((c['hard']['fixed'], c['hard']['old']), (1, 0.0))
 
+    def test_tags_from_report(self):
+        import json, os, tempfile
+        from yurigana.evaluate import evaluate
+        d = tempfile.mkdtemp()
+        with open(os.path.join(d, 's.jsonl'), 'w', encoding='utf-8') as f:
+            for n, (word, reading) in enumerate([('生', 'なま'), ('人', 'ひと')]):
+                f.write(json.dumps({'id': n, 'text': word, 'spans': [span(0, 1, word, reading)]}) + '\n')
+        with open(os.path.join(d, 'p.txt'), 'w', encoding='utf-8') as f:
+            f.write('0 | 生[なま]\n1 | 人[じん]\n')
+        paths, predictions = [os.path.join(d, 's.jsonl')], [('p', os.path.join(d, 'p.txt'))]
+        tags = {'listed': [2, 1], 'partial': '00', 'kanjidic_only': '00', 'proper': '00', 'number': '00',
+                'excluded': '00', 'clean': '11', 'hard': '10'}
+        report = evaluate(paths, [], rounds=10, predictions=predictions, tags={'s': {'keys': ['0:0', '1:0'], 'tags': tags}})
+        m = report['sets']['s']['systems']['p']['metrics']
+        self.assertEqual(report['sets']['s']['tags'], tags)
+        self.assertEqual((m['clean'][0], m['hard'][0], m['hard items']), (0.5, 1.0, 1))
+        for bad in ({}, {'s': {'keys': ['0:0'], 'tags': tags}}):
+            with self.assertRaisesRegex(ValueError, 'set s'):
+                evaluate(paths, [], rounds=10, predictions=predictions, tags=bad)
+
 
 class GoldTest(unittest.TestCase):
     def test_tatoeba(self):

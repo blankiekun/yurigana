@@ -61,9 +61,13 @@ Tatoeba they are mostly IPAdic's: there `--exclude` is the way). Names Sudachi t
 stay in too (the `proper` tag, for breakdowns): they are shown as furigana like any word.
 
 The tags use Sudachi-C (SudachiDict-full) for the word over a span. The second environment
-(GiNZA, yomikata) has a SudachiPy that can't read that dictionary, so its tags fall back to
-the lemma or surface (a note in the report says so); the README's GiNZA and yomikata rows are
-their per-item results over the main environment's tags (same keys).
+(GiNZA, yomikata) has a SudachiPy that can't read that dictionary, so its own tags would fall
+back to the lemma or surface (a note in the report says so). `--tags REPORT.json` takes every
+set's tags from an earlier report instead (same sets, same item keys, or it stops naming the
+set), which is how the README's GiNZA and yomikata rows are made:
+
+    python -m yurigana.evaluate SETS... --known jiten_freq_global.zip --systems all --out main.json
+    PYTHONPATH=. /path/to/second-env/python -m yurigana.evaluate SETS... --systems ginza,yomikata --tags main.json
 
 The metrics and the gold format are in `yurigana/evaluate.py`'s docstring. Scoring is by
 union span (the smallest stretch where gold and tokens line up), so segmentation doesn't
