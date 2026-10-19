@@ -33,7 +33,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, ROOT)
 
 from tests.test_sanity import COLUMNS, outcome  # noqa: E402
-from yurigana import Reader, aozora_text, ruby_reading  # noqa: E402
+from yurigana import Reader, __version__, aozora_text, ruby_reading  # noqa: E402
 from yurigana.fetch_tatoeba import half_of, to_aozora  # noqa: E402
 from yurigana.readings import HAS_KANJI  # noqa: E402
 from yurigana.reader import _Any  # noqa: E402
@@ -293,7 +293,7 @@ def main():
         passes, got = outcome(reader, dict(zip(COLUMNS, row)))
         if not passes:
             row[5] = 'xfail'
-            row[6] = '; '.join(filter(None, [row[6], f'0.2.0.dev0 gives {got}']))
+            row[6] = '; '.join(filter(None, [row[6], f'{__version__} gives {got}']))
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write('# Regression list, see README "The sanity list". Tatoeba sentences CC BY 2.0 FR (see NOTICE).\n')

@@ -1,6 +1,6 @@
 {
   "name": "yurigana",
-  "version": "0.2.0-dev",
+  "version": "0.2.0",
   "description": "Readings of Japanese kanji words in context, and which furigana a reader no longer needs",
   "license": "BSD-3-Clause AND CC-BY-SA-4.0",
   "repository": "github:blankiekun/yurigana",

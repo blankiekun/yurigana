@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.1.1.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.2.0.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-full too (pinned: readings depend on its version). Then:
@@ -54,7 +54,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.1.1
+pnpm add github:blankiekun/yurigana#v0.2.0
 ```
 
 ```js
