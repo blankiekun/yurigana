@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -256,6 +256,8 @@ class Reader:
             if reading:
                 return reading, 'dictionary', None
         default = DEFAULT_READINGS.get((form, sudachi))
+        if default and (form, sudachi) not in HAND_DEFAULTS and glued(text, begin, begin + len(surface)):
+            default = None  # the table's readings are of words on their own (郵便局側 is がわ)
         if default and (form, default) in self.known:
             return default, 'default', None
         entry = self.model and self.model.forms.get(form)

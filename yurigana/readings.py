@@ -6,6 +6,7 @@ e.g. the keys of a Yomitan frequency list's readings (yurigana.yomitan.reading_r
 Anything with `__contains__` works.
 """
 import itertools
+import os
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
@@ -195,39 +196,60 @@ _CONTEXT_RULES = {
 # were added later on the same half: 24/27, 8/9 and 4/4 of their changes right. 日本 にっぽん → にほん
 # misses that bar on Tatoeba (its MeCab gold says にっぽん 18% of the time) but books' own ruby
 # almost never does (under 2% on NDL's held-out authors: +46/-1 there, +8/-3 on Tatoeba's half a).
-DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 'いう', ('富士山', 'ふじやま'): 'ふじさん',
-                    ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
-                    ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが',
-                    ('日本', 'にっぽん'): 'にほん',
-                    # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
-                    ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
-                    ('近々', 'ちかじか'): 'ちかぢか',
-                    # Batch 2: (fixed - broken) >= 2 and 90%+ right on Tatoeba (half a + B1), not losing on
-                    # NDL's held-out authors. 或いは is the one exception: Tatoeba never leaves it to Sudachi,
-                    # and あるいわ only misspells あるいは (NDL +11/-0).
-                    ('箱', 'ばこ'): 'はこ', ('米', 'べい'): 'こめ', ('深い', 'ぶかい'): 'ふかい',
-                    ('腹', 'ふく'): 'はら', ('沿い', 'そい'): 'ぞい', ('大文字', 'だいもんじ'): 'おおもじ',
-                    ('船便', 'せんびん'): 'ふなびん', ('仏', 'ふつ'): 'ほとけ', ('隙', 'ひま'): 'すき',
-                    ('鏡', 'きょう'): 'かがみ', ('時々', 'じじ'): 'ときどき', ('喘息', 'ずだ'): 'ぜんそく',
-                    ('不味い', 'まじい'): 'まずい', ('香', 'こう'): 'か', ('銀杏', 'ぎんなん'): 'いちょう',
-                    ('塵', 'ごみ'): 'ちり', ('啄木鳥', 'けら'): 'きつつき',
-                    ('生魚', 'せいぎょ'): 'なまざかな', ('入用', 'にゅうよう'): 'いりよう', ('薪', 'たきぎ'): 'まき',
-                    ('手品師', 'でじなし'): 'てじなし', ('或は', 'あるいわ'): 'あるいは', ('或いは', 'あるいわ'): 'あるいは',
-                    ('氷柱', 'ひょうちゅう'): 'つらら', ('正気', 'せいき'): 'しょうき', ('昼飯', 'ちゅうはん'): 'ひるめし',
-                    ('卵', 'らん'): 'たまご', ('胡坐', 'こざ'): 'あぐら', ('緒', 'いとぐち'): 'お',
-                    ('雪道', 'せつどう'): 'ゆきみち', ('卑怯者', 'ひきょうしゃ'): 'ひきょうもの',
-                    ('無理強い', 'むりつよい'): 'むりじい', ('人手不足', 'ひとでふそく'): 'ひとでぶそく',
-                    ('草冠', 'そうこう'): 'くさかんむり', ('大火事', 'だいかじ'): 'おおかじ',
-                    # 一X read ひと…/いち… (round 5e). 一日 as one token: Sudachi's ついたち (月一日: a rule).
-                    # 一昨日, 一日中: Sudachi splits them 一昨|日 (いっさく|ひ, |にち), 一|日中, joined in Reader._compound.
-                    ('一日', 'ついたち'): 'いちにち', ('一昨日', 'いっさくひ'): 'おととい', ('一昨日', 'いっさくにち'): 'おととい',
-                    ('一日中', 'いちにっちゅう'): 'いちにちじゅう',  # 一|日中 (Sudachi), not 一|日|中
-                    ('一塊', 'いっかい'): 'ひとかたまり',
-                    # 金 alone is money (かね) unless a rule finds the metal (T7).
-                    ('金', 'きん'): 'かね',
-                    # Sudachi dictionary bugs: a particle or extra kana in the reading (中宮 ちゅうぐうの).
-                    ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',
-                    ('土堤', 'どてい'): 'どて'}
+HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 'いう', ('富士山', 'ふじやま'): 'ふじさん',
+                 ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
+                 ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが',
+                 ('日本', 'にっぽん'): 'にほん',
+                 # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
+                 ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
+                 ('近々', 'ちかじか'): 'ちかぢか',
+                 # Batch 2: (fixed - broken) >= 2 and 90%+ right on Tatoeba (half a + B1), not losing on
+                 # NDL's held-out authors. 或いは is the one exception: Tatoeba never leaves it to Sudachi,
+                 # and あるいわ only misspells あるいは (NDL +11/-0).
+                 ('箱', 'ばこ'): 'はこ', ('米', 'べい'): 'こめ', ('深い', 'ぶかい'): 'ふかい',
+                 ('腹', 'ふく'): 'はら', ('沿い', 'そい'): 'ぞい', ('大文字', 'だいもんじ'): 'おおもじ',
+                 ('船便', 'せんびん'): 'ふなびん', ('仏', 'ふつ'): 'ほとけ', ('隙', 'ひま'): 'すき',
+                 ('鏡', 'きょう'): 'かがみ', ('時々', 'じじ'): 'ときどき', ('喘息', 'ずだ'): 'ぜんそく',
+                 ('不味い', 'まじい'): 'まずい', ('香', 'こう'): 'か', ('銀杏', 'ぎんなん'): 'いちょう',
+                 ('塵', 'ごみ'): 'ちり', ('啄木鳥', 'けら'): 'きつつき',
+                 ('生魚', 'せいぎょ'): 'なまざかな', ('入用', 'にゅうよう'): 'いりよう', ('薪', 'たきぎ'): 'まき',
+                 ('手品師', 'でじなし'): 'てじなし', ('或は', 'あるいわ'): 'あるいは', ('或いは', 'あるいわ'): 'あるいは',
+                 ('氷柱', 'ひょうちゅう'): 'つらら', ('正気', 'せいき'): 'しょうき', ('昼飯', 'ちゅうはん'): 'ひるめし',
+                 ('卵', 'らん'): 'たまご', ('胡坐', 'こざ'): 'あぐら', ('緒', 'いとぐち'): 'お',
+                 ('雪道', 'せつどう'): 'ゆきみち', ('卑怯者', 'ひきょうしゃ'): 'ひきょうもの',
+                 ('無理強い', 'むりつよい'): 'むりじい', ('人手不足', 'ひとでふそく'): 'ひとでぶそく',
+                 ('草冠', 'そうこう'): 'くさかんむり', ('大火事', 'だいかじ'): 'おおかじ',
+                 # 一X read ひと…/いち… (round 5e). 一日 as one token: Sudachi's ついたち (月一日: a rule).
+                 # 一昨日, 一日中: Sudachi splits them 一昨|日 (いっさく|ひ, |にち), 一|日中, joined in Reader._compound.
+                 ('一日', 'ついたち'): 'いちにち', ('一昨日', 'いっさくひ'): 'おととい', ('一昨日', 'いっさくにち'): 'おととい',
+                 ('一日中', 'いちにっちゅう'): 'いちにちじゅう',  # 一|日中 (Sudachi), not 一|日|中
+                 ('一塊', 'いっかい'): 'ひとかたまり',
+                 # 金 alone is money (かね) unless a rule finds the metal (T7).
+                 ('金', 'きん'): 'かね',
+                 # Sudachi dictionary bugs: a particle or extra kana in the reading (中宮 ちゅうぐうの).
+                 ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',
+                 ('土堤', 'どてい'): 'どて'}
+
+
+def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:
+    """default-readings.tsv: the readings human ruby gives instead of Sudachi's, mined from NDL's
+    Aozora corpus and checked on Tatoeba by tools/default_readings.py (身体 しんたい → からだ), for
+    words not glued to others (see glued)."""
+    with open(path, encoding='utf-8') as f:
+        rows = [line.rstrip('\n').split('\t') for line in f if not line.startswith('#')]
+    return {(form, sudachi): reading for form, sudachi, reading, *_ in rows}
+
+
+DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
+
+
+def glued(text: str, begin: int, end: int) -> bool:
+    """Whether a one-character word text[begin:end] is an affix Sudachi split off: a kanji or digit
+    right before or after it, or a katakana word before it (郵便局側, 今学期, 3位, ダウンロード時),
+    where default-readings.tsv's readings (側 そば, 今 いま, 位 くらい, 時 とき) don't hold."""
+    before, after = text[max(begin - 1, 0):begin], text[end:end + 1]
+    return end - begin == 1 and (any(is_kanji(c) or c.isdigit() for c in before + after) or bool(re.match('[ァ-ヺー]', before)))
+
 
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in _CONTEXT_RULES.items()}

@@ -1,7 +1,8 @@
 """Tests for yurigana.readings: ruby and context rules."""
 import unittest
 
-from yurigana.readings import conjugated_reading, context_reading, ruby_reading, surface_reading, unlisted_reading
+from yurigana.readings import (DEFAULT_READINGS, conjugated_reading, context_reading, glued, ruby_reading, surface_reading,
+                               unlisted_reading)
 
 
 class RubyReadingTest(unittest.TestCase):
@@ -180,6 +181,21 @@ class ContextReadingTest(unittest.TestCase):
         self.assertIsNone(self.reading('人気\nのない', '人気'))
         self.assertIsNone(self.reading('人気のない', '人気', known={('人気', 'にんき')}))
         self.assertIsNone(self.reading('人気のない', '人気', known=()))  # no frequency list: no rules
+
+
+class DefaultReadingsTest(unittest.TestCase):
+    def test_table_and_hand_picked(self):
+        self.assertEqual(DEFAULT_READINGS['身体', 'しんたい'], 'からだ')  # default-readings.tsv
+        self.assertEqual(DEFAULT_READINGS['私', 'わたくし'], 'わたし')
+        self.assertTrue(all(reading != sudachi for (_, sudachi), reading in DEFAULT_READINGS.items()))
+
+    def test_glued(self):
+        self.assertTrue(glued('郵便局側の', 3, 4))
+        self.assertTrue(glued('今学期', 0, 1))
+        self.assertTrue(glued('第3位', 2, 3))
+        self.assertTrue(glued('ダウンロード時に', 6, 7))
+        self.assertFalse(glued('川の側に', 2, 3))
+        self.assertFalse(glued('身体中', 0, 2))  # only one-character words
 
 
 if __name__ == '__main__':
