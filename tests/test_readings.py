@@ -193,6 +193,7 @@ class DefaultReadingsTest(unittest.TestCase):
         self.assertTrue(glued('郵便局側の', 3, 4))
         self.assertTrue(glued('今学期', 0, 1))
         self.assertTrue(glued('第3位', 2, 3))
+        self.assertTrue(glued('ダウンロード時に', 6, 7))
         self.assertFalse(glued('川の側に', 2, 3))
         self.assertFalse(glued('身体中', 0, 2))  # only one-character words
 

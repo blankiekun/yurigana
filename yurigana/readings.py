@@ -244,10 +244,11 @@ DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
 
 
 def glued(text: str, begin: int, end: int) -> bool:
-    """Whether a one-character word text[begin:end] has a kanji or digit right before or after it:
-    a suffix or prefix Sudachi split off (郵便局側, 今学期, 3位), where default-readings.tsv's
-    readings (側 そば, 今 いま, 位 くらい) don't hold."""
-    return end - begin == 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
+    """Whether a one-character word text[begin:end] is an affix Sudachi split off: a kanji or digit
+    right before or after it, or a katakana word before it (郵便局側, 今学期, 3位, ダウンロード時),
+    where default-readings.tsv's readings (側 そば, 今 いま, 位 くらい, 時 とき) don't hold."""
+    before, after = text[max(begin - 1, 0):begin], text[end:end + 1]
+    return end - begin == 1 and (any(is_kanji(c) or c.isdigit() for c in before + after) or bool(re.match('[ァ-ヺー]', before)))
 
 
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
