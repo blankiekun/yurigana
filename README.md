@@ -155,6 +155,7 @@ python -m yurigana.evaluate tatoeba sets  # sets/tatoeba-b1.jsonl (tune), sets/t
 python -m yurigana.evaluate ndl aozora_dataset.zip sets  # NDL huriganacorpus-aozora, held-out authors
 python -m yurigana.evaluate sets/tatoeba-b2.jsonl sets/ndl-test.jsonl --known jiten_freq_global.zip \
     --systems all --out report.json  # --compare old.json: items fixed and broken, McNemar p
+tools/compare.sh sets  # this tree against origin/main on every set (base cached), misses in sets/.misses.tsv
 ```
 
 The metrics and the gold format are in `yurigana/evaluate.py`'s docstring. Scoring is by
@@ -174,14 +175,14 @@ pull request that added `evaluate`):
 
 | | Tatoeba B2 word list | het. macro | NDL word list | het. macro |
 |---|---|---|---|---|
-| ours | 94.3 | 88.7 | 87.2 | 70.7 |
-| Sudachi (A = B = C) | 94.3 | 92.0 | 90.7 | 75.7 |
-| MeCab + IPAdic | 97.0 | 89.6 | 86.9 | 67.2 |
-| MeCab + unidic-lite | 93.3 | 90.3 | 90.3 | 75.5 |
-| pykakasi | 93.7 | 82.4 | 84.7 | 59.3 |
+| ours | 94.3 | 88.7 | 87.5 | 71.7 |
+| Sudachi (A ≈ B = C) | 94.3 | 92.0 | 90.9 | 76.6 |
+| MeCab + IPAdic | 97.0 | 89.6 | 87.2 | 68.1 |
+| MeCab + unidic-lite | 93.3 | 90.3 | 90.5 | 76.1 |
+| pykakasi | 93.7 | 82.4 | 85.7 | 61.6 |
 
 Ours gives no reading to 4.2% (Tatoeba) and 4.8% (NDL) of items; the readings it would show
-as furigana (only, rule, model) cover 63.5% / 57.5% of items and are right 99.3% / 96.7% of
+as furigana (only, rule, model) cover 63.5% / 57.6% of items and are right 99.3% / 96.7% of
 the time.
 
 The tables below are older measurements with earlier harnesses, not comparable to these.
