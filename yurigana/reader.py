@@ -104,7 +104,7 @@ def rendaku(reading: str) -> str | None:
 class PlainReadings:
     """(form, reading) is known when the reading is spelled by the form's kanji readings (on and
     kun of 常用/人名用 kanji, KANJIDIC2) and its kana, with rendaku and a final っ: the JS
-    isPlainReading. The ruby check without a list: gikun (そら over 宇宙) and jukujikun don't pass."""
+    isPlainReading. The ruby check without a list, after JMdict's pairs: gikun (そら over 宇宙) doesn't pass."""
 
     def __init__(self, path: str = KANJI_READINGS):
         with open(path, encoding='utf-8') as f:
@@ -138,8 +138,8 @@ class Reader:
     (`hints`), a context rule, the reading model, then Sudachi's dictionary reading.
 
     known: (form, reading) pairs a reading must be one of (a set, the keys of a dict, or the
-        path of a rank-based Yomitan frequency list). Without one, ruby must be a plain reading
-        of its kanji (PlainReadings) and rules and the model are trusted.
+        path of a rank-based Yomitan frequency list). Without one, JMdict's pairs (the bundled
+        jmdict-pairs.json.gz), and ruby may also be a plain reading of its kanji (PlainReadings).
     tables: reading-model tables built from your own library, tried before the public one;
         missing files are skipped.
     tokenizer: anything with tokens(text) like SudachiTokenizer (the default)."""
@@ -148,8 +148,13 @@ class Reader:
         if isinstance(known, str):
             from .yomitan import reading_ranks
             known = reading_ranks(known)
-        self.known = _Any() if known is None else known
-        self.ruby_known = PlainReadings() if known is None else known
+        jmdict = jmdict_readings()
+        if known is None:  # no list: JMdict's pairs, and ruby that spells its kanji (names: 柚木 ゆき)
+            known = {(form, reading) for form, readings in jmdict.items() for reading in readings}
+            self.plain = PlainReadings()
+        else:
+            self.plain = None
+        self.known = known
         # The list's hiragana readings per form, and the forms it gives exactly one.
         self.readings = defaultdict(list)
         for form, reading in known or ():
@@ -157,7 +162,6 @@ class Reader:
                 self.readings[form].append(reading)
         # JMdict's readings of the list's forms: a check on the list (names, parser noise) and the
         # order of readings it ranks the same
-        jmdict = jmdict_readings() if known is not None else {}
         self.jmdict = {form: jmdict[form] for form in self.readings if form in jmdict}
         # The list's single readings; `only` (certainty 1.0) when JMdict gives the form that reading
         # too, or has no entry for the form (声がけ こえかけ, 振り幅 しんぷく, 卵型 らんけい in Jiten's list)
@@ -282,7 +286,7 @@ class Reader:
         reading: 三|日|月 みかづき, 身の上|話 みのうえばなし, 一|石|二鳥 いっせきにちょう. Left out:
         spans with particles or ending in kana (the list has phrases such as 彼の かの), spans with
         ruby, a number and its counter (一|枚, or any span inside one of `counted`, the counter spans,
-        which read() reads) and spans next to a number (１|日|中, 第|一). The Word is `only` when
+        which read() reads) and spans next to a number (１|日|中, 第|一, 一対|一). The Word is `only` when
         JMdict has the joined form with that reading, else `dictionary` (names, list noise)."""
         if not self.single or not HAS_KANJI.search(tokens[i].surface()):
             return None
@@ -294,6 +298,8 @@ class Reader:
             if (any(_end(a) != b.begin for a, b in zip(span, span[1:]))
                     or any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
                     or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface())
+                    or (i + n < len(tokens) and _NUMERAL.match(tokens[i + n].surface())
+                        and _end(span[-1]) == tokens[i + n].begin)  # 一対|一 isn't いっつい
                     or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一')
                     or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
                     or any(start in hint_at for start in range(begin, end))
@@ -356,7 +362,8 @@ class Reader:
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
-        reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.ruby_known)
+        reading = hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
+                               or self.plain and ruby_reading(hint_at, begin, surface, form, self.plain))
         if reading:
             return reading, 'ruby', 1.0
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and

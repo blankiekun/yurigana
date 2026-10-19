@@ -26,18 +26,19 @@ text = aozora_text('夜の公園は人気がなく、静かだった。\n｜宇�
 for word in reader.read(text, hints):
     print(word)
 # Word(start=0, end=1, form='夜', reading='よる', source='dictionary', certainty=None)
-# Word(start=2, end=4, form='公園', reading='こうえん', source='dictionary', certainty=None)
+# Word(start=2, end=4, form='公園', reading='こうえん', source='only', certainty=1.0)
 # Word(start=5, end=7, form='人気', reading='ひとけ', source='rule', certainty=1.0)
-# Word(start=11, end=13, form='静か', reading='しずか', source='dictionary', certainty=None)
-# Word(start=18, end=20, form='宇宙', reading='うちゅう', source='dictionary', certainty=None)
-# Word(start=21, end=24, form='見上げる', reading=None, source='dictionary', certainty=None)
-# Word(start=25, end=27, form='学校', reading='がっこう', source='dictionary', certainty=None)
+# Word(start=11, end=13, form='静か', reading='しずか', source='only', certainty=1.0)
+# Word(start=18, end=20, form='宇宙', reading='うちゅう', source='only', certainty=1.0)
+# Word(start=21, end=24, form='見上げる', reading='みあげる', source='only', certainty=1.0)
+# Word(start=25, end=27, form='学校', reading='がっこう', source='only', certainty=1.0)
 # Word(start=28, end=30, form='行く', reading='いく', source='ruby', certainty=1.0)
 ```
 
-そら over 宇宙 is the book's flavour ruby, so 宇宙 keeps its dictionary reading. With a reading
-list (`Reader(known='jiten_freq_global.zip')`, [Jiten's](https://jiten.moe/frequency-dictionaries)
-frequency list, not included) 見上げる gets みあげる too.
+そら over 宇宙 is the book's flavour ruby, so 宇宙 keeps its dictionary reading. With no reading
+list, JMdict's (form, reading) pairs (bundled) are the list: words JMdict reads one way are
+`only`. A frequency list with readings (`Reader(known='jiten_freq_global.zip')`,
+[Jiten's](https://jiten.moe/frequency-dictionaries), not included) replaces them.
 
 For one sentence, `furigana` gives it back with readings in brackets:
 

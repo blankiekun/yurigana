@@ -1,5 +1,5 @@
 """readings-test.tsv's rows for forms with context rules, through Reader.read with each row's own
-ruby and no reading list: a regression test, not an accuracy figure (the rules were written on
+ruby and no reading list (JMdict's pairs): a regression test, not an accuracy figure (the rules were written on
 these sentences; accuracy is python -m yurigana.evaluate's job).
 
 readings-test.tsv: book id or '-', sentence, form, character offset of the form in the sentence
@@ -19,13 +19,9 @@ ROWS = os.path.join(os.path.dirname(__file__), '..', 'yurigana', 'readings-test.
 KNOWN_MISSES = {
     ('今日', '今日、環境問題は世界共通の関心事となった。'),  # こんにち
     ('今日', '今日の若者は本を読まない。'),
-    ('明日', '｜明日《あす》の天気は晴れです。'),  # without a list, jukujikun ruby isn't taken
     ('最中', 'ずっと気になっていた最中に手を伸ばした。'),  # もなか
     ('人気', '深夜の駅前は人気がまったくなかった。'),  # ひとけ
-    ('市場', '魚市場はいつも賑わっている。'),  # one token 魚市場
     ('寒気', '強い寒気に襲われ、震えが止まらない。'),  # さむけ
-    ('心中', '無理心中を図った。'),  # one token 無理心中
-    ('一寸', '｜一寸《いつすん》ずつ前へ進む。'),  # large-kana ruby not in kanji-readings.json
 }
 
 
@@ -47,7 +43,9 @@ class RuleRowsTest(unittest.TestCase):
                 # The form's own Word first: a counter span (何年) overlaps the 何 it starts with.
                 word = next((w for w in words if (w.start, w.end) == (offset, offset + len(row['form']))),
                             next((w for w in words if w.start <= offset < w.end), None))
-                if word is None or word.reading not in row['reading'].split('|'):
+                readings = row['reading'].split('|')
+                if word is None or not (word.reading in readings or len(word.form) > len(row['form']) and word.reading
+                                        and any(r in word.reading for r in readings)):  # a compound: 一日中 いちにちじゅう
                     misses.add((row['form'], row['sentence']))
         self.assertGreater(rows, 150)
         self.assertEqual(misses, KNOWN_MISSES)

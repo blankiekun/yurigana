@@ -58,10 +58,12 @@ class ReaderTest(unittest.TestCase):
     def test_sources_in_order(self):
         hints = []
         text = aozora_text('宇宙《うちゅう》の人気のない廊下。\n人家がない。\n人家。', None, hints)
-        words = self.reader().read(text, hints)
+        reader = self.reader()
+        reader.known = reader.known | {('人家', 'ひとけ'), ('人家', 'にんき')}  # the toy model's readings
+        words = reader.read(text, hints)
         self.assertEqual(words[0], Word(0, 2, '宇宙', 'うちゅう', 'ruby', 1.0))
         self.assertEqual(words[1][3:5], ('ひとけ', 'rule'))
-        self.assertEqual(words[2], Word(8, 10, '廊下', 'ろうか', 'dictionary', None))
+        self.assertEqual(words[2], Word(8, 10, '廊下', 'ろうか', 'only', 1.0))  # JMdict's one reading
         self.assertEqual(words[3][3:5], ('ひとけ', 'model'))
         self.assertGreater(words[3].certainty, 0.7)
         self.assertEqual(words[4], Word(19, 21, '人家', 'にんき', 'dictionary', 0.6))  # its share in the table's prior
@@ -130,7 +132,7 @@ class ReaderTest(unittest.TestCase):
         read('柚木《ゆき》。', carry)
         self.assertEqual(read('柚木。', carry), [('ゆき', 'book')])  # across a book's texts
         # never a common word, nor after flavour or a second reading
-        self.assertEqual(read('宇宙《うちゅう》。宇宙。', {})[1], ('うちゅう', 'dictionary'))
+        self.assertEqual(read('宇宙《うちゅう》。宇宙。', {})[1], ('うちゅう', 'only'))
         self.assertEqual(read('柚木《ゆき》。柚木《ユキ》。柚木。', {})[2], ('ゆずき', 'dictionary'))
         self.assertEqual(read('柚木《ゆき》。柚木《ゆず》。柚木。', {})[2], ('ゆずき', 'dictionary'))
         self.assertEqual(read('柚木《あいつ》。柚木。', {}), [('ゆずき', 'dictionary')] * 2)
@@ -147,7 +149,7 @@ class ReaderTest(unittest.TestCase):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
             hints = []
             text = aozora_text(marked, None, hints)
-            self.assertEqual(self.reader().read(text, hints)[0][3:5], ('うちゅう', 'dictionary'))
+            self.assertEqual(self.reader().read(text, hints)[0][3:5], ('うちゅう', 'only'))
 
     def test_a_list_gives_only_readings_and_limits_ruby(self):
         known = {('人気', 'にんき'), ('人気', 'ひとけ'), ('行く', 'いく'), ('廊下', 'ろうか'), ('人家', 'にんき'),
@@ -237,7 +239,7 @@ class SudachiReaderTest(unittest.TestCase):
         text = aozora_text('夜の公園は人気がなく、静かだった。｜宇宙《そら》を見る。\n学校へ行《い》った。', None, hints)
         words = {w.form: w for w in Reader().read(text, hints)}
         self.assertEqual(words['人気'][3:5], ('ひとけ', 'rule'))
-        self.assertEqual(words['宇宙'][3:5], ('うちゅう', 'dictionary'))
+        self.assertEqual(words['宇宙'][3:5], ('うちゅう', 'only'))
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
