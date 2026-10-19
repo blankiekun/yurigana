@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -15,6 +15,7 @@ KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji
 
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
+_KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
 _KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 _UNITS = re.compile('[十百千万億兆]')
 _ONE_UNIT = re.compile('一百|^[万億兆]')
@@ -134,6 +135,27 @@ class Reader:
             from .tokens import SudachiTokenizer
             tokenizer = SudachiTokenizer()
         self.tokenizer = tokenizer
+
+    def segments(self, text: str, hints=()) -> list:
+        """`text` cut into (piece, reading of the piece or None): each kanji run with the reading of
+        its surface, okurigana and everything else as is (読んだ: [('読', 'よ'), ('んだ', None)])."""
+        out, pos = [], 0
+        for word in sorted(self.read(text, hints), key=lambda w: (w.start, -w.end)):
+            if word.start < pos or word.reading is None:
+                continue  # inside a longer word (a counter span's own tokens), or no reading
+            surface = text[word.start:word.end]
+            reading = surface_reading(surface, word.form, word.reading, text[word.end:word.end + 3])
+            if reading is None:
+                continue
+            if pos < word.start:
+                out.append((text[pos:word.start], None))
+            out += split_reading(surface, reading)
+            pos = word.end
+        return out + [(text[pos:], None)] if pos < len(text) else out
+
+    def furigana(self, text: str, hints=()) -> str:
+        """`text` with each kanji run's reading after it in brackets: 本を読んだ → 本[ほん]を読[よ]んだ."""
+        return ''.join(piece if reading is None else f'{piece}[{reading}]' for piece, reading in self.segments(text, hints))
 
     def read(self, text: str, hints=()) -> list:
         """A Word per token with kanji in `text`. `hints`: the ruby, (start, end, reading) offsets
@@ -319,3 +341,15 @@ class Reader:
                                 self._tails[form[k:], tail][1] += 1
             self._tails = dict(self._tails)
         return self._tails
+
+
+def split_reading(surface: str, reading: str) -> list:
+    """A word's reading spread over its kanji runs, kana as is: 取り扱い, とりあつかい →
+    [('取', 'と'), ('り', None), ('扱', 'あつか'), ('い', None)]; the whole word when the kana don't line up."""
+    parts = [part for part in re.split(f'({_KANJI_RUN.pattern})', surface) if part]
+    pattern = ''.join('(.+?)' if _KANJI_RUN.fullmatch(part) else f'(?:{re.escape(to_hiragana(part))})' for part in parts)
+    match = re.fullmatch(pattern, to_hiragana(reading))
+    if not match:
+        return [(surface, reading)]
+    found = iter(match.groups())
+    return [(part, next(found)) if _KANJI_RUN.fullmatch(part) else (part, None) for part in parts]
