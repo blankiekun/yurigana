@@ -63,7 +63,8 @@ class ConjugatedReadingTest(unittest.TestCase):
 
 class ContextReadingTest(unittest.TestCase):
     known = {('人気', 'ひとけ'), ('人気', 'にんき'), ('明日', 'あした'), ('明日', 'あす'), ('上手', 'かみて'),
-             ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん')}
+             ('今日', 'こんにち'), ('他', 'た'), ('何', 'なに'), ('何', 'なん'),
+             ('中', 'じゅう'), ('中', 'ちゅう')}
 
     def reading(self, text, form, surface=None, known=None):
         return context_reading(text, text.index(form), surface or form, form, self.known if known is None else known)
@@ -83,6 +84,12 @@ class ContextReadingTest(unittest.TestCase):
             self.assertEqual(self.reading(text, '何'), 'なに', text)
         for text in ('何ですか。', '何の話だ。', '何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
             self.assertIsNone(self.reading(text, '何'), text)  # Sudachi's なん stays
+
+    def test_juu_after_a_stretch_of_time_or_a_place(self):
+        for text in ('一日中寝ていた。', '一晩中起きていた。', '今日中に出す。', '世界中に広まった。', '家中を探した。', '体中が痛い。'):
+            self.assertEqual(self.reading(text, '中'), 'じゅう', text)
+        for text in ('授業中に寝た。', '今週中に出す。', '数日中に届く。', '一両日中に決まる。', '箱の中に入れた。'):
+            self.assertIsNone(self.reading(text, '中'), text)  # Sudachi's ちゅう/なか stays
 
     def test_hitoke_needs_a_cue(self):
         for text in ('人気のない路地', '人気も無い', '人気が少ない', '人気が絶えた', '周囲に人気がない', '人気がない場所に',
