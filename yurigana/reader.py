@@ -30,13 +30,18 @@ class Word(NamedTuple):
     end: int
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
-    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi)
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi),
+    # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see the README; None when unknown
 
 
 def _end(token):
     return token.begin + len(token.surface())
+
+
+# Ruby over a name that is a pronoun is flavour (鈴木《あいつ》), never the name's reading.
+_PRONOUNS = frozenset('あいつ こいつ そいつ どいつ やつ おれ おまえ かれ かのじょ あのこ あのひと わたし わたくし あたし ぼく'.split())
 
 
 class _Any:
@@ -56,6 +61,16 @@ _HEAD_SURFACE = re.compile('[ァ-ヺー㐀-䶿一-鿿豈-﫿々]')
 def _one_voicing_apart(a: str, b: str) -> bool:
     diff = [(x, y) for x, y in zip(a, b) if x != y]
     return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(_UNVOICED) == diff[0][1].translate(_UNVOICED)
+
+
+def _split_name(a, b, reading: str) -> dict:
+    """{token start: reading} for ruby over two tokens, split where Sudachi's reading of one of
+    them ends or starts it (姫野|芽衣 ひめのめい: ひめの + めい), or {}."""
+    for known, first in ((to_hiragana(a.reading_form()), True), (to_hiragana(b.reading_form()), False)):
+        if known and len(reading) > len(known) and (reading.startswith(known) if first else reading.endswith(known)):
+            cut = len(known) if first else len(reading) - len(known)
+            return {a.begin: reading[:cut], b.begin: reading[cut:]}
+    return {}
 
 
 def rendaku(reading: str) -> str | None:
@@ -157,11 +172,27 @@ class Reader:
         """`text` with each kanji run's reading after it in brackets: 本を読んだ → 本[ほん]を読[よ]んだ."""
         return ''.join(piece if reading is None else f'{piece}[{reading}]' for piece, reading in self.segments(text, hints))
 
-    def read(self, text: str, hints=()) -> list:
+    def read(self, text: str, hints=(), carry=None) -> list:
         """A Word per token with kanji in `text`. `hints`: the ruby, (start, end, reading) offsets
-        in `text`, as yurigana.text's aozora_text and book_text give them."""
+        in `text`, as yurigana.text's aozora_text and book_text give them.
+
+        carry: a dict, to carry the book's ruby over a name to its later bare occurrences (books
+        give a name's reading once): pass {} for a whole book in one text, or the same dict for
+        each of a book's texts in order (read() fills it). Only names: a 固有名詞 token or a form
+        the list doesn't know, whose hiragana ruby is then taken even when unlisted, also from
+        ruby over a two-token full name (姫野芽衣《ひめのめい》: 姫野 ひめの, 芽衣 めい); never a
+        common word (hiragana ruby once isn't assumed for its later bare heteronyms), and no
+        more after ruby over the form that isn't taken (flavour, katakana) or that differs."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = list(self.tokenizer.tokens(text))
+        covering, parts = {}, {}
+        if carry is not None:
+            for start, end, reading in hints:
+                covering.update((k, reading) for k in range(start, end))
+            for a, b in zip(tokens, tokens[1:]):
+                end, reading = hint_at.get(a.begin, (None, ''))
+                if end == _end(b) and _end(a) == b.begin and _HIRAGANA_WORD.match(reading):
+                    parts.update(_split_name(a, b, reading))
         words = []
         next_token = 0
         counted = list(counter_spans(text, tokens))
@@ -176,8 +207,12 @@ class Reader:
             surface, form = token.surface(), token.dictionary_form()
             if not HAS_KANJI.search(surface):
                 continue
-            reading, source, certainty = self._checked(form, *self._reading(text, tokens, i, surface, form, hint_at))
-            if reading and source not in ('ruby', 'counter'):
+            if carry is None:
+                reading, source, certainty = self._checked(form, *self._reading(text, tokens, i, surface, form, hint_at))
+            else:
+                reading, source, certainty = self._checked(form, *self._carried(text, tokens, i, surface, form, hint_at,
+                                                                                 covering, parts, carry))
+            if reading and source not in ('ruby', 'counter', 'book'):
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
         # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
@@ -242,13 +277,36 @@ class Reader:
         """Certainty hygiene for a reading not from ruby: one that isn't hiragana or ー (Sudachi's
         reading of a word it doesn't know is its surface, 於) is None; a reading the list doesn't
         give for the form gets certainty 0."""
-        if source == 'ruby':
+        if source in ('ruby', 'book'):
             return reading, source, certainty
         if reading and not _KANA_READING.match(reading):
             return None, source, None
         if reading and (form, reading) not in self.known:
             certainty = 0.0
         return reading, source, certainty
+
+    def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
+        """_reading with the book's ruby over names carried (Reader.read's `carry`)."""
+        begin, end = tokens[i].begin, _end(tokens[i])
+        unlisted = not isinstance(self.known, _Any) and form not in self.readings
+        name = surface == form and not _NUMERAL.match(surface) and (unlisted or tokens[i].part_of_speech()[1] == '固有名詞')
+        under = {covering[k] for k in range(begin, end) if k in covering}
+        if not under:
+            if name and carry.get(form):
+                return carry[form], 'book', 1.0
+            return self._reading(text, tokens, i, surface, form, hint_at)
+        found = self._reading(text, tokens, i, surface, form, hint_at)
+        if found[1] != 'ruby' and name:
+            # A name's hiragana ruby, listed or not: names take nanori and invented readings (信雄
+            # のぶかつ, 柚木 ゆき), which a kanji-spelling check (PlainReadings) refuses
+            reading = ruby_reading(hint_at, begin, surface, form, _Any()) or parts.get(begin)
+            found = (reading, 'ruby', 1.0) if reading and reading not in _PRONOUNS else found
+        if found[1] == 'ruby':
+            if name:
+                carry[form] = found[0] if carry.get(form, found[0]) == found[0] else None  # two readings: none
+        elif hint_at.get(begin, (None,))[0] == end or not all(_HIRAGANA_WORD.match(r) for r in under):
+            carry[form] = None  # flavour over the form: carry nothing more for it
+        return found
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
