@@ -206,7 +206,7 @@ sentence. Use it to sort or flag, not as a probability.
 
 ### Building a table from your own library
 
-The committed table (`reading-model-public.json.gz`, 42 forms) is trained on public-domain
+The committed table (`reading-model-public.json.gz`, 25 forms) is trained on public-domain
 works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
 own library reads far more forms (403 on one library of 19,000 books):
 
@@ -223,11 +223,12 @@ a table built from copyrighted books.
 The steps one by one (`mine`, `report`, `train`, `evaluate`) and how the public table was
 built are in `yurigana/reading_context.py`'s docstring:
 
-1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`;
-2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b`;
-3. `train` on the Aozora and half a rows together, `--priors` half a's rows;
-4. `evaluate` on half b's rows with `--all --prune`, which keeps the forms half b can score
-   that read no worse than rules + Sudachi.
+1. `python -m yurigana.fetch_aozora AOZORA` and `python -m yurigana.fetch_tatoeba TATOEBA`
+   (Aozora works by the authors the NDL test set holds out are left out);
+2. `reading_context mine` each of `AOZORA`, `TATOEBA/a` and `TATOEBA/b1`;
+3. `train` on the Aozora and half a rows together (the files concatenated), `--priors` half a's rows;
+4. `evaluate` on B1's rows with `--all --prune`, which keeps the forms B1 can score that read
+   no worse than rules + Sudachi. B2 stays unseen.
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.
@@ -284,9 +285,8 @@ count, only readings: Sudachi's three split modes score alike. Word list folds v
 
 Read the Tatoeba numbers with care: its gold is machine furigana made with MeCab + IPAdic,
 mostly never corrected, so MeCab + IPAdic's lead there is partly an artefact. The public
-table was pruned on all of half b, B2 included, so ours is slightly optimistic there; and the
-NDL works are Aozora Bunko texts, some of which the public table was trained on (with their
-ruby, not NDL's readings).
+table was pruned on B1 only, and trained on no Aozora work by an author the NDL test set holds
+out.
 
 With Jiten's list as the reading list, 2026-10-19 (the full table with intervals is in the
 pull request that added `evaluate`):

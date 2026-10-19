@@ -1,8 +1,9 @@
 """Downloads Tatoeba's Japanese sentences with reviewed furigana as Aozora-style TXT, for
 the committed reading model: OUT/<half>/<n>/<reviewer>.txt, PER_FILE sentences per file,
 one per line. Half `a` (crc32 of the sentence id even) is trained on with Aozora Bunko
-(`reading_context.py mine` each, then `train` on both); half `b` only judges the result
-(`evaluate --all --prune`), so no form is judged on sentences it was trained on. Each file
+(`reading_context.py mine` each, then `train` on both); half `b` only judges the result, so
+no form is judged on sentences it was trained on. It is written as `b1` (`evaluate --all
+--prune` picks the forms there) and `b2`, the sentences of yurigana.evaluate's B2 report set. Each file
 is its own folder, i.e. its own "author": the few-authors rule is for books' flavour ruby,
 and these readings were all reviewed.
 
@@ -14,7 +15,7 @@ reading per character of the base, or one for the whole base ([明日|あした]
 ｜場《ば》｜所《しょ》 or ｜明日《あした》, which aozora_text and ruby_reading read like
 a book's ruby. Nothing from Tatoeba goes in git.
 
-  python -m yurigana.fetch_tatoeba OUT
+  python -m yurigana.fetch_tatoeba OUT [jpn_transcriptions.tsv.bz2]  (downloaded when not given)
 """
 import bz2
 from collections import Counter
@@ -49,10 +50,18 @@ def to_aozora(transcription: str) -> str:
     return _READING.sub(one, transcription)
 
 
-def main(out: str):
-    sentences = sum(1 for line in _get('jpn_sentences.tsv.bz2').splitlines() if line)
+def main(out: str, source: str | None = None):
+    import gzip
+    from .evaluate import B2_IDS
+    with gzip.open(B2_IDS, 'rt') as f:
+        b2 = {int(line) for line in f if line.strip()}
+
+    def part(sentence_id):  # half b is split like evaluate.py's gold sets: B1 tunes, B2 reports
+        half = half_of(sentence_id)
+        return half if half == 'a' else 'b2' if sentence_id in b2 else 'b1'
+    raw = bz2.open(source).read().decode('utf-8') if source else _get('jpn_transcriptions.tsv.bz2')
     by_reviewer, total = {}, 0
-    for line in _get('jpn_transcriptions.tsv.bz2').splitlines():
+    for line in raw.splitlines():
         parts = line.split('\t')
         if len(parts) != 5:
             continue
@@ -62,8 +71,8 @@ def main(out: str):
             by_reviewer.setdefault(user, []).append((int(sentence), to_aozora(text)))
     files, halves = 0, Counter()
     for user, rows in sorted(by_reviewer.items()):
-        for half in 'ab':
-            mine = sorted(r for r in rows if half_of(r[0]) == half)
+        for half in ('a', 'b1', 'b2'):
+            mine = sorted(r for r in rows if part(r[0]) == half)
             halves[half] += len(mine)
             for n in range(0, len(mine), PER_FILE):
                 files += 1
@@ -72,9 +81,9 @@ def main(out: str):
                 with open(path, 'w', encoding='utf-8') as f:
                     f.write('\n'.join(text for _, text in mine[n:n + PER_FILE]) + '\n')
     reviewed = sum(len(rows) for rows in by_reviewer.values())
-    print(f'{sentences} Japanese sentences, {total} transcriptions, {reviewed} reviewed '
-          f'by {len(by_reviewer)} people; half a {halves["a"]}, half b {halves["b"]}')
+    print(f'{total} transcriptions, {reviewed} reviewed by {len(by_reviewer)} people; '
+          + ', '.join(f'{half} {n}' for half, n in halves.items()))
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(*sys.argv[1:3])

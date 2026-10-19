@@ -20,6 +20,8 @@ import time
 import urllib.request
 import zipfile
 
+from .evaluate import ndl_held_out
+
 INDEX = 'https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip'
 MAX_BYTES = 32 * 1024 * 1024
 WORKERS = 3
@@ -34,9 +36,16 @@ def _get(url: str) -> bytes:
     return data
 
 
+def ndl_name(person) -> str:
+    """An index row's person as huriganacorpus-aozora names its folders: 姓名, or 姓_名 for a katakana 姓."""
+    sep = '_' if person['名'] and re.match(r'[ァ-ヺー・]', person['姓']) else ''
+    return person['姓'] + sep + person['名']
+
+
 def public_domain_works(rows) -> dict:
     """work id -> (author's person id, text zip URL) for works in 新字新仮名 whose every
-    person is out of copyright."""
+    person is out of copyright, but none by an author the NDL test set holds out
+    (`yurigana.evaluate ndl`), so that set stays unseen."""
     by_work = {}
     for row in rows:
         by_work.setdefault(row['作品ID'], []).append(row)
@@ -44,7 +53,8 @@ def public_domain_works(rows) -> dict:
     for work, people in by_work.items():
         first = people[0]
         if (all(p['作品著作権フラグ'] == 'なし' and p['人物著作権フラグ'] == 'なし' for p in people)
-                and first['文字遣い種別'] == '新字新仮名' and first['テキストファイルURL'].endswith('.zip')):
+                and first['文字遣い種別'] == '新字新仮名' and first['テキストファイルURL'].endswith('.zip')
+                and not any(p['役割フラグ'] == '著者' and ndl_held_out(ndl_name(p)) for p in people)):
             author = next((p for p in people if p['役割フラグ'] == '著者'), first)
             works[work] = (author['人物ID'], first['テキストファイルURL'])
     return works
