@@ -9,6 +9,8 @@ import itertools
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
+from .cues import (ABSTRACT, BODY, BUILDING, FOOTWEAR, GROUNDS, INSECT, INSTRUMENT, IRU_STEM, KIN_TITLE, METAL, NIGHT,
+                   PEOPLE, PERSON, REALM, ROLE, SETTLEMENT, STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -69,35 +71,34 @@ def _small_kana(reading: str):
 # fires when its `before` pattern ends where the word starts or its `after` pattern starts where the
 # word's head token ends (with 'and': both), within the line. Checked against readings-test.tsv.
 # 人気がない is にんき as often as ひとけ in plain text (この店は人気がない), so が/は + ない needs a cue.
-_HITOKE_PLACE = (r'(?:辺り|あたり|周囲|周り|付近|他|ほか|(?<![国海])[内外]|奥|(?<!海)道|通り|街|町|庭|園|室|館|駅|森|林|浜|港|廊下|広場|駐車場|墓場|(?<![長短])所'
-                 r'|夜|深夜|しんと)(?:に|には|は|も|では|、)?$')
-# Word lists the rules share (kept as names so a shared cue library can take them over).
+_HITOKE_PLACE = ('(?:' + words(VICINITY - {'近所', 'そこら', 'そこいら'}, GROUNDS, NIGHT, '他', 'ほか', '奥', '通り', '街', '町',
+                               '室', '館', '駅', '廊下', 'しんと')
+                 + r'|(?<![国海])[内外]|(?<!海)道|(?<![長短])所)(?:に|には|は|も|では|、)?$')
 # 君 is ぎみ after a family or rank word (尼君, 姫君, 母君); Sudachi reads it くん there.
-_GIMI_BEFORE = r'(?:尼|姫|婿|姉|妹|兄|弟|若|母|父)'
+_GIMI_BEFORE = words(KIN_TITLE)
 # Nouns 今 (接頭辞) is こん before (今学期); before anything else it is いま (今医者だ, 今席を外して).
-_KON_NEXT = r'(?:学期|年度|世紀|大会|会期|国会|場所|季|期|シーズン|次|般|定例|上半期|下半期)'
+_KON_NEXT = words(TERM)
 # People and things 外 is ほか before (外の人, 外の乗客): "the other ...".
-_HOKA_OF = r'(?:人|者|女|男|子|児|客|乗客|お客|連中|奴|子供|子ども|生徒|兵|仲間|家族|兄弟|姉妹|誰|もの|物|事|こと|話|仕事|用事|方法|手段|理由)'
+_HOKA_OF = words(PEOPLE, THINGS)
 # Verb stems before 入る read いる (眺め入る, 恐れ入る, 聞き入る); Sudachi says はいる.
-_IRU_STEM = r'(?:[一-鿿](?<!少)[きぎしちびみりめれけせえね]|ながめ|おそれ|いたみ|郷に|虎穴に)'
+_IRU_STEM = '(?:' + words(IRU_STEM) + r'|[一-鿿](?<!少)[きぎしちびみりめれけせえね])'
 # Metals and the like near 金 make it the metal, きん (金は銀より重い); 銀行 is money.
-_METAL = r'(?:銀(?!行)|鉄|銅|鉛|錫|プラチナ|白金|金属|宝石|ダイヤ)'
+_METAL = '(?:' + words(METAL) + r'|銀(?!行))'
 _CONTEXT_RULES = {
     '人気': [('にんき', None, r'の(?:な|無)(?:い|かった)(?:奴|やつ|者|人|キャラ|作品|商品|子(?!供|ども)|アイドル|作家|店)'),
              ('ひとけ', None, r'の(?:な[いくかけ]|無[いくかけ])|[がのはも]?(?:少な|絶え|途絶え)|も(?:な[いくかけ]|無)'),
-             ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:場所|所|ところ|道|通り|廊下|路地|部屋|時|とき'
-              r'|のを確|ことを確|、?(?:静|しん|ひっそり))'),
+             ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:' + words(STREET, '場所', '所', 'ところ', '道', '廊下', '部屋', '時', 'とき')
+              + r'|のを確|ことを確|、?(?:静|しん|ひっそり))'),
              ('ひとけ', _HITOKE_PLACE, r'[がは](?:まったく|全く|ほとんど|全然|一切)?(?:な[いくかけ]|無[いくかけ])', 'and')],
     # 他 is ほか in plain text (DEFAULT_READINGS); た in その他, set phrases and as a prefix (他言語).
     '他': [('た', r'その$', r'の(?:追随|追従|干渉|介入|模範)|を(?:圧倒|寄せ付け|凌|しの)|に(?:類|例|比類)を(?:見|み)|[一-鿿]')],
     # 種 is たね (DEFAULT_READINGS) except as "kind": この種の, 数種, 百種.
     '種': [('しゅ', r'(?:この|その|あの|どの|ある|各|同|異|別|[数何一二三四五六七八九十百千0-9０-９])$', None)],
     # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
-    '下': [('もと', r'(?:指導|監督|支配|管理|統治|指揮|命令|条件|体制|制度|方針|影響|庇護|保護|名|法|旗|約束|前提|協力|仮定'
-              r'|環境|状況|状態|気候|先生|師|師匠|上司|親|両親|父母|主君)の$', None),
+    '下': [('もと', words(ABSTRACT, SUPERIOR) + 'の$', None),
           ('した', r'の$', r'で', 'and')],
     # 音: ね for instruments and insects (琴の音, 虫の音) and ぐうの音; Sudachi's おと otherwise.
-    '音': [('ね', r'(?:琴|箏|筝|(?<![霧汽警])笛|虫|琵琶|三味線|尺八|胡弓|弦|絃|ぐう|グウ)の$', None)],
+    '音': [('ね', '(?:' + words(INSTRUMENT, INSECT, 'ぐう', 'グウ') + r'|(?<![霧汽警])笛)の$', None)],
     # 風: ふう for manner (こんな風に, 知らない風で), かぜ for the wind.
     '風': [('かぜ', None, r'の吹き回し'),
            ('ふう', r'(?:[こそあど]んな|(?:[こそど]う|ああ)(?:いう|いった|言う|云う|言った|云った)'
@@ -109,16 +110,17 @@ _CONTEXT_RULES = {
     # right after activities (授業中), 午前, 今週/今月 (こんしゅうちゅう) and 数日 (within days).
     # 十分: Sudachi's じゅうぶん where it keeps one token; minutes with a cue (counters.TEN_MINUTES_*).
     '十分': [('じゅっぷん', _TEN_MINUTES_BEFORE, _TEN_MINUTES_AFTER)],
-    '中': [('じゅう', r'(?:(?<![十両数])[一１1]日|今日|明日|一晩|一夜|今夜|一年|今年|(?<![今来])年|[春夏秋冬]|一生'
-             r'|世界|日本|国|町|街|村|家|部屋|学校|会社|体|身体|からだ|そこら|そこいら|辺り|あたり|近所|ホテル|クラス|島|屋敷|城)$', None)],
+    '中': [('じゅう', '(?:' + words(TIME_SPAN, REALM, SETTLEMENT, BUILDING - {'館', '駅'}, BODY,
+                                   VICINITY - {'周囲', '周り', '付近'}, '部屋', 'クラス')
+             + r'|(?<![十両数])[一１1]日|(?<![今来])年)$', None)],
     # 方: かた for a person (あの方, 素敵な方です, 学生の方は, 方がいらっしゃる); ほう in comparisons (やる方がいい).
     # Sudachi's reading otherwise: ほう after の or a verb (北の方, 来た方), かた after a stem (話し方).
     '方': [('かた', r'あの$', r'(?!が(?:いい|良|よ|まし|好|楽|早|上|得|便利|大き|小さ|多|少))', 'and'),
            ('かた', r'(?:素敵|すてき|立派|りっぱ|有名|親切|優秀|上品|気さく|偉い|えらい|素晴らしい|すばらしい|優しい|やさしい)な?$',
             r'(?:です|でし|だ|なの|なん|で、|でいらっしゃ)', 'and'),
            ('かた', r'どんな$', r'(?:です|でし|だ|なの|なん)', 'and'),
-           ('かた', r'(?:担当|係り?|窓口|受付|学生|女性|男性|年配|年寄り|高齢|専門|通訳|教徒|出身|経験|初心|家族|患者|客'
-            r'|[おご](?:希望|利用|来場|越し|持ち|住まい|参加|申し込み|申込み))の$', r'(?![がへに])', 'and'),
+           ('かた', '(?:' + words(PERSON, ROLE)
+            + r'|[おご](?:希望|利用|来場|越し|持ち|住まい|参加|申し込み|申込み))の$', r'(?![がへに])', 'and'),
            ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし|だっ)', 'and'),  # ドイツの方ですか
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)')],
@@ -136,8 +138,7 @@ _CONTEXT_RULES = {
     '下手': [('しもて', r'(?:舞台|川|河)の?(?:ずっと|少し|やや|すぐ)?$', r'へ|から(?:登場|出|入|現)|向き|寄り'),
              ('したて', None, r'に出(?:る|た|て|ら|ま|れ)')],
     # 一足 いっそく: a pair of footwear; ひとあし (a step) otherwise.
-    '一足': [('いっそく', r'(?:靴|くつ|クツ|靴下|草鞋|わらじ|下駄|足袋|スニーカー|ブーツ|サンダル|スリッパ|草履)[をがはも]?$',
-              r'の(?:靴|くつ|クツ|靴下|草鞋|わらじ|下駄|足袋|スニーカー|ブーツ|サンダル|スリッパ|草履)')],
+    '一足': [('いっそく', words(FOOTWEAR) + '[をがはも]?$', 'の' + words(FOOTWEAR))],
     '市場': [('いちば', r'(?:魚|青物|朝|築地|近所の|朝早く)$', r'.{0,8}?(?:魚|野菜|果物|八百屋|買い物|買[っうい]|売り子)')],
     '生物': [('なまもの', None, r'を(?:食べ|食[うっ]|召し上が)|.{0,8}?(?:冷蔵|早めに|腐[らりるっ]|扱いに注意)')],
     '最中': [('もなか', r'(?:アイス|栗|餡)の$|(?:餡|あんこ).{0,8}入[っり].{0,2}$',
