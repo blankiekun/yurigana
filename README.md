@@ -92,6 +92,8 @@ token is read on its own; the first step that gives a reading wins:
    (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
    富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
    each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
+   日本 にっぽん → にほん is the exception: Tatoeba's machine gold keeps にっぽん often enough
+   to miss that bar, but the human ruby of the NDL test set almost never uses it.
 
 ### Numbers and counters
 

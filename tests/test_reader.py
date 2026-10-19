@@ -16,7 +16,7 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            '廊下': ('廊下', 'ロウカ', '名詞'), '宇宙': ('宇宙', 'ウチュウ', '名詞'), '行っ': ('行く', 'イッ', '動詞'),
            '学校': ('学校', 'ガッコウ', '名詞'), '私': ('私', 'ワタクシ', '代名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞'),
            '身の上': ('身の上', 'ミノウエ', '名詞'), '話': ('話', 'ハナシ', '名詞'), '彼': ('彼', 'カレ', '代名詞'),
-           '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞')}
+           '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞'), '日本': ('日本', 'ニッポン', '名詞')}
 
 
 class ToyTokenizer:
@@ -67,6 +67,10 @@ class ReaderTest(unittest.TestCase):
         reader = self.reader(known)
         tokens = list(reader.tokenizer.tokens('身の上話'))
         self.assertIsNone(reader._compound(tokens, 0, {}, [(0, 3, 4, 'みのうえ', 'ばなし')]))  # inside a counter span
+
+    def test_default_readings_replace_sudachis(self):
+        words = self.reader({('日本', 'にほん'), ('日本', 'にっぽん')}).read('日本。')
+        self.assertEqual(words[0], Word(0, 2, '日本', 'にほん', 'default', None))
 
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
