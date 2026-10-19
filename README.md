@@ -222,8 +222,10 @@ python -m yurigana.reading_context build LIBRARY STATE --dictionary jiten_freq_g
 ```
 
 `LIBRARY` is a folder of EPUBs and Aozora-style TXTs (a Calibre library works; the first
-folder level is taken as the author, for the held-out split), `STATE` where
-`reading-model.json.gz` goes; pass that file to `Reader(tables=[...])`. It needs a few GB of
+folder level is taken as the author, for the held-out split; books by Calibre's "Unknown" count
+as one author per series or title), `STATE` where `reading-model.json.gz` goes; pass that file
+to `Reader(tables=[...])`. `--books IDS` (a file of Calibre book ids, one per line) trains on
+those books only; the output lists each book's rows. It needs a few GB of
 memory and about half an hour per 20,000 books on 3 processes (`--processes`). Don't publish
 a table built from copyrighted books.
 
