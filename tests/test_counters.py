@@ -209,7 +209,7 @@ class SudachiCounterTest(unittest.TestCase):
         self.assertIn(('分', 'ぶん'), words)  # 三分の一: the fraction's 分 keeps ぶん
         words = [(w.form, w.reading, w.source) for w in reader.read('六百ページと五分五分の勝負')]
         self.assertIn(('六百', 'ろっぴゃく', 'counter'), words)  # a number alone: not Sudachi's ろくひゃく
-        self.assertIn(('分', 'ぶ', 'counter'), words)
+        self.assertIn(('五分', 'ごぶ', 'counter'), words)
         self.assertNotIn('counter', [w.source for w in reader.read('数万の人')[:2]])  # 万 alone isn't いちまん
         words = reader.read('一人で十分です。')  # lexicalised: one token each, left alone
         self.assertNotIn('counter', [w.source for w in words])

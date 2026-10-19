@@ -4,9 +4,8 @@ The [README](../README.md) has install and a first example. This page has the de
 
 ## Reader.read
 
-そら over 宇宙 is flavour ruby, so 宇宙 keeps its dictionary reading. With a reading list,
-`Reader(known='jiten_freq_global.zip')`, 見上げる gets みあげる (`source='only'`: the list
-gives it one reading).
+そら over 宇宙 is flavour ruby, so 宇宙 keeps its dictionary reading. 見上げる gets みあげる
+(`source='only'`: the list, JMdict's pairs unless you give one, has one reading for it).
 
 `read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
 kanji, or per compound ([how it works](how-it-works.md#the-order-of-readings)): its character offsets in `text`, its dictionary form (行った: 行く), the reading of
@@ -45,8 +44,9 @@ Options, all optional:
   (Sudachi's own reading can be one: certainty 0, see [Certainty](how-it-works.md#certainty)), and forms the list gives a single
   reading get `source='only'` when JMdict (`jmdict-pairs.json.gz`, bundled) gives the form
   that reading too or has no entry for it: Jiten's list carries parser noise (声がけ こえかけ,
-  振り幅 しんぷく). Without one, ruby must be spelled by its kanji's
-  readings (`kanji-readings.json`) and the rules and the model are trusted.
+  振り幅 しんぷく). Without one, JMdict's pairs are the list (about 0.5 s and 140 MB more at
+  start), and ruby JMdict doesn't list is still taken when it is spelled by its kanji's readings
+  (`kanji-readings.json`: names, 柚木 ゆき).
 - `Reader(tables=[path])`: reading-model tables built from your own library ([training](training.md)), tried
   before the public one. A missing file is skipped, so you can always pass the path.
 - `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;
