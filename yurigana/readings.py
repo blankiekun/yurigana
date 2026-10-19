@@ -8,6 +8,8 @@ Anything with `__contains__` works.
 import itertools
 import re
 
+from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
+
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
 
@@ -94,6 +96,8 @@ _CONTEXT_RULES = {
               r'|が(?:吹|強|弱|やみ|止|冷|涼|出|そよ)|を(?:受け|切|感じ|起こ)|の(?:音|便り)')],
     # 中 after a stretch of time or a place, "all through" (一日中, 世界中): じゅう; Sudachi says ちゅう,
     # right after activities (授業中), 午前, 今週/今月 (こんしゅうちゅう) and 数日 (within days).
+    # 十分: Sudachi's じゅうぶん where it keeps one token; minutes with a cue (counters.TEN_MINUTES_*).
+    '十分': [('じゅっぷん', _TEN_MINUTES_BEFORE, _TEN_MINUTES_AFTER)],
     '中': [('じゅう', r'(?:(?<![十両数])[一１1]日|今日|明日|一晩|一夜|今夜|一年|今年|(?<![今来])年|[春夏秋冬]|一生'
              r'|世界|日本|国|町|街|村|家|部屋|学校|会社|体|身体|からだ|そこら|そこいら|辺り|あたり|近所|ホテル|クラス|島|屋敷|城)$', None)],
     # 方: かた for a person (あの方, 素敵な方です, 学生の方は, 方がいらっしゃる); ほう in comparisons (やる方がいい).

@@ -71,6 +71,13 @@ _MONTH = ('し', 'しち', 'く')
 # 咲き/目/通り (三分咲き, 八分目)
 _BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9０-９]分と?)$')
 _BU_AFTER = re.compile(r'と?[〇一二三四五六七八九十0-9０-９]+分|[咲目]|通り|どおり')
+# 十分 on its own (no number before it) is じゅうぶん, "enough", unless a cue says minutes (三時十分,
+# あと十分, 十分後, 十分ほど); readings._CONTEXT_RULES uses them too, where Sudachi keeps 十分 one token.
+TEN_MINUTES_BEFORE = r'(?:[0-9０-９〇一二三四五六七八九十何]時|あと|後|残り|約|およそ|最初の|最後の|わずか|僅か|ほんの|たった|ものの)$'
+TEN_MINUTES_AFTER = (r'(?:後|前(?!後|進)|間(?!に合|にあ|違|ちが)|おき|置き|ごと|毎|以内|足らず|たらず|弱|ほど|程|くらい|ぐらい|ばかり'
+                     r'|近く|ちかく|余り|あまり(?!に|の)|経|たっ|たた|たつ|遅れ|おくれ|か(?:か|け)|掛|[0-9０-９〇一二三四五六七八九]+秒'
+                     r'|で(?:着|終|戻|帰|出|始|済|行|来))')
+_TEN_MINUTES = (re.compile(TEN_MINUTES_BEFORE), re.compile(TEN_MINUTES_AFTER))
 
 
 def number_value(surface: str):
@@ -179,6 +186,9 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         if kind in (4, 7, 9):
             kana = kana[:-len(final)] + ('よん', 'しち', 'く')[(4, 7, 9).index(kind)]
         return kana, 'ぶ'
+    if counter == '分' and number == '十' and not NUMERAL.search(before[-1:]) \
+            and not (_TEN_MINUTES[0].search(before) or _TEN_MINUTES[1].match(after)):
+        return 'じゅう', 'ぶん'  # 十分 "enough", where Sudachi split it (十分には)
     # a fraction (三分の一), unless の goes on with something else (徒歩１０分のところ: ふん; 十分の理解 is じゅうぶん)
     if counter == '分' and sudachi == 'ぶん' and (number == '十' or after[:1] != 'の' or NUMERAL.match(after[1:2])):
         return kana, 'ぶん'

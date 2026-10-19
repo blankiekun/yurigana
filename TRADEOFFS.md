@@ -33,12 +33,15 @@ ruby). Forms and numbers only.
 | T19 | Two consecutive kanji digits are "two or three" (二三日 にさんにち) | #18 | era years (昭和二三年) | rare | skip after an era name (昭和 平成 明治 大正 令和) |
 | T20 | 一間 is read いっけん (length) | #18 | ひとま (one room) | no cue yet | context (部屋, 座敷 → ひとま) |
 | T21 | A counter span Word overlaps its own tokens (三本 over 三 + 本) | #3 | word lists must skip it (chimimouryou's v7) | readings files can use it | none (consumer rule) |
-| T22 | 十分 written in kanji is always じゅうぶん (Sudachi's one token); only 三十分-style numbers and digits (10分) read as minutes | #3, #18 | 十分待った "waited ten minutes" read じゅうぶん | the adverb is far more common | a minutes cue (十分後, 十分前, 十分間, 十分おき, 十分で着く, a clock time nearby) |
 | T23 | 分 as a tenth (ぶ) only with cues: pairs (五分五分), after 割/寸/両, before 咲き/目/通り | #15 | literary tenths without a cue (八分は…二分だけ) read as minutes | minutes are far more common | a cue from the sentence (another N分 nearby, no time words) |
+| T22 | A bare 十分 with no minutes cue reads じゅうぶん, whether or not Sudachi splits it | #22 | 十分待った, 十分休んだ meaning ten minutes read じゅうぶん | "enough" is far more common (B1 29, B2 19, NDL 48 vs ~3 minutes) | more minute cues (counters.TEN_MINUTES_BEFORE/AFTER); 十分間に合う at a line start is split 十 + 分間 by Sudachi and still reads ふんかん |
+| T24 | A split compound's second part is voiced when the list's compounds voice that tail ≥ 4 in 5 (小屋 ごや, 細工 ざいく) | #21 | NDL pairs that don't voice (袴羽織), a name + noun (先生布団); B1 8, NDL report 1 | B1 +26, NDL report +39 (display) | per-pair evidence; non-noun tails (好き, 深い) not handled yet |
+| T25 | A Sudachi reading one voicing away from a 3+ character word's only listed reading takes the listed one | #21 | 投票所 じょ (list しょ; both in use) | 睡眠不足 ぶそく and similar | none (both standard) |
 
 ## Resolved
 
 | id | trade-off | from | resolved by |
 |---|---|---|---|
 | R1 | Stripping る from 来る gave く over 来た/来ない/来い | `evaluate` | #15 (`surface_reading` with `after`) |
+| R3 | 十分 read じゅっぷん where Sudachi split it even when it means "enough" (十分には, 将来十分見込み); じゅうぶん where Sudachi kept one token even with a minutes cue (十分足らず, あと十分) | #3 | #22: one cue set for both |
 | R2 | 三軒 surname path had no effect (the dictionary Word won over the counter span) | #3 | #18 |
