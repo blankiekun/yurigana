@@ -26,7 +26,7 @@ _QUESTION = {'何': ('なん', '何'), '幾': ('いく', '幾'), '何十': ('な
              '何千': ('なんぜん', 1000), '何万': ('なんまん', 10 ** 4)}
 
 # counter (Sudachi's normalized form) -> (plain reading, sound class, reading after 3/何/千/万, 4 7 9)
-# class: k s t h gemination (h becomes p), w 羽, n none
+# class: k s t h gemination (h becomes p), w 羽, y ひと/ふた for 1 and 2 (一晩 ひとばん), n none
 _479 = ('よん', 'なな', 'きゅう')
 _YO = ('よ', 'なな', 'きゅう')
 _HOURS = ('よ', 'しち', 'く')
@@ -48,7 +48,19 @@ COUNTERS = {
     '名': ('めい', 'n', None, _479), '円': ('えん', 'n', None, _YO), '年': ('ねん', 'n', None, _YO),
     '年間': ('ねんかん', 'n', None, _YO), '時': ('じ', 'n', None, _HOURS), '時間': ('じかん', 'n', None, _HOURS),
     '人': ('にん', 'n', None, ('よ', 'しち', 'きゅう')),
+    # older measures and less common counters
+    '銭': ('せん', 's', None, _479), '周': ('しゅう', 's', None, _479), '隻': ('せき', 's', None, _479),
+    '艘': ('そう', 's', None, _479), '寸': ('すん', 's', 'ずん', _479), '尺': ('しゃく', 's', 'じゃく', _479),
+    '升': ('しょう', 's', 'じょう', _479), '貫': ('かん', 'k', 'がん', _479), '脚': ('きゃく', 'k', None, _479),
+    '間': ('けん', 'k', 'げん', _479), '町': ('ちょう', 't', None, _479), '丁': ('ちょう', 't', None, _479),
+    '列': ('れつ', 'n', None, _479), '畳': ('じょう', 'n', None, _YO), '分目': ('ぶんめ', 'n', None, ('よん', 'しち', 'く')),
+    '晩': ('ばん', 'y', None, _479), '粒': ('つぶ', 'y', None, _479), '坪': ('つぼ', 'y', None, _479),
 }
+# counters whose kanji has other readings after a number (二間 ふたま, 三町 まち): only when Sudachi reads them so
+_ONLY_AS = {'間': 'けん', '町': 'ちょう', '畳': 'じょう'}
+# 二三日, 四五人: two consecutive digits are "two or three", each read
+_PAIR = re.compile('[一二三四五六七八][二三四五六七八九]')
+_PAIR_FIRST = {'一': 'いち', '二': 'に', '三': 'さん', '四': 'し', '五': 'ご', '六': 'ろく', '七': 'しち', '八': 'はち'}
 _GEMINATE = {'k': {1, 6, 8, 10, 100}, 'h': {1, 6, 8, 10, 100}, 's': {1, 8, 10}, 't': {1, 8, 10},
              'w': {6, 8, 10, 100}}
 _VOICED_AFTER = {3, '何', 1000, 10 ** 4}
@@ -135,6 +147,12 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
     (reading of the whole, None) when it can't be split (一人 ひとり, 二十日 はつか), or None.
     `before`: the text before the number (月 there makes 一日 ついたち), `after`: the text after
     the counter (五分五分: 分 ぶ)."""
+    if _PAIR.fullmatch(number) and _DIGIT[number[1]] == _DIGIT[number[0]] + 1:
+        if counter in ('日', '日間'):  # 二三日 にさんにち, 三四日 さんよっか
+            return _PAIR_FIRST[number[0]] + ('よっ' if number[1] == '四' else _KANA[_DIGIT[number[1]]]), \
+                ('か' if number[1] == '四' else 'にち') + counter[1:].replace('間', 'かん')
+        found = reading(number[1], counter, sudachi, '', after)
+        return found and found[1] and (_PAIR_FIRST[number[0]] + found[0], found[1])
     if number in _QUESTION:
         kana, kind = _QUESTION[number]
         value = None
@@ -161,15 +179,20 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         if kind in (4, 7, 9):
             kana = kana[:-len(final)] + ('よん', 'しち', 'く')[(4, 7, 9).index(kind)]
         return kana, 'ぶ'
-    if counter == '分' and sudachi == 'ぶん':  # a fraction: 三分の一
+    # a fraction (三分の一), unless の goes on with something else (徒歩１０分のところ: ふん; 十分の理解 is じゅうぶん)
+    if counter == '分' and sudachi == 'ぶん' and (number == '十' or after[:1] != 'の' or NUMERAL.match(after[1:2])):
         return kana, 'ぶん'
     if counter == '人' and value in (1, 2):
         return ('ひとり', 'ふたり')[value - 1], None
     if counter == '歳' and value == 20:
         return 'はたち', None
-    if counter not in COUNTERS:
+    if counter not in COUNTERS or sudachi and _ONLY_AS.get(counter, sudachi) != sudachi:
+        return None
+    if counter == '升' and after[:1] == '目':  # 二升目: the second square (升目 ますめ)
         return None
     plain, cls, voiced, four79 = COUNTERS[counter]
+    if cls == 'y' and value in (1, 2):
+        return ('ひと', 'ふた')[value - 1], plain
     if kind in (4, 7, 9):
         kana = kana[:-len(final)] + four79[(4, 7, 9).index(kind)]
     if kind in _GEMINATE.get(cls, ()):
@@ -186,6 +209,16 @@ def _is_numeral(token) -> bool:
     return token.part_of_speech()[1] in ('数詞', '固有名詞') and bool(NUMERAL.fullmatch(token.surface()))
 
 
+def _fused(token, number: str, counter: str) -> bool:
+    """Whether a token that is a number and a counter (一回, 三軒) is read as one here: names
+    (三軒 みのき, 一列 かずなみ) and words Sudachi reads without the sound change (一回 いちかい)."""
+    from .readings import to_hiragana
+    pos = token.part_of_speech()
+    value = number_value(number)
+    return pos[2] == '人名' or pos[1] == '普通名詞' and value is not None and \
+        to_hiragana(token.reading_form()) == number_reading(value) + COUNTERS[counter][0]
+
+
 def spans(text: str, tokens: list):
     """(start, number end, end, number's reading, counter's reading) for each number + counter in
     `tokens` (Sudachi tokens of `text`); the number's reading is the whole span's and the counter's
@@ -199,8 +232,8 @@ def spans(text: str, tokens: list):
     while i < len(tokens):
         token = tokens[i]
         surface = token.surface()
-        m = NUMERAL.match(surface) if token.part_of_speech()[3] == '姓' else None
-        if m and m.end() < len(surface) and surface[m.end():] in COUNTERS:  # 三軒, 百本 read as surnames
+        m = NUMERAL.match(surface)
+        if m and m.end() < len(surface) and surface[m.end():] in COUNTERS and _fused(token, m.group(), surface[m.end():]):
             found = reading(m.group(), surface[m.end():], '', text[:token.begin])
             if found:
                 out.append((token.begin, token.begin + m.end(), token.begin + len(surface), *found))
@@ -215,6 +248,14 @@ def spans(text: str, tokens: list):
         if j < len(tokens) and adjacent(tokens[j - 1], tokens[j]) and not unread:
             counter = tokens[j]
             end = counter.begin + len(counter.surface())
+            tens = re.fullmatch('(十)(分|人)', counter.surface())
+            if tens:  # 三 + 十分 (じゅうぶん), 二 + 十人: the number goes on
+                found = reading(text[token.begin:counter.begin + 1], tens[2], 'ふん' if tens[2] == '分' else '',
+                                text[:token.begin], text[end:end + 4])
+                if found:
+                    out.append((token.begin, counter.begin + 1, end, *found))
+                i = j + 1
+                continue
             # 一対一 (one on one) is いったいいち
             if not (counter.normalized_form() == '対' and NUMERAL.match(text[end:end + 1])):
                 found = reading(text[token.begin:counter.begin], counter.normalized_form(),
