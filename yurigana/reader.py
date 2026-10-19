@@ -2,10 +2,10 @@
 import json
 import math
 import os
-from collections import Counter
+from collections import defaultdict
 from typing import NamedTuple
 
-from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, context_reading, is_kanji, ruby_reading, to_hiragana
+from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -80,10 +80,12 @@ class Reader:
             known = reading_ranks(known)
         self.known = _Any() if known is None else known
         self.ruby_known = PlainReadings() if known is None else known
-        # Forms the list gives exactly one hiragana reading.
-        counts = Counter(form for form, reading in known if _HIRAGANA_WORD.match(reading)) if known is not None else {}
-        self.only = {form: reading for form, reading in (known or ()) if counts.get(form) == 1
-                     and _HIRAGANA_WORD.match(reading)}
+        # The list's hiragana readings per form, and the forms it gives exactly one.
+        self.readings = defaultdict(list)
+        for form, reading in known or ():
+            if _HIRAGANA_WORD.match(reading):
+                self.readings[form].append(reading)
+        self.only = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
             from .tokens import SudachiTokenizer
@@ -109,7 +111,8 @@ class Reader:
         reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.ruby_known)
         if reading:
             return reading, 'ruby', 1.0
-        reading = context_reading(text, begin, surface, form, self.known)
+        previous = tokens[i - 1] if i and tokens[i - 1].begin + len(tokens[i - 1].surface()) == begin else None
+        reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:
             return reading, 'rule', 1.0
         reading = self.model and self.model.reading(text, tokens, i, form, self.known)
@@ -120,6 +123,10 @@ class Reader:
         only = self.only.get(form)
         if only and sudachi in (None, only):
             return only, 'only', 1.0
+        if surface != form:  # the listed reading that conjugates to Sudachi's reading of the surface
+            reading = conjugated_reading(surface, form, to_hiragana(tokens[i].reading_form()), self.readings.get(form, ()))
+            if reading:
+                return reading, 'dictionary', None
         default = DEFAULT_READINGS.get((form, sudachi))
         if default and (form, default) in self.known:
             return default, 'default', None

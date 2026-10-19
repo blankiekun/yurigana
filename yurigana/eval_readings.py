@@ -33,7 +33,7 @@ def score(results, label):
 
 
 def main(path, dictionary=None, model_path=None):
-    from .readings import DEFAULT_READINGS, context_reading, ruby_reading, to_hiragana
+    from .readings import _HIRAGANA_WORD, DEFAULT_READINGS, conjugated_reading, context_reading, ruby_reading, to_hiragana
     from .reading_model import ReadingModel
     from .text import aozora_text
     from .tokens import SudachiTokenizer
@@ -44,6 +44,10 @@ def main(path, dictionary=None, model_path=None):
     if dictionary:
         known = reading_ranks(dictionary)
         model = ReadingModel.load(model_path) if model_path and os.path.exists(model_path) else None
+    readings = defaultdict(list)
+    for form, reading in known:
+        if _HIRAGANA_WORD.match(reading):
+            readings[form].append(reading)
     results, without_ruby = defaultdict(list), defaultdict(list)
     with open(path, encoding='utf-8') as f:
         for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
@@ -52,15 +56,19 @@ def main(path, dictionary=None, model_path=None):
             if sentence[offset:offset + len(form)] != form:
                 raise ValueError(f'{form} is not at {offset} in {sentence}')
             token = next(m for m in tokenizer.tokenize(sentence) if m.begin() <= offset < m.end())
-            # Sudachi's reading: only for whole, unconjugated words.
-            sudachi = to_hiragana(token.reading_form()) if token.surface() == token.dictionary_form() else None
+            # Sudachi's reading: of whole, unconjugated words; a conjugated one's picks a listed reading.
+            sudachi = to_hiragana(token.reading_form()) if token.surface() == token.dictionary_form() else (
+                conjugated_reading(token.surface(), token.dictionary_form(), to_hiragana(token.reading_form()),
+                                   readings.get(token.dictionary_form(), ())))
             default = dictionary and DEFAULT_READINGS.get((token.dictionary_form(), sudachi))
             sudachi = default if default and (token.dictionary_form(), default) in known else sudachi
             ruby = ruby_reading({s: (e, r) for s, e, r in hints}, token.begin(), token.surface(),
                                 token.dictionary_form(), known)
-            rule = context_reading(sentence, token.begin(), token.surface(), token.dictionary_form(), known)
             tokens = list(analyzer.tokens(sentence))
             index = next((i for i, t in enumerate(tokens) if t.begin == token.begin()), None)
+            previous = tokens[index - 1] if index else None
+            previous_pos = previous.part_of_speech() if previous and previous.begin + len(previous.surface()) == token.begin() else None
+            rule = context_reading(sentence, token.begin(), token.surface(), token.dictionary_form(), known, previous_pos)
             if model and index is not None:
                 rule = rule or model.reading(sentence, tokens, index, token.dictionary_form(), known)
             for reading, out in ((ruby or rule or sudachi, results), (rule or sudachi, without_ruby)):
