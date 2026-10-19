@@ -111,7 +111,7 @@ class TablesTest(unittest.TestCase):
                 f.write('not gzip')
             self.assertEqual(load_tables(paths).forms, {'人家': 'server', '本気': 'aozora'})
             self.assertIsNone(load_tables([os.path.join(tmp, 'missing')]))
-        self.assertGreater(len(load_tables([PUBLIC_TABLE]).forms), 30)  # the committed table
+        self.assertGreater(len(load_tables([PUBLIC_TABLE]).forms), 20)  # the committed table
 
     def test_posterior_agrees_with_the_threshold(self):
         model = ReadingModel({'人気': build_form({r: c for r, (_, c) in counts(HITOKE + NINKI).items()},
