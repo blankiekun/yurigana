@@ -88,6 +88,48 @@ The first step that gives a reading wins:
    富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
    each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
 
+### Numbers and counters
+
+Sudachi gives a number and its counter as separate tokens with fixed readings (三/さん +
+本/ぽん), so `read` also gives one `Word` per number + counter span with the reading of the
+whole, `source='counter'` and certainty None: `Word(start, end, '三本', 'さんぼん', 'counter', None)`.
+It comes just before the tokens' own Words, which stay: the counter's Word gets the
+counter's plain reading (本 ほん) for word lists, with `source='counter'` too (never `only`:
+the plain reading is not how it reads there). Ruby over any part of the span wins: no
+span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅうぶん, 何本, 一日 ついたち
+after a month) are its own.
+
+The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
+[Japanese counters appendix](https://en.wiktionary.org/wiki/Appendix:Japanese_counters)):
+numbers in kanji (三十五, 一九九九), digits (35, ３５) and 何, 幾, 何十/百/千/万, with
+
+| | readings |
+|---|---|
+| gemination of 1, 6, 8, 10, 100 before k and h, of 1, 8, 10 before s and t (h becomes p) | 一本 いっぽん, 六回 ろっかい, 八杯 はっぱい, 十冊 じゅっさつ, 百個 ひゃっこ, 一対 いっつい |
+| voicing after 3, 何, 千, 万 | 三本 さんぼん, 何匹 なんびき, 三階 さんがい, 三軒 さんげん, 三足 さんぞく, 何分 なんぷん |
+| h counters | 本 匹 杯 発 泊 版 編 分 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん) |
+| k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) |
+| s, t counters | 冊 歳/才 足 週 週間; 対 点 頭 通 着 |
+| 羽 | わ, ば after 3/何/千, っぱ after 6, 8, 10, 100 |
+| no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 |
+| 4, 7, 9 | よん, なな, きゅう; 時, 時間 よ, しち, く; 人 よ, しち; 円, 年 よ; 月 し, しち, く |
+| days (日, 日間) | ついたち after 月, else いちにち; ふつか … とおか, じゅうよっか, はつか, にじゅうよっか, 十七日 じゅうしちにち |
+| others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何) |
+
+Where usage varies one reading is given: 8 geminates (はっぽん, not はちほん), 10 is じゅっ
+(not じっ), 七人 しちにん. 一対一 (one on one) is left alone, and numbers with a point or
+a comma are skipped.
+
+`tests/test_counters.py` holds the acceptance grid: 1-10, 100, 1000 and 何, in kanji and
+in digits, with 25 counters, written by hand from the grammar.
+
+Tatoeba is not a fair test here: its readings come from MeCab + IPAdic and were mostly left
+as they were, so they read the parts on their own (一匹 いち + ひき, ２杯 はい). On half b
+(Jiten's list, the benchmark's span aligner, じっ = じゅっ), the 2,530 occurrences a counter
+span covers go from 89.1% to 90.2% micro and 71.0% to 81.4% macro (all 72,838: 87.3% →
+87.4% micro, 81.5% → 82.0% macro): 62 fixed, 32 worse, and all 32 are transcriptions
+that keep the parts' own readings (三階 かい, 一本 いち) or split 二十歳 (はたち doesn't).
+
 ### The flavour rule
 
 Books use ruby for flavour as well as for readings: マジ over 本気, スキル over 異能, そら
@@ -107,7 +149,7 @@ over 宇宙. Such ruby is never a reading:
 |---|---|
 | `ruby`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
-| `default` | None |
+| `default`, `counter` | None |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule

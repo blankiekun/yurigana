@@ -5,6 +5,7 @@ import os
 from collections import defaultdict
 from typing import NamedTuple
 
+from .counters import COUNTERS, spans as counter_spans
 from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
@@ -16,7 +17,8 @@ class Word(NamedTuple):
     end: int
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
-    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default' or 'dictionary' (Sudachi)
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi)
+    # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see the README; None when unknown
 
 
@@ -104,6 +106,20 @@ class Reader:
                 continue
             words.append(Word(token.begin, token.begin + len(surface), form,
                               *self._reading(text, tokens, i, surface, form, hint_at)))
+        # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
+        # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
+        # certainty its reading in the span doesn't have. Ruby over any of it wins.
+        at = {w.start: n for n, w in enumerate(words)}
+        for start, number_end, end, number, counter in counter_spans(text, tokens):
+            if any(s < end and e > start for s, (e, _) in hint_at.items()):
+                continue
+            words.append(Word(start, end, text[start:end], number + (counter or ''), 'counter', None))
+            if counter and number_end in at and words[at[number_end]].end == end:
+                own = words[at[number_end]]
+                plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
+                words[at[number_end]] = own._replace(reading=plain[0] if plain and counter != 'ぶん' else own.reading, source='counter',
+                                                     certainty=None)
+        words.sort(key=lambda w: (w.start, -w.end))
         return words
 
     def _reading(self, text, tokens, i, surface, form, hint_at):

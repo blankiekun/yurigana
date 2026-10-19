@@ -43,7 +43,10 @@ class RuleRowsTest(unittest.TestCase):
                 hints = []
                 text, offset = aozora_text(row['sentence'], None, hints), int(row['offset'])
                 self.assertEqual(text[offset:offset + len(row['form'])], row['form'], row['sentence'])
-                word = next((w for w in reader.read(text, hints) if w.start <= offset < w.end), None)
+                words = reader.read(text, hints)
+                # The form's own Word first: a counter span (何年) overlaps the 何 it starts with.
+                word = next((w for w in words if (w.start, w.end) == (offset, offset + len(row['form']))),
+                            next((w for w in words if w.start <= offset < w.end), None))
                 if word is None or word.reading not in row['reading'].split('|'):
                     misses.add((row['form'], row['sentence']))
         self.assertGreater(rows, 150)
