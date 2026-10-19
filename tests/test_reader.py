@@ -19,7 +19,7 @@ LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', '�
            '一': ('一', 'イチ', '名詞'), '枚': ('枚', 'マイ', '名詞'), '日本': ('日本', 'ニッポン', '名詞'),
            'プレハブ': ('プレハブ', 'プレハブ', '名詞'), '小屋': ('小屋', 'コヤ', '名詞'), 'この': ('この', 'コノ', '連体詞'),
            '箱': ('箱', 'バコ', '名詞'), '深い': ('深い', 'ブカイ', '形容詞'), '沿い': ('沿い', 'ソイ', '接尾辞'),
-           '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞')}
+           '睡眠不足': ('睡眠不足', 'スイミンフソク', '名詞'), '棚': ('棚', 'ダナ', '名詞'), '泳げ': ('泳げる', 'オヨゲ', '動詞')}
 
 
 class ToyTokenizer:
@@ -102,6 +102,10 @@ class ReaderTest(unittest.TestCase):
         reader = self.reader({('行く', 'いく'), ('行く', 'ゆく')})
         self.assertEqual(reader.read('行った。')[0], Word(0, 2, '行く', 'いく', 'dictionary', None))
         self.assertEqual(self.reader({('行く', 'ゆく'), ('行く', 'おこなう')}).read('行った。')[0][3:5], (None, 'dictionary'))
+
+    def test_conjugated_word_the_list_lacks_takes_sudachis_reading(self):
+        reader = self.reader({('泳ぐ', 'およぐ')})
+        self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'dictionary', None))
 
     def test_default_replaces_a_wrong_sudachi_reading(self):
         self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'default', None))

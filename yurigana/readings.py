@@ -273,6 +273,21 @@ def conjugated_reading(surface: str, form: str, sudachi: str, readings) -> str |
     return matches[0] if len(matches) == 1 else None
 
 
+def unlisted_reading(surface: str, form: str, sudachi: str) -> str | None:
+    """The dictionary form's reading from Sudachi's reading of the conjugated `surface`, for a form
+    the list has no reading for: 泳げ (泳げる), およげ → およげる; 思ひ (思ふ), おもひ → おもふ. The
+    stem's reading plus the form's okurigana, so surface_reading gives `sudachi` back. None when
+    the surface isn't the stem plus kana or Sudachi's reading doesn't end in that kana."""
+    stem, okurigana = re.fullmatch(r'(.*?)([ぁ-ゖ]*)', form).groups()
+    tail = surface[len(stem):]
+    if not stem or not surface.startswith(stem) or (tail and not _KANA_TAIL.fullmatch(tail)):
+        return None
+    tail = to_hiragana(tail)
+    if not sudachi or len(sudachi) <= len(tail) or not sudachi.endswith(tail):
+        return None
+    return sudachi[:len(sudachi) - len(tail)] + okurigana
+
+
 _KANA_TAIL = re.compile(r'[ぁ-ゖァ-ヺーゝゞヽヾ]+')
 # 来る's stem by what follows it: こ before the 未然形/命令形 endings (来ない, 来なきゃ, 来よう, 来い,
 # 来られる, 来まい, 来ねえ), く before る/れば/りゃ, き otherwise (来た, 来ます, 来て, 来ながら, 来なさい).
