@@ -15,6 +15,7 @@ dependencies = ["SudachiPy>=0.7,<0.8", "SudachiDict-full==20260723.1"]
 
 [project.optional-dependencies]
 # Baselines for python -m yurigana.evaluate (UniDic full: pip install unidic && python -m unidic download)
+# ginza and yomikata conflict with SudachiPy 0.7 / need torch 1.13: a second environment (yurigana/evaluate.py)
 eval = ["fugashi", "ipadic", "unidic-lite", "pykakasi"]
 
 [project.urls]

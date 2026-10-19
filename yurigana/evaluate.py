@@ -40,6 +40,13 @@ Systems (`--systems all` runs every one installed; the others are skipped with a
 ours (yurigana.Reader with --known, the shipped pipeline), sudachi-A/B/C (SudachiDict-full),
 mecab-ipadic and mecab-unidic (fugashi; UniDic full when the unidic package's dictionary is
 downloaded, else unidic-lite), pykakasi. `pip install "yurigana[eval]"` installs them.
+ginza (spaCy + ja_ginza; Sudachi readings through GiNZA's own model) and yomikata (a BERT model
+for 130 heteronyms, then MeCab + UniDic) can't share an environment with yurigana's SudachiPy
+0.7 (GiNZA wants <0.7, yomikata pins torch 1.13 and Python 3.10), so they run from a second
+environment with yurigana on PYTHONPATH:
+  pip install spacy ja-ginza
+  pip install --no-deps yomikata && pip install torch transformers fugashi unidic jaconv speach pynvml rich
+  python -m unidic download && python -m yomikata download
 
 Metrics, each with a 95% interval from a bootstrap over sentences:
 - word list: share of items read right (voicing folded), over all kanji words;
@@ -77,7 +84,8 @@ from .readings import HAS_KANJI, to_hiragana
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 B2_IDS = os.path.join(HERE, 'tatoeba-b2-ids.txt.gz')
-SYSTEMS = ('ours', 'sudachi-A', 'sudachi-B', 'sudachi-C', 'mecab-ipadic', 'mecab-unidic', 'pykakasi')
+SYSTEMS = ('ours', 'sudachi-A', 'sudachi-B', 'sudachi-C', 'mecab-ipadic', 'mecab-unidic', 'pykakasi', 'ginza',
+           'yomikata')
 BOTH_STANDARD = frozenset('明日 日本 私 昨日 一昨日 明後日 一昨年 今年 何故 他'.split())
 SHOWN = ('only', 'rule', 'model')  # the sources chimimouryou shows as furigana
 MIN_GOLD = 5
@@ -160,11 +168,44 @@ def _pykakasi():
     return lambda text: _in_order(text, [(item['orig'], item['hira']) for item in kakasi.convert(text)])
 
 
+def _ginza():
+    import spacy
+    nlp = spacy.load('ja_ginza')
+
+    def tokens(text):
+        return [(t.idx, t.idx + len(t.text), to_hiragana(t.morph.get('Reading')[0]) if t.morph.get('Reading') else None,
+                 None) for t in nlp(text)]
+    return tokens
+
+
+_RUBY = re.compile(r'\{([^{}/]+)(?:/([^{}]+))?\}')
+
+
+def yomikata_pieces(marked: str):
+    """(base, reading or None) of each {base/reading} or {base} group of yomikata's output."""
+    return [(m[1], m[2]) for m in _RUBY.finditer(marked)]
+
+
+def _yomikata():
+    import unicodedata
+    from yomikata.dbert import dBert
+    from yomikata.dictionary import Dictionary
+    bert, dictionary = dBert(), Dictionary('unidic')
+    surfaces = list(bert.heteronyms)
+
+    def tokens(text):
+        marked = bert.furigana(text) if any(s in text for s in surfaces) else text
+        if _RUBY.sub(r'\1', marked) != unicodedata.normalize('NFKC', text):
+            marked = text  # BERT truncated or [UNK]ed the sentence: dictionary readings only
+        return _in_order(text, yomikata_pieces(dictionary.furigana(marked)))
+    return tokens
+
+
 
 def make_system(name: str, known=None):
     kind, _, arg = name.partition('-')
     factory = {'ours': lambda: _ours(known), 'sudachi': lambda: _sudachi(arg), 'mecab': lambda: _mecab(arg),
-               'pykakasi': _pykakasi}.get(kind)
+               'pykakasi': _pykakasi, 'ginza': _ginza, 'yomikata': _yomikata}.get(kind)
     if factory is None or name not in SYSTEMS:
         raise ValueError(f'unknown system {name}; known: {", ".join(SYSTEMS)}')
     return factory()
@@ -491,7 +532,9 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
         try:
             made[system] = (lambda f: lambda s: f(s['text']))(make_system(system, known))
         except ImportError as error:
-            report['notes'].append(f'{system} skipped: {error.name} is not installed (pip install "yurigana[eval]")')
+            how = ('a second environment: see the docstring of yurigana/evaluate.py' if system in ('ginza', 'yomikata')
+                   else 'pip install "yurigana[eval]"')
+            report['notes'].append(f'{system} skipped: {error.name} is not installed ({how})')
     for system, path in predictions:
         made[system] = predictions_system(path)
     report['notes'] += NOTES
