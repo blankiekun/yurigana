@@ -86,6 +86,9 @@ _IRU_STEM = '(?:' + words(IRU_STEM) + r'|[一-鿿](?<!少)[きぎしちびみり
 # Metals and the like near 金 make it the metal, きん (金は銀より重い); 銀行 is money.
 _METAL = '(?:' + words(METAL) + r'|銀(?!行))'
 _CONTEXT_RULES = {
+    # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
+    '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
+            r'|が(?:発表|公表|決め|要請|実施|定め|設置|管理)')],
     '人気': [('にんき', None, r'の(?:な|無)(?:い|かった)(?:奴|やつ|者|人|キャラ|作品|商品|子(?!供|ども)|アイドル|作家|店)'),
              ('ひとけ', None, r'の(?:な[いくかけ]|無[いくかけ])|[がのはも]?(?:少な|絶え|途絶え)|も(?:な[いくかけ]|無)'),
              ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:' + words(STREET, '場所', '所', 'ところ', '道', '廊下', '部屋', '時', 'とき')
@@ -200,6 +203,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって',
                  ('他', 'た'): 'ほか', ('種', 'しゅ'): 'たね', ('白髪', 'はくはつ'): 'しらが',
                  ('日本', 'にっぽん'): 'にほん',
+                 # Fiction's 都 みやこ and 露 つゆ (Sudachi: と, ろ); 都 as Tokyo's government is a context rule,
+                 # and 露 next to a kanji (露大統領, Russia) keeps ろ (GLUED_CHECKED).
+                 ('都', 'と'): 'みやこ', ('露', 'ろ'): 'つゆ', ('朝露', 'ちょうろ'): 'あさつゆ',
                  # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
                  ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
                  ('近々', 'ちかじか'): 'ちかぢか',
@@ -241,6 +247,10 @@ def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__))
 
 
 DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
+
+
+# Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ')})
 
 
 def glued(text: str, begin: int, end: int) -> bool:
