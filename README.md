@@ -54,8 +54,9 @@ Options, all optional:
 - `Reader(known=...)`: the (form, reading) pairs a reading must be one of: a set, a dict
   keyed by them, or the path of a rank-based Yomitan frequency list with readings (e.g.
   [Jiten's](https://jiten.moe/frequency-dictionaries), `jiten_freq_global.zip`, not
-  included). With one, readings outside the list are never given, and forms the list gives
-  a single reading get `source='only'`. Without one, ruby must be spelled by its kanji's
+  included). With one, ruby, rules and the model never give a reading outside the list
+  (Sudachi's own reading can be one: certainty 0, below), and forms the list gives a single
+  reading get `source='only'`. Without one, ruby must be spelled by its kanji's
   readings (`kanji-readings.json`) and the rules and the model are trusted.
 - `Reader(tables=[path])`: reading-model tables built from your own library (below), tried
   before the public one. A missing file is skipped, so you can always pass the path.
@@ -204,6 +205,15 @@ over 宇宙. Such ruby is never a reading:
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `default`, `counter` | None |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
+| `name` | None: a person's name (Sudachi's 固有名詞-人名) not under ruby; its reading is Sudachi's or the list's guess |
+
+Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
+reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that
+isn't hiragana or ー (Sudachi's reading of a word it doesn't know is the word's own kanji, 於)
+is None. Loanword readings keep ー (ラーメン屋 らーめんや): fine in a word list, never shown
+(the list's reading of such a word is katakana, so it is never `only`). Names are never
+`only`, `rule` or `model`. To show furigana only where they are
+likely right, show `ruby`, `rule`, `model` and `only`.
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule
 says; the model's posterior is a naive Bayes posterior, which is overconfident, and the only

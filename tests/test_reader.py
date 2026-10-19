@@ -109,7 +109,7 @@ class ReaderTest(unittest.TestCase):
 
     def test_conjugated_word_the_list_lacks_takes_sudachis_reading(self):
         reader = self.reader({('泳ぐ', 'およぐ')})
-        self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'dictionary', None))
+        self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'dictionary', 0.0))  # not listed
 
     def test_default_replaces_a_wrong_sudachi_reading(self):
         self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'default', None))
@@ -131,6 +131,25 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(rendaku('たな'), 'だな')
         self.assertIsNone(rendaku('かぜ'))  # Lyman's law
         self.assertIsNone(rendaku('ろく'))
+
+    def test_certainty_hygiene(self):
+        name = ('名詞', '固有名詞', '人名', '名', '*', '*')
+        noun = ('名詞', '普通名詞', '一般', '*', '*', '*')
+
+        class Fixed:
+            def tokens(self, text):
+                return [Token('健', '健', '健', name, 'ケン', 0), Token('珈琲', '珈琲', '珈琲', noun, 'コーヒー', 1),
+                        Token('鵝毛', '鵝毛', '鵝毛', noun, '鵝毛', 3), Token('廊下', '廊下', '廊下', noun, 'ロウカ', 5),
+                        Token('学校', '学校', '学校', noun, 'ガッコウ', 7)]
+        known = {('健', 'けん'), ('珈琲', 'コーヒー'), ('廊下', 'ろうか'), ('学校', 'がくこう')}
+        words = Reader(known, tokenizer=Fixed()).read('健珈琲鵝毛廊下学校')
+        self.assertEqual(words[0][2:], ('健', 'けん', 'name', None))  # a name is never 'only'
+        self.assertEqual([w.reading for w in words[1:3]], ['こーひー', None])  # ー is kept; an unknown word's kanji is not
+        self.assertEqual(words[3][3:], ('ろうか', 'only', 1.0))
+        self.assertEqual(words[4][3:], ('がっこう', 'dictionary', 0.0))  # not a listed reading
+        hints = []
+        text = aozora_text('健《たけし》珈琲鵝毛廊下学校', None, hints)
+        self.assertEqual(Reader(known | {('健', 'たけし')}, tokenizer=Fixed()).read(text, hints)[0][3:], ('たけし', 'ruby', 1.0))
 
     def test_plain_readings(self):
         plain = PlainReadings()

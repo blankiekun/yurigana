@@ -15,6 +15,7 @@ KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji
 
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
+_KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 _UNITS = re.compile('[十百千万億兆]')
 _ONE_UNIT = re.compile('一百|^[万億兆]')
 # 一 with the rest of a native word in kana: 一ト月, 一と息 (ひ, と), 一しずく (ひと), 一たい (いっ)
@@ -28,9 +29,14 @@ class Word(NamedTuple):
     end: int
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
-    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi)
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi),
+    # 'name' (a person's name, Sudachi's 固有名詞-人名: its reading is a guess)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see the README; None when unknown
+
+
+def _is_name(token):
+    return token.part_of_speech()[1:3] == ('固有名詞', '人名')
 
 
 def _end(token):
@@ -153,7 +159,7 @@ class Reader:
             surface, form = token.surface(), token.dictionary_form()
             if not HAS_KANJI.search(surface):
                 continue
-            reading, source, certainty = self._reading(text, tokens, i, surface, form, hint_at)
+            reading, source, certainty = self._checked(token, form, *self._reading(text, tokens, i, surface, form, hint_at))
             if reading and source not in ('ruby', 'counter'):
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
@@ -214,6 +220,21 @@ class Reader:
             if default and (form, default) in self.known:
                 return i + n, Word(begin, end, form, default, 'default', None)
         return None
+
+    def _checked(self, token, form, reading, source, certainty):
+        """Certainty hygiene for a reading not from ruby: one that isn't hiragana or ー (Sudachi's
+        reading of a word it doesn't know is its surface, 於) is None; a person's
+        name gets source 'name' (shown by nobody: 'only' or the model would claim a certainty
+        a name's reading never has); a reading the list doesn't give for the form gets 0."""
+        if source == 'ruby':
+            return reading, source, certainty
+        if reading and not _KANA_READING.match(reading):
+            return None, source, None
+        if _is_name(token):
+            source, certainty = 'name', None
+        if reading and (form, reading) not in self.known:
+            certainty = 0.0
+        return reading, source, certainty
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
