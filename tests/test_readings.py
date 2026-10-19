@@ -1,7 +1,7 @@
 """Tests for yurigana.readings: ruby and context rules."""
 import unittest
 
-from yurigana.readings import conjugated_reading, context_reading, ruby_reading, surface_reading
+from yurigana.readings import conjugated_reading, context_reading, ruby_reading, surface_reading, unlisted_reading
 
 
 class RubyReadingTest(unittest.TestCase):
@@ -54,6 +54,16 @@ class ConjugatedReadingTest(unittest.TestCase):
         self.assertIsNone(conjugated_reading('行っ', '行く', 'おこなっ', ['いく', 'ゆく']))  # none matches
         self.assertIsNone(conjugated_reading('言わ', '言う', 'いわ', []))
         self.assertIsNone(conjugated_reading('云っ', '言う', 'いっ', ['いう']))  # stem spelled apart
+
+    def test_unlisted_form_takes_sudachis_stem(self):
+        for surface, form, sudachi, reading in (('泳げ', '泳げる', 'およげ', 'およげる'), ('来れ', '来れる', 'これ', 'これる'),
+                                                ('思ひ', '思ふ', 'おもひ', 'おもふ'), ('悲しき', '悲し', 'かなしき', 'かなし'),
+                                                ('往っ', '往く', 'いっ', 'いく')):
+            self.assertEqual(unlisted_reading(surface, form, sudachi), reading, surface)
+            self.assertEqual(surface_reading(surface, form, reading), sudachi, surface)  # round trip
+        self.assertIsNone(unlisted_reading('云っ', '言う', 'いっ'))  # stem spelled apart
+        self.assertIsNone(unlisted_reading('泳げ', '泳げる', 'およぐ'))  # Sudachi's reading doesn't end in げ
+        self.assertIsNone(unlisted_reading('泳げ', '泳げる', ''))
 
     def test_kuru(self):
         for surface, sudachi in (('来', 'き'), ('来', 'こ'), ('来よう', 'こよう'), ('来い', 'こい'), ('来れ', 'くれ')):

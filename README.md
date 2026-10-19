@@ -42,9 +42,8 @@ gives it one reading).
 `read` gives one `Word` (a named tuple, easy to serialise) per token whose surface has
 kanji, or per compound (below): its character offsets in `text`, its dictionary form (行った: 行く), the reading of
 that form in hiragana, where the reading came from and how certain it is. `reading` is
-None when nothing gives one (without a reading list: a conjugated word without ruby, rule or
-model; with one: a conjugated word none or several of whose listed readings fit Sudachi's
-reading of it). `readings.surface_reading(surface, form, reading, after)` turns it into the
+None when nothing gives one (a conjugated word whose listed readings don't single out one
+that fits Sudachi's reading of it, or whose surface isn't its kanji stem plus kana). `readings.surface_reading(surface, form, reading, after)` turns it into the
 reading of the surface, for furigana: 行っ, 行く, いく → いっ; 来 before た is き, before ない こ.
 
 `book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
@@ -96,6 +95,9 @@ reading wins:
    (行っ, 言わ, 早く), with a reading list: the one listed reading of its form that conjugates
    to Sudachi's reading of the surface (行っ read いっ is 行く いく, not ゆく; 来 read き or こ
    is くる), when exactly one does (`readings.conjugated_reading`, `source='dictionary'`).
+   When the list has no reading for the form at all (potential 泳げる, ら抜き 来れる, 文語 思ふ,
+   悲し) or there is no list: Sudachi's reading of the stem plus the form's okurigana
+   (`readings.unlisted_reading`, `source='dictionary'`, certainty None).
    A few of Sudachi's readings that are almost always wrong in modern text are replaced
    (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
    富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:

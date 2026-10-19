@@ -56,7 +56,8 @@ Metrics, each with a 95% interval from a bootstrap over sentences:
   items each; macro is the mean over forms of the mean accuracy per reading;
 - align fail: items whose stretch couldn't be scored (counted wrong above);
 - no reading: items the system gives no reading (counted wrong above): Reader.read gives
-  a conjugated word none unless the list has one reading for it or a rule or the model does;
+  a conjugated word none when its listed readings don't single out the one Sudachi reads
+  (a form the list lacks takes Sudachi's) and no ruby, rule or model gives one;
   chimimouryou then uses the book's most common reading of the word;
 - shown precision and coverage (ours only): the readings the reader would show as furigana
   (source only, rule or model: hiragana and listed), how often they are right (display) and

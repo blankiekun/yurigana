@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -249,6 +249,10 @@ class Reader:
             return only, 'only', 1.0
         if surface != form:  # the listed reading that conjugates to Sudachi's reading of the surface
             reading = conjugated_reading(surface, form, to_hiragana(tokens[i].reading_form()), self.readings.get(form, ()))
+            if reading:
+                return reading, 'dictionary', None
+            # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
+            reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
             if reading:
                 return reading, 'dictionary', None
         default = DEFAULT_READINGS.get((form, sudachi))
