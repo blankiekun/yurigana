@@ -147,7 +147,7 @@ The tables below are for 0.1. Since then, the default readings above and a wider
 (なに before か, する, verbs and ？) give, on all of Tatoeba's half b with no ruby (72,838
 occurrences, scored on spans as the sentences mark them), micro 79.4% → 86.3%, macro
 79.7% → 80.2%, micro over forms with 2+ gold readings 81.4% → 82.6% (私 alone is 4,422 of
-the 5,086 occurrences fixed; 33 got worse, all 何). The hand-written sentences, now 200 of
+the 5,086 occurrences fixed; 32 got worse, all 何). The hand-written sentences, now 200 of
 43 forms: 95.4% with ruby, 81.7% without.
 
 Hand-written sentences (`eval_readings.py`, 193 sentences, 40 forms), macro:
