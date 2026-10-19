@@ -105,6 +105,20 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.1% of
 the time on the modern books and cover 71% of their words; the rest are left for the reader.
+In a typical book (median of 20 post-war library books: 114,000 characters, about 19,000 kanji
+words, of which about 12,000 get furigana marked as sure), on plain text without the book's ruby:
+
+| | rate | per book |
+|---|---|---|
+| any kanji word read wrong (word list) | 2.5% (1.7–3.3%) | about 475 (320–630) |
+| furigana marked as sure and wrong | 0.2% of those shown (0–0.5%) | about 25 (0–60) |
+| Sudachi alone, any word wrong | 4.9% | about 930 |
+
+Rates come from plain sentences of held-out authors scored against Opus and Sonnet where they
+agree, which is itself about 1% wrong, so these are slight overestimates. A real book's own ruby
+fixes many names and rare words, and a misread word counts every time it appears, so the number
+of distinct wrong words is much lower.
+
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
