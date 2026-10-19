@@ -205,6 +205,8 @@ The hand-written sentences in `readings-test.tsv` are a unit test of the context
 
 ## Accuracy
 
+Known trade-offs (what each reading change breaks, and the way out) are listed in [TRADEOFFS.md](TRADEOFFS.md).
+
 `python -m yurigana.evaluate` scores the shipped `Reader.read` (no ruby in the input) next to
 other tokenisers' readings, on gold sets with 95% intervals (bootstrap over sentences):
 
