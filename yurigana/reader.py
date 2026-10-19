@@ -6,7 +6,7 @@ import re
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, spans as counter_spans
+from .counters import COUNTERS, number_reading, number_value, spans as counter_spans
 from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
@@ -15,6 +15,8 @@ KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji
 
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
+_UNITS = re.compile('[十百千万億兆]')
+_ONE_UNIT = re.compile('一[百千]|^[万億兆]')
 
 
 class Word(NamedTuple):
@@ -135,8 +137,8 @@ class Reader:
             if counter and number_end in at and words[at[number_end]].end == end:
                 own = words[at[number_end]]
                 plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
-                words[at[number_end]] = own._replace(reading=plain[0] if plain and counter != 'ぶん' else own.reading, source='counter',
-                                                     certainty=None)
+                reading = {'ぶん': own.reading, 'ぶ': 'ぶ'}.get(counter, plain[0] if plain else own.reading)
+                words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
@@ -170,6 +172,11 @@ class Reader:
         reading = hint_at and ruby_reading(hint_at, begin, surface, form, self.ruby_known)
         if reading:
             return reading, 'ruby', 1.0
+        # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
+        # a bare 万 (数万, 何千万: not いちまん) are left alone.
+        value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
+        if value and tokens[i].part_of_speech()[1] == '数詞':
+            return number_reading(value), 'counter', None
         previous = tokens[i - 1] if i and tokens[i - 1].begin + len(tokens[i - 1].surface()) == begin else None
         reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:

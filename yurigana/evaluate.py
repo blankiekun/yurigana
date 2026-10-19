@@ -80,7 +80,7 @@ import time
 import zlib
 from collections import Counter, defaultdict
 
-from .readings import HAS_KANJI, to_hiragana
+from .readings import HAS_KANJI, surface_reading, to_hiragana
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 B2_IDS = os.path.join(HERE, 'tatoeba-b2-ids.txt.gz')
@@ -108,21 +108,10 @@ def fold(reading: str, voicing: bool) -> str:
 # ---------------------------------------------------------------------------- systems
 # Each returns tokens(text) -> [(start, end, reading of text[start:end] or None, shown or None[, source])].
 
-def surface_reading(surface: str, form: str, reading: str | None) -> str | None:
-    """The reading of a token's surface from its dictionary form's: 行った, 行く, いく → いった."""
-    if reading is None or surface == form:
-        return reading
-    stem, okurigana = re.match(r'^(.*?)([ぁ-ゖ]*)$', form).groups()
-    rest = surface[len(stem):]
-    if stem and surface.startswith(stem) and reading.endswith(okurigana) and (not rest or _KANA.match(rest)):
-        return reading[:len(reading) - len(okurigana)] + to_hiragana(rest)
-    return None
-
-
 def _ours(known):
     from .reader import Reader
     reader = Reader(known=known)
-    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading), w.source in SHOWN,
+    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), w.source in SHOWN,
                           w.source) for w in reader.read(text)]
 
 

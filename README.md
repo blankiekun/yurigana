@@ -44,7 +44,8 @@ kanji, or per compound (below): its character offsets in `text`, its dictionary 
 that form in hiragana, where the reading came from and how certain it is. `reading` is
 None when nothing gives one (without a reading list: a conjugated word without ruby, rule or
 model; with one: a conjugated word none or several of whose listed readings fit Sudachi's
-reading of it).
+reading of it). `readings.surface_reading(surface, form, reading, after)` turns it into the
+reading of the surface, for furigana: 行っ, 行く, いく → いっ; 来 before た is き, before ない こ.
 
 `book_text(path, 'EPUB' | 'HTMLZ' | 'TXT', None, hints)` gives a book's plain text, one
 paragraph per line, without tables of contents or colophons, and its ruby as hints.
@@ -94,6 +95,7 @@ token is read on its own; the first step that gives a reading wins:
    each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
    日本 にっぽん → にほん is the exception: Tatoeba's machine gold keeps にっぽん often enough
    to miss that bar, but the human ruby of the NDL test set almost never uses it.
+   鼻血, 間近, 手近 and 近々 get ぢ, the spelling of their rendaku (Sudachi writes じ).
 
 ### Numbers and counters
 
@@ -104,7 +106,8 @@ It comes just before the tokens' own Words, which stay: the counter's Word gets 
 counter's plain reading (本 ほん) for word lists, with `source='counter'` too (never `only`:
 the plain reading is not how it reads there). Ruby over any part of the span wins: no
 span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅうぶん, 何本, 一日 ついたち
-after a month) are its own.
+after a month) are its own. A number alone gets the same readings (六百 ろっぴゃく, 三千
+さんぜん; Sudachi reads them digit by digit), as `source='counter'`.
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
 [Japanese counters appendix](https://en.wiktionary.org/wiki/Appendix:Japanese_counters)):
@@ -114,7 +117,8 @@ numbers in kanji (三十五, 一九九九), digits (35, ３５) and 何, 幾, �
 |---|---|
 | gemination of 1, 6, 8, 10, 100 before k and h, of 1, 8, 10 before s and t (h becomes p) | 一本 いっぽん, 六回 ろっかい, 八杯 はっぱい, 十冊 じゅっさつ, 百個 ひゃっこ, 一対 いっつい |
 | voicing after 3, 何, 千, 万 | 三本 さんぼん, 何匹 なんびき, 三階 さんがい, 三軒 さんげん, 三足 さんぞく, 何分 なんぷん |
-| h counters | 本 匹 杯 発 泊 版 編 分 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん) |
+| h counters | 本 匹 杯 発 泊 版 編 分 歩 (minutes; 四分 よんぷん; 分 read ぶん, as in 三分の一, stays ぶん) |
+| 分 as a tenth | ぶ in pairs (五分五分, 七分三分, 五分と五分), after 割/寸/両 (三割五分) and before 咲き/目/通り (三分咲き) |
 | k counters | 個 回 階 軒 件 曲 巻 箇所 か月 (ヶ月, カ月, 箇月) |
 | s, t counters | 冊 歳/才 足 週 週間; 対 点 頭 通 着 |
 | 羽 | わ, ば after 3/何/千, っぱ after 6, 8, 10, 100 |
