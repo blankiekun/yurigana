@@ -144,17 +144,16 @@ _CONTEXT_RULES = {
     '表': [('おもて', r'(?:裏[とものか]|コインの|硬貨の)$',
             r'に(?:は|も)?(?:出|で[たてるな]|立|現)|へ(?:出|と)|を出歩|で(?:遊|待|絡)|[とか]裏|が(?:出|ない)|だって|立って|沙汰|向き'
             r'|の(?:顔|世界|社会|舞台|仕事|理由|看板|門|通り|玄関)')],
-    # 主: あるじ for the master of a house or of servants (館の主, 我が主, 奴隷と主); しゅ in 主として (mainly);
-    # Sudachi's ぬし otherwise (声の主, 森の主).
-    '主': [('しゅ', r'(?<!の)$', r'として', 'and'),
-           ('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, ROOM - {'室', '廊下'}, SERVANT,
+    # 主: あるじ for the master of a house or of servants (館の主, 我が主, 奴隷と主); Sudachi's ぬし otherwise
+    # (声の主, 部屋の主). 主として is left alone: books' ruby there is mostly あるじ (主として認める), not しゅ.
+    '主': [('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, SERVANT,
                                     '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None)],
-    # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 腕に抱く, 抱かれる, 抱きたい);
-    # Sudachi's いだく for feelings (疑問を抱く, 不満を抱かれる).
-    '抱く': [('だく', r'(?:(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を|腕に|腕の中に)$', None),
-            ('だく', r'(?<!を)$', r'れ|た[いくかけ]', 'and')],
+    # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 抱きたい); Sudachi's いだく for feelings
+    # (疑問を抱く) and, as books' ruby often has it, 腕に抱く and the passive (懐に抱かれる).
+    '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を$', None),
+            ('だく', r'(?<!を)$', r'た[いくかけ]', 'and')],
     # 家 け after a katakana name (ローズ家, フジバヤシ家); Sudachi says か.
-    '家': [('け', r'[ァ-ヺー・]{2,}$', None)],
+    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$', None)],
     # 側 そば: beside (すぐ側, 彼の側にいる, 駅の側で); がわ (a side) otherwise (向こう側, 民の側につく).
     '側': [('そば', r'すぐ$', None),
            ('そば', r'[のがはも]$', r'に(?:いる|い[てたらまれよ]|居|あ[るっ]|置|寄|座|控|仕え|付き添|はべ|侍|来|行)|で(?!は)|まで', 'and')],
