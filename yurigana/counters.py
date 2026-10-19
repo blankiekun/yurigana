@@ -12,6 +12,8 @@ Where a choice is common, one reading is given: 8 geminates (八本 はっぽん
 Lexicalised words Sudachi keeps as one token (一人, 二十歳, 十分 じゅうぶん, 何本) are left alone."""
 import re
 
+from .cues import DURATION_AFTER, DURATION_BEFORE, words
+
 _DIGIT = {c: i for i, c in enumerate('〇一二三四五六七八九')}
 _DIGIT.update({c: i for i, c in enumerate('0123456789')})
 _DIGIT.update({c: i for i, c in enumerate('０１２３４５６７８９')})
@@ -73,10 +75,9 @@ _BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9�
 _BU_AFTER = re.compile(r'と?[〇一二三四五六七八九十0-9０-９]+分|[咲目]|通り|どおり')
 # 十分 on its own (no number before it) is じゅうぶん, "enough", unless a cue says minutes (三時十分,
 # あと十分, 十分後, 十分ほど); readings._CONTEXT_RULES uses them too, where Sudachi keeps 十分 one token.
-TEN_MINUTES_BEFORE = r'(?:[0-9０-９〇一二三四五六七八九十何]時|あと|後|残り|約|およそ|最初の|最後の|わずか|僅か|ほんの|たった|ものの)$'
-TEN_MINUTES_AFTER = (r'(?:後|前(?!後|進)|間(?!に合|にあ|違|ちが)|おき|置き|ごと|毎|以内|足らず|たらず|弱|ほど|程|くらい|ぐらい|ばかり'
-                     r'|近く|ちかく|余り|あまり(?!に|の)|経|たっ|たた|たつ|遅れ|おくれ|か(?:か|け)|掛|[0-9０-９〇一二三四五六七八九]+秒'
-                     r'|で(?:着|終|戻|帰|出|始|済|行|来))')
+TEN_MINUTES_BEFORE = '(?:' + words(DURATION_BEFORE) + r'|[0-9０-９〇一二三四五六七八九十何]時)$'
+TEN_MINUTES_AFTER = ('(?:' + words(DURATION_AFTER) + r'|前(?!後|進)|間(?!に合|にあ|違|ちが)|あまり(?!に|の)'
+                     r'|[0-9０-９〇一二三四五六七八九]+秒|で(?:着|終|戻|帰|出|始|済|行|来))')
 _TEN_MINUTES = (re.compile(TEN_MINUTES_BEFORE), re.compile(TEN_MINUTES_AFTER))
 
 

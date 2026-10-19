@@ -230,6 +230,26 @@ built are in `yurigana/reading_context.py`'s docstring:
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.
 
+### Cue words
+
+The word lists the rules look for are shared, named classes in `yurigana/cues.py`: `PLACE`
+(made of `REALM`, `SETTLEMENT`, `BUILDING`, `ROOM`, `GROUNDS`, `STREET`, `VICINITY`), `TIME_SPAN`,
+`NIGHT`, `BODY`, `PERSON`, `ROLE`, `SUPERIOR`, `ABSTRACT`, `INSTRUMENT`, `INSECT`, `FOOTWEAR`,
+`DURATION_BEFORE`, `DURATION_AFTER` (十分 as minutes, `counters.TEN_MINUTES_*`), `KIN_TITLE` (君 ぎみ), `TERM` (今 こん),
+`PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` (金 きん).
+A class is a frozenset of plain words; `cues.words(...)` turns classes (and single words) into a
+regex alternation for a rule:
+
+```python
+'音': [('ね', '(?:' + words(INSTRUMENT, INSECT, 'ぐう') + r'|(?<![霧汽警])笛)の$', None)],
+'中': [('じゅう', words(TIME_SPAN, REALM, BUILDING - {'館', '駅'}) + '$', None)],
+```
+
+A rule takes the classes that fit it and leaves out, with `-`, the members that read wrong
+there (駅中 is えきなか). Words that need a regex guard (笛 but not 汽笛) stay in the rule.
+To add a word, put it in its class, not in one rule: every rule using the class gets it, so
+grep the class name and evaluate (`--compare`) before and after.
+
 ## Accuracy
 
 Known trade-offs (what each reading change breaks, and the way out) are listed in [TRADEOFFS.md](TRADEOFFS.md).
