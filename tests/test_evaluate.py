@@ -1,8 +1,9 @@
 """Tests for yurigana.evaluate's scorer and gold converters (no tokeniser needed)."""
+import importlib.util
 import unittest
 
-from yurigana.evaluate import (_binomial_p, compare, items_of, metrics, ndl_lines, ndl_readings, score_sentence,
-                               surface_reading, tatoeba_sentence)
+from yurigana.evaluate import (_binomial_p, compare, items_of, make_system, metrics, ndl_lines, ndl_readings,
+                               score_sentence, surface_reading, tatoeba_sentence, yomikata_pieces)
 from yurigana.evaluate import add_alts, prediction_tokens, triage
 
 
@@ -139,6 +140,23 @@ class ReviewTest(unittest.TestCase):
             ('gold', 's', 0, '方', 'かた', 'ほう', 'ours,a,b', 'ほう'),  # 3 of 4 agree against the gold
             # item 1: a, b agree on ほう, but 2 of 4 readings isn't a majority
             ('ours', 's', 2, '方', 'かた', 'かた', 'a,b', '')])  # ours gave none, 2 of 3 others right
+
+
+class BaselineTest(unittest.TestCase):
+    def test_yomikata_pieces(self):
+        self.assertEqual(yomikata_pieces('{人気/ひとけ}のない{一日}'), [('人気', 'ひとけ'), ('一日', None)])
+
+    def test_baselines_read_a_sentence(self):
+        # ginza and yomikata live in their own environment (see the docstring): skipped elsewhere
+        sentence = {'text': '人気のない道を歩いた。', 'spans': [span(0, 2, '人気', 'ひとけ'), span(5, 6, '道', 'みち'),
+                                                         span(7, 8, '歩', 'ある')]}
+        for system, module in (('ginza', 'ja_ginza'), ('yomikata', 'yomikata')):
+            with self.subTest(system):
+                if importlib.util.find_spec(module) is None:
+                    self.skipTest(f'{module} is not installed')
+                results = score_sentence(sentence, make_system(system)(sentence['text']))
+                self.assertEqual([r[0] for r in results], ['ok'] * 3)
+                self.assertTrue(results[1][2] and results[2][2])
 
 
 if __name__ == '__main__':
