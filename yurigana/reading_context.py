@@ -79,7 +79,8 @@ from collections import Counter, defaultdict
 
 from .readings import DEFAULT_READINGS, HAS_KANJI, _small_kana, context_reading, ruby_reading, to_hiragana
 from .reading_model import RULE_FORMS, WINDOW, ReadingModel, build_form, features, token_window  # noqa: F401
-from .yomitan import reading_ranks
+from .reader import jmdict_readings
+from .yomitan import preferred, reading_ranks
 
 CONTEXT = 12  # characters kept on each side (readings._CONTEXT, for the rules)
 SAMPLE_EVERY = 10  # lines without ruby: every n-th is tokenised for unlabelled occurrences
@@ -100,12 +101,24 @@ _KATAKANA = re.compile(r'[ァ-ヺ]')
 # ---------------------------------------------------------------------------
 # Labels
 
-def ambiguous_forms(known) -> dict:
-    """form -> {hiragana reading: rank} for forms the list gives two or more."""
+def ambiguous_forms(known, jmdict=None) -> dict:
+    """form -> {hiragana reading: rank} for forms the list gives two or more. Readings tied at
+    one rank (the list ranks a JMdict entry: 言葉 ことば = けとば) keep only those `jmdict`
+    {form: readings} gives for the form, when it gives any of them."""
     forms = defaultdict(dict)
     for (term, reading), rank in known.items():
         if HAS_KANJI.search(term) and _HIRAGANA.match(reading):
             forms[term][reading] = rank
+    for form, readings in forms.items():
+        own = (jmdict or {}).get(form, ())
+        by_rank = defaultdict(list)
+        for reading, rank in readings.items():
+            by_rank[rank].append(reading)
+        for tied in by_rank.values():
+            if len(tied) > 1 and any(r in own for r in tied):
+                for r in tied:
+                    if r not in own:
+                        del readings[r]
     return {form: readings for form, readings in forms.items() if len(readings) > 1}
 
 
@@ -138,7 +151,7 @@ def _init(dictionary):
     global _tokenizer, _forms
     from .tokens import SudachiTokenizer
     _tokenizer = SudachiTokenizer()
-    _forms = ambiguous_forms(reading_ranks(dictionary))
+    _forms = ambiguous_forms(reading_ranks(dictionary), jmdict_readings())
 
 
 def mine_book(path: str, book: str, author: str):
@@ -302,12 +315,13 @@ def gold_rows(rows, excluded: Counter):
 # ---------------------------------------------------------------------------
 # Scoring
 
-def baseline_reading(row, known, readings) -> str:
+def baseline_reading(row, known, readings, jmdict=None) -> str | None:
     """What the pipeline gives without the model: a context rule, else Sudachi's reading, else (a conjugated
-    word: chimimouryou gives the book's most common reading) the list's most common one."""
+    word: chimimouryou gives the book's most common reading) the list's most common one (yomitan.preferred:
+    None when readings tie and JMdict gives none of them)."""
     before, surface, after = row[5]
     return (context_reading(before + surface + after, len(before), surface, row[2], known)
-            or row[6] or min(readings, key=readings.get))
+            or row[6] or preferred(readings, (jmdict or {}).get(row[2], ()))[0])
 
 
 def score(results) -> dict:
@@ -336,8 +350,8 @@ def summary(scores) -> str:
 
 
 def report(out: str, dictionary: str, top: int = 30):
-    known = reading_ranks(dictionary)
-    forms = ambiguous_forms(known)
+    known, jmdict = reading_ranks(dictionary), jmdict_readings()
+    forms = ambiguous_forms(known, jmdict)
     with open(os.path.join(out, 'stats.json')) as f:
         excluded = Counter({k: v for k, v in json.load(f).items() if k not in ('books', 'labelled', 'unlabelled')})
     results = defaultdict(Counter)
@@ -345,7 +359,7 @@ def report(out: str, dictionary: str, top: int = 30):
     for row in gold_rows(lambda: read_rows(out), excluded):
         gold_counts[row[2]] += 1
         if split_of(row[1]) == 0:
-            results[row[2]][row[3], baseline_reading(row, known, forms[row[2]]) == row[3]] += 1
+            results[row[2]][row[3], baseline_reading(row, known, forms.get(row[2], {}), jmdict) == row[3]] += 1
     print('ruby left out of the gold:', dict(excluded))
     scores = score(results)
     print('current pipeline (rules, then Sudachi), held-out authors:', summary(scores))
@@ -428,8 +442,8 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
     occurrence is labelled (Tatoeba's half a, also among OUT's rows): their reading shares are
     the priors, instead of EM on OUT's unlabelled rows (books' plain text, read by a model
     trained on ruby, put 彼 at あれ 62% and 行く at ゆく 53%)."""
-    known = reading_ranks(dictionary)
-    forms = ambiguous_forms(known)
+    known, jmdict = reading_ranks(dictionary), jmdict_readings()
+    forms = ambiguous_forms(known, jmdict)
     few = few_author_labels(read_rows(out))
     excluded = Counter()
 
@@ -472,7 +486,7 @@ def train(out: str, dictionary: str, model_path: str | None, top: int = 30, give
             rule = ruled(form, context)
             default = DEFAULT_READINGS.get((form, sudachi))  # as Reader replaces Sudachi's
             plain_reading = (default if default and (form, default) in known else sudachi) \
-                or min(forms[form], key=forms[form].get)
+                or preferred(forms.get(form, {}), jmdict.get(form, ()))[0]
             held[form].append((split, gold, rule, rule or plain_reading, features(window) if form in eligible else None,
                                plain_reading))
 

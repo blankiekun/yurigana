@@ -79,6 +79,16 @@ class ReaderTest(unittest.TestCase):
         tokens = list(reader.tokenizer.tokens('身の上話'))
         self.assertIsNone(reader._compound(tokens, 0, {}, [(0, 3, 4, 'みのうえ', 'ばなし')]))  # inside a counter span
 
+    def test_jmdict_checks_the_list(self):
+        known = {('廊下', 'ろうげ'), ('室子', 'さやこ'), ('学校', 'がっこう'), ('彼話', 'かのわ'), ('身の上話', 'みのうえばなし')}
+        reader = self.reader(known)
+        # 廊下 ろうげ isn't JMdict's; 室子 isn't in JMdict at all (the list's reading stays `only`)
+        self.assertEqual(reader.only, {'室子': 'さやこ', '学校': 'がっこう', '彼話': 'かのわ', '身の上話': 'みのうえばなし'})
+        self.assertEqual(reader.read('廊下')[0][3:5], ('ろうか', 'dictionary'))
+        # a joined form JMdict lacks is joined, but not shown
+        self.assertEqual(reader.read('彼話')[0], Word(0, 2, '彼話', 'かのわ', 'dictionary', None))
+        self.assertEqual(reader.read('身の上話')[0], Word(0, 4, '身の上話', 'みのうえばなし', 'only', 1.0))
+
     def test_default_readings_replace_sudachis(self):
         words = self.reader({('日本', 'にほん'), ('日本', 'にっぽん')}).read('日本。')
         self.assertEqual(words[0], Word(0, 2, '日本', 'にほん', 'default', None))
@@ -234,6 +244,11 @@ class SudachiReaderTest(unittest.TestCase):
                 self.assertIn((form, reading), [(w.form, w.reading) for w in reader.read(text)])
         self.assertNotIn('一章', [w.form for w in reader.read('一章を読む。')])  # a name's reading: not joined
         self.assertNotIn('四月一日', [w.form for w in reader.read('四月一日に会う。')])  # a date, not わたぬき
+
+    def test_one_x_ties_go_by_jmdict(self):
+        # Jiten ranks a word, so its readings tie; JMdict lists ひとり first
+        reader = Reader({('一人', 'ひとり'): 300, ('一人', 'いちにん'): 300}, tokenizer=ToyTokenizer())
+        self.assertEqual(reader.one_x, {'一人': 'ひとり'})
 
 
 if __name__ == '__main__':

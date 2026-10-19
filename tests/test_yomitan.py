@@ -5,7 +5,9 @@ import tempfile
 import unittest
 import zipfile
 
-from yurigana.yomitan import reading_ranks
+import math
+
+from yurigana.yomitan import preferred, reading_ranks
 
 
 class YomitanTest(unittest.TestCase):
@@ -22,6 +24,15 @@ class YomitanTest(unittest.TestCase):
             archive.writestr('index.json', json.dumps({'frequencyMode': 'occurrence-based'}))
         with self.assertRaises(ValueError):
             reading_ranks(path)
+
+    def test_preferred_treats_tied_readings_as_one_group(self):
+        self.assertEqual(preferred({'にんき': 1463, 'ひとけ': 46242}), ('にんき', 46242))
+        # Jiten ranks the word: its readings tie; JMdict's order decides, else nothing does
+        self.assertEqual(preferred({'ゆう': 25, 'いう': 25}, ['いう', 'ゆう']), ('いう', math.inf))
+        self.assertEqual(preferred({'かしら': 263, 'あたま': 263, 'とう': 12404}, ['とう', 'あたま', 'かしら']),
+                         ('あたま', 12404))
+        self.assertEqual(preferred({'けとば': 244, 'ことば': 244, 'ことのは': 197387}), (None, 197387))
+        self.assertEqual(preferred({}), (None, math.inf))
 
 
 if __name__ == '__main__':
