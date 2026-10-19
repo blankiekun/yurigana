@@ -40,6 +40,38 @@ CASES = [
     ('六百', '本', 'ぽん', 'ろっぴゃっぽん'), ('一兆', '円', 'えん', 'いっちょうえん'), ('8', '頭', 'とう', 'はっとう'),
 ]
 
+# The acceptance grid, written by hand from standard counter grammar (not from any corpus):
+# counter (with Sudachi's reading of it) -> readings for 1-10, 100, 1000 and 何; '-' where it doesn't apply.
+NUMBERS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '百', '千', '何']
+DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '100', '1000']
+GRID = {
+    ('本', 'ぽん'): 'いっぽん にほん さんぼん よんほん ごほん ろっぽん ななほん はっぽん きゅうほん じゅっぽん ひゃっぽん せんぼん なんぼん',
+    ('匹', 'ひき'): 'いっぴき にひき さんびき よんひき ごひき ろっぴき ななひき はっぴき きゅうひき じゅっぴき ひゃっぴき せんびき なんびき',
+    ('杯', 'ばい'): 'いっぱい にはい さんばい よんはい ごはい ろっぱい ななはい はっぱい きゅうはい じゅっぱい ひゃっぱい せんばい なんばい',
+    ('分', 'ふん'): 'いっぷん にふん さんぷん よんぷん ごふん ろっぷん ななふん はっぷん きゅうふん じゅっぷん ひゃっぷん せんぷん なんぷん',
+    ('回', 'かい'): 'いっかい にかい さんかい よんかい ごかい ろっかい ななかい はっかい きゅうかい じゅっかい ひゃっかい せんかい なんかい',
+    ('個', 'こ'): 'いっこ にこ さんこ よんこ ごこ ろっこ ななこ はっこ きゅうこ じゅっこ ひゃっこ せんこ なんこ',
+    ('冊', 'さつ'): 'いっさつ にさつ さんさつ よんさつ ごさつ ろくさつ ななさつ はっさつ きゅうさつ じゅっさつ ひゃくさつ せんさつ なんさつ',
+    ('歳', 'さい'): 'いっさい にさい さんさい よんさい ごさい ろくさい ななさい はっさい きゅうさい じゅっさい ひゃくさい せんさい なんさい',
+    ('階', 'かい'): 'いっかい にかい さんがい よんかい ごかい ろっかい ななかい はっかい きゅうかい じゅっかい ひゃっかい せんがい なんがい',
+    ('軒', 'けん'): 'いっけん にけん さんげん よんけん ごけん ろっけん ななけん はっけん きゅうけん じゅっけん ひゃっけん せんげん なんげん',
+    ('足', 'そく'): 'いっそく にそく さんぞく よんそく ごそく ろくそく ななそく はっそく きゅうそく じゅっそく ひゃくそく せんぞく なんぞく',
+    ('頭', 'とう'): 'いっとう にとう さんとう よんとう ごとう ろくとう ななとう はっとう きゅうとう じゅっとう ひゃくとう せんとう なんとう',
+    ('枚', 'まい'): 'いちまい にまい さんまい よんまい ごまい ろくまい ななまい はちまい きゅうまい じゅうまい ひゃくまい せんまい なんまい',
+    ('人', 'にん'): 'ひとり ふたり さんにん よにん ごにん ろくにん しちにん はちにん きゅうにん じゅうにん ひゃくにん せんにん なんにん',
+    ('日', 'にち'): 'いちにち ふつか みっか よっか いつか むいか なのか ようか ここのか とおか ひゃくにち せんにち なんにち',
+    ('時', 'じ'): 'いちじ にじ さんじ よじ ごじ ろくじ しちじ はちじ くじ じゅうじ - - なんじ',
+    ('年', 'ねん'): 'いちねん にねん さんねん よねん ごねん ろくねん ななねん はちねん きゅうねん じゅうねん ひゃくねん せんねん なんねん',
+    ('月', 'がつ'): 'いちがつ にがつ さんがつ しがつ ごがつ ろくがつ しちがつ はちがつ くがつ じゅうがつ - - なんがつ',
+    ('週', 'しゅう'): 'いっしゅう にしゅう さんしゅう よんしゅう ごしゅう ろくしゅう ななしゅう はっしゅう きゅうしゅう じゅっしゅう ひゃくしゅう せんしゅう なんしゅう',
+    ('円', 'えん'): 'いちえん にえん さんえん よえん ごえん ろくえん ななえん はちえん きゅうえん じゅうえん ひゃくえん せんえん なんえん',
+    ('度', 'ど'): 'いちど にど さんど よんど ごど ろくど ななど はちど きゅうど じゅうど ひゃくど せんど なんど',
+    ('台', 'だい'): 'いちだい にだい さんだい よんだい ごだい ろくだい ななだい はちだい きゅうだい じゅうだい ひゃくだい せんだい なんだい',
+    ('着', 'ちゃく'): 'いっちゃく にちゃく さんちゃく よんちゃく ごちゃく ろくちゃく ななちゃく はっちゃく きゅうちゃく じゅっちゃく ひゃくちゃく せんちゃく なんちゃく',
+    ('泊', 'はく'): 'いっぱく にはく さんぱく よんはく ごはく ろっぱく ななはく はっぱく きゅうはく じゅっぱく ひゃっぱく せんぱく なんぱく',
+    ('件', 'けん'): 'いっけん にけん さんけん よんけん ごけん ろっけん ななけん はっけん きゅうけん じゅっけん ひゃっけん せんけん なんけん',
+}
+
 
 class CounterReadingTest(unittest.TestCase):
     def test_cases(self):
@@ -47,6 +79,16 @@ class CounterReadingTest(unittest.TestCase):
             with self.subTest(number + counter):
                 got = reading(number, counter, sudachi)
                 self.assertEqual(got[0] + (got[1] or ''), expected)
+
+    def test_grid(self):
+        for (counter, sudachi), row in GRID.items():
+            for numbers in (NUMBERS, DIGITS):
+                for number, expected in zip(numbers, row.split()):
+                    if expected == '-':
+                        continue
+                    with self.subTest(number + counter):
+                        got = reading(number, counter, sudachi)
+                        self.assertEqual(got and got[0] + (got[1] or ''), expected)
 
     def test_split(self):
         self.assertEqual(reading('三', '本'), ('さん', 'ぼん'))
@@ -71,7 +113,7 @@ class CounterReadingTest(unittest.TestCase):
 
 # surface -> (dictionary form = normalized form, Sudachi's reading, part of speech)
 LEXICON = {'三': ('三', 'サン', ('名詞', '数詞')), '一': ('一', 'イチ', ('名詞', '数詞')),
-           '本': ('本', 'ポン', ('接尾辞', '名詞的')), '対': ('対', 'タイ', ('名詞', '普通名詞')),
+           '本': ('本', 'ポン', ('接尾辞', '名詞的')), '匹': ('匹', 'ヒキ', ('接尾辞', '名詞的')), '対': ('対', 'タイ', ('名詞', '普通名詞')),
            '人': ('人', 'ニン', ('接尾辞', '名詞的')), '犬': ('犬', 'イヌ', ('名詞', '普通名詞')),
            '三軒': ('三軒', 'ミノキ', ('名詞', '固有名詞', '人名', '姓'))}
 
@@ -95,7 +137,14 @@ class ReaderCounterTest(unittest.TestCase):
         words = self.reader().read('犬が三本の')
         self.assertIn(Word(2, 4, '三本', 'さんぼん', 'counter', None), words)
         self.assertEqual([w.form for w in words], ['犬', '三本', '三', '本'])
-        self.assertEqual(words[3].reading, 'ほん')  # the counter keeps its plain reading
+        self.assertEqual(words[3], Word(3, 4, '本', 'ほん', 'counter', None))  # the counter keeps its plain reading
+
+    def test_counter_is_never_only_in_a_span(self):
+        reader = Reader({('匹', 'ひき'), ('犬', 'いぬ')}, tokenizer=ToyTokenizer())
+        self.assertEqual(reader.read('匹')[0][3:5], ('ひき', 'only'))
+        words = reader.read('一匹')
+        self.assertEqual([w[2:5] for w in words], [('一匹', 'いっぴき', 'counter'), ('一', 'いち', 'dictionary'),
+                                                    ('匹', 'ひき', 'counter')])
 
     def test_one_on_one_and_names(self):
         words = self.reader().read('一対一。三軒')
@@ -115,11 +164,12 @@ class SudachiCounterTest(unittest.TestCase):
         for text, span, expected in (('鉛筆を三本買った。', '三本', 'さんぼん'), ('犬が一匹いる。', '一匹', 'いっぴき'),
                                      ('ビールを八杯飲んだ。', '八杯', 'はっぱい'), ('三階に住む。', '三階', 'さんがい'),
                                      ('四月一日に会おう。', '四月', 'しがつ'), ('一日中寝た。', '一日', 'いちにち'),
-                                     ('三分の一', '三分', 'さんぶん'), ('10分待った。', '10分', 'じゅっぷん'),
-                                     ('二十日に帰る。', '二十日', 'はつか'), ('三軒の家', '三軒', 'さんげん')):
+                                     ('10分待った。', '10分', 'じゅっぷん'),
+                                     ('二十日に帰る。', '二十日', 'はつか'), ('三軒の家', '三軒', 'さんげん'), ('三分の一', '三分', 'さんぶん')):
             with self.subTest(text):
-                words = [w for w in reader.read(text) if w.source == 'counter']
-                self.assertEqual([(w.form, w.reading) for w in words], [(span, expected)])
+                words = [(w.form, w.reading) for w in reader.read(text) if w.source == 'counter']
+                self.assertEqual(words[0], (span, expected))
+        self.assertIn(('分', 'ぶん'), words)  # 三分の一: the fraction's 分 keeps ぶん
         words = reader.read('一人で十分です。')  # lexicalised: one token each, left alone
         self.assertNotIn('counter', [w.source for w in words])
 

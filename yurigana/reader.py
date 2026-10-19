@@ -18,7 +18,7 @@ class Word(NamedTuple):
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
     source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi)
-    # or 'counter' (a number + counter span, 三本, over the tokens' own Words)
+    # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see the README; None when unknown
 
 
@@ -106,16 +106,19 @@ class Reader:
                 continue
             words.append(Word(token.begin, token.begin + len(surface), form,
                               *self._reading(text, tokens, i, surface, form, hint_at)))
-        # A number and its counter: one Word for the span (三本 さんぼん), the counter's own Word
-        # keeps the counter's plain reading (本 ほん). Ruby over any of it wins.
+        # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
+        # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
+        # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
         for start, number_end, end, number, counter in counter_spans(text, tokens):
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
             words.append(Word(start, end, text[start:end], number + (counter or ''), 'counter', None))
-            plain = COUNTERS.get(next((t.normalized_form() for t in tokens if t.begin == number_end), None))
-            if counter and plain and number_end in at and words[at[number_end]].end == end:
-                words[at[number_end]] = words[at[number_end]]._replace(reading=plain[0])
+            if counter and number_end in at and words[at[number_end]].end == end:
+                own = words[at[number_end]]
+                plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
+                words[at[number_end]] = own._replace(reading=plain[0] if plain and counter != 'ぶん' else own.reading, source='counter',
+                                                     certainty=None)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
