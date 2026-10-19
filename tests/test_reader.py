@@ -14,7 +14,7 @@ except ImportError:
 # word -> (dictionary form, Sudachi's reading in katakana, part of speech)
 LEXICON = {'人気': ('人気', 'ニンキ', '名詞'), '人家': ('人家', 'ニンキ', '名詞'), 'のない': ('のない', '', '助詞'),
            '廊下': ('廊下', 'ロウカ', '名詞'), '宇宙': ('宇宙', 'ウチュウ', '名詞'), '行っ': ('行く', 'イッ', '動詞'),
-           '学校': ('学校', 'ガッコウ', '名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞')}
+           '学校': ('学校', 'ガッコウ', '名詞'), '私': ('私', 'ワタクシ', '代名詞'), 'た': ('た', 'タ', '助動詞'), 'がない': ('がない', '', '助詞')}
 
 
 class ToyTokenizer:
@@ -70,6 +70,14 @@ class ReaderTest(unittest.TestCase):
         hints = []
         text = aozora_text('人気《ひとき》', None, hints)
         self.assertEqual(reader.read(text, hints)[0][3:5], ('にんき', 'dictionary'))  # not listed
+
+    def test_default_replaces_a_wrong_sudachi_reading(self):
+        self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'default', None))
+        hints = []
+        text = aozora_text('私《わたくし》', None, hints)
+        self.assertEqual(self.reader().read(text, hints)[0][3:5], ('わたくし', 'ruby'))  # ruby still wins
+        self.assertEqual(self.reader({('私', 'わたくし'), ('私', 'あたし')}).read('私。')[0][3:5],
+                         ('わたくし', 'dictionary'))  # わたし not listed
 
     def test_plain_readings(self):
         plain = PlainReadings()

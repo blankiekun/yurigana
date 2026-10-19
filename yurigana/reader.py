@@ -5,7 +5,7 @@ import os
 from collections import Counter
 from typing import NamedTuple
 
-from .readings import HAS_KANJI, _HIRAGANA_WORD, context_reading, is_kanji, ruby_reading, to_hiragana
+from .readings import DEFAULT_READINGS, HAS_KANJI, _HIRAGANA_WORD, context_reading, is_kanji, ruby_reading, to_hiragana
 from .reading_model import PUBLIC_TABLE, load_tables
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -16,7 +16,7 @@ class Word(NamedTuple):
     end: int
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
-    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading) or 'dictionary' (Sudachi)
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default' or 'dictionary' (Sudachi)
     certainty: float | None  # see the README; None when unknown
 
 
@@ -120,6 +120,9 @@ class Reader:
         only = self.only.get(form)
         if only and sudachi in (None, only):
             return only, 'only', 1.0
+        default = DEFAULT_READINGS.get((form, sudachi))
+        if default and (form, default) in self.known:
+            return default, 'default', None
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]

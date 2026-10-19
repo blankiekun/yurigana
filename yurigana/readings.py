@@ -90,7 +90,9 @@ _CONTEXT_RULES = {
     '目下': [('もっか', None, r'のところ|の(?:急務|課題|問題|状況|情勢|最大|懸案)|、|調査|検討|準備|交渉|捜査|審議|開発'
               r'|建設|進行|継続|捜索|修理|工事'),
              ('めした', None, r'の(?:者|人)')],
-    '何': [('なに', None, r'[をがも]|より')],
+    # なん before だ/です/で/の/と/て and counters (何年, 何冊): Sudachi's; なに before か, する, verbs and ？.
+    '何': [('なに', None, r'[をがもかし]|より|す|[？?！!、」]'
+             r'|(?![年冊日番時匹台杯分周段箱点画便号名回人度月週歳個枚本階倍頭泊足軒件通語])[一-鿿]')],
     '色紙': [('しきし', r'(?:サイン|寄せ書きの?)$', r'に(?:サイン|寄せ書き|書)|を(?:飾|贈)'),
              ('いろがみ', r'折り?$', r'.{0,6}?(?:折[っらりる]|鶴|切り抜)')],
     '寒気': [('かんき', r'(?:強い|上空の|大陸からの|冬型の|北からの)$', r'団|が(?:南下|流れ込|入)|の(?:影響|流れ込|南下)'),
@@ -115,6 +117,12 @@ _CONTEXT_RULES = {
     '見物': [('みもの', None, r'だ(?:な|ね|ぞ|わ)?(?:[。！」]|$)|である|です')],
     '一行': [('いちぎょう', r'(?:最初の|最後の|文章の|冒頭の|手紙の|ほんの|たった)$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
 }
+# Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
+# the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
+# (fixes 10+ occurrences, right 90%+ of the times it changes one; see README).
+DEFAULT_READINGS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): 'いう', ('富士山', 'ふじやま'): 'ふじさん',
+                    ('鶏肉', 'けいにく'): 'とりにく', ('今日', 'こんにち'): 'きょう', ('明後日', 'みょうごにち'): 'あさって'}
+
 _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in _CONTEXT_RULES.items()}
 _CONTEXT = 12  # characters looked at on each side
