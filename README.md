@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.3.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.4.0.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -58,7 +58,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.3.0
+pnpm add github:blankiekun/yurigana#v0.4.0
 ```
 
 ```js
@@ -77,7 +77,7 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main f035a06, 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana 0.4.0 (main 817671e), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
@@ -104,7 +104,7 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   out (`--exclude`).
 - ² Slightly favours yurigana: the public table was trained on Aozora texts that include the NDL
   test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
-  is rebuilt without them); #96's rules were picked from 12 of B2's disagreements.
+  is rebuilt without them); #96's rules were picked from 12 of B2's disagreements (#97-#99 only report it).
 - ³ One blind annotation run per set.
 - ⁵ **Joyo-Kanji-Yomi** (JKYB-Parakeet revision, 13,536 sentences, MIT; Sarashina2.2-TTS, arXiv
   2606.25369): three native-checked sentences per reading of every Jōyō kanji, scored with its own
@@ -121,15 +121,15 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
   favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
   and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
-  furigana yurigana marks as sure (about 12,700 a book), about 25 are wrong (0.2%). The Tatoeba and
+  furigana yurigana marks as sure (about 14,600 a book), about 35 are wrong (0.2%). The Tatoeba and
   plain-sentence golds were rebuilt and reviewed on 2026-10-19 (accepted readings in `--alts`), which
   moved every system's numbers here, not only yurigana's.
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
   about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
   from pykakasi; the ranking doesn't change without those items.
 
-The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.3% of
-the time on the modern books and cover 67% of their words; the rest are left for the reader.
+The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`, and number + counter spans
+with certainty 1.0) are right 99.2% of the time on the modern books and cover 77% of their words; the rest are left for the reader.
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
