@@ -327,6 +327,15 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word(reader, '姫路に行った。'), ('姫路', 'ひめじ', 'only'))
         self.assertEqual(word(reader, '玲奈が笑う。')[2], 'dictionary')  # two readings
         self.assertNotEqual(word(reader, '今日は晴れ。')[1:], ('こんにち', 'only'))
+        # nor under the author's ruby over part of it
+        self.assertEqual(next(w.source for w in reader.read('姫路に行った。', [(0, 1, 'ひ')]) if w.form == '姫路'), 'dictionary')
+        # malformed rows of an uploaded dictionary are skipped; a gloss that is a string isn't read per character
+        path = os.path.join(folder, 'bad.zip')
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr('index.json', json.dumps({'title': 'bad', 'format': 3}))
+            archive.writestr('term_bank_1.json', json.dumps([[], ['姫路'], 5, None, {'a': 1}, ['姫路', '', '', '', 0, None],
+                                                             ['姫路', '', '', '', 0, 'ひめじ']], ensure_ascii=False))
+        self.assertEqual(Reader(known=known, names=path).names, {})
         # two dictionaries that read a name differently: neither shows it
         other = names('other.zip', [['姫路', ['ひめろ']]])
         self.assertEqual(word(Reader(known=known, names=[one, other]), '姫路に行った。')[2], 'dictionary')

@@ -386,7 +386,8 @@ class Reader(Compounds):
             end = token.begin + len(surface)
             if (source == 'dictionary' and form == surface and reading and self.names.get(form) == reading
                     and token.part_of_speech()[1] == '固有名詞'  # not glued to kanji or digits: 一日|中海岸 is 一日中 海岸
-                    and not any(is_kanji(c) or c.isdigit() for c in text[max(token.begin - 1, 0):token.begin] + text[end:end + 1])):
+                    and not any(is_kanji(c) or c.isdigit() for c in text[max(token.begin - 1, 0):token.begin] + text[end:end + 1])
+                    and not any(s < end and e > token.begin for s, (e, _) in hint_at.items())):  # nor under partial ruby
                 source, certainty = 'only', 1.0
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
             if carry is not None and len(form) > 1:

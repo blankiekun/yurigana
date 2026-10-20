@@ -151,10 +151,13 @@ def name_readings(path: str) -> dict:
             if not os.path.basename(name).startswith('term_bank_'):
                 continue
             for row in json.loads(_read(archive, name)):
+                if not isinstance(row, list) or len(row) < 2:  # an uploaded zip: skip malformed rows
+                    continue
                 term = row[0]
                 if not isinstance(term, str) or not _TERM.match(term) or not HAS_KANJI.search(term):
                     continue
-                readings = [row[1]] if row[1] else [g for g in row[5] if isinstance(g, str)] if len(row) > 5 else []
+                glosses = row[5] if len(row) > 5 and isinstance(row[5], list) else []
+                readings = [row[1]] if row[1] else [g for g in glosses if isinstance(g, str)]
                 for reading in readings:
                     if isinstance(reading, str) and _READING.match(reading):
                         out.setdefault(term, set()).add(to_hiragana(reading))
