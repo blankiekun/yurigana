@@ -27,8 +27,10 @@ words, not readings, so the readings of one word share a rank (言う いう = �
 order (its first kana reading), else not at all (`yomitan.preferred`).
 `yomitan.reading_ranks` adds the hand-checked pairs of `extra-readings.tsv` that Jiten's list lacks
 (描く かく, 良い いい, 刺青 いれずみ) to the forms it lists, ranked after the form's own readings: ruby
-and context rules may give them, but they never cost a form its `only` reading unless a default
-names them (刺青 しせい → いれずみ).
+and context rules may give them, and a form with one is never `only` (描く えがく is shown only where a
+rule reads it). A conjugated っ-form that another listed verb shares (行っ: 行う or 行く, 通っ: 通う or
+通る) isn't `only` either, unless that verb is 5 times rarer in the list (分かっ: not 分かつ).
+Conjugated words take the hand default of the reading they conjugate from (擦った: こする).
 Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
 readings: 一昨|日 いっさくひ → おととい, 一|日中 いちにっちゅう → いちにちじゅう. A lone 一 before
 the kana rest of a native word is ひ/ひと/いっ (一ト月, 一と息, 一しずく, 一たい), and ひと before
@@ -194,7 +196,7 @@ ruby over it that isn't taken (flavour, katakana) or that gives a second reading
 | `ruby`, `book`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `default`, `counter` | None |
-| `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None |
+| `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
 reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that

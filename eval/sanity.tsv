@@ -902,3 +902,8 @@ sentence	span	reading	alts	kind	status	note
 孫は八つだよ。	八つ	やっつ		probe		tatoeba 10798105
 見て！四つ葉！	四つ葉	よつば		probe		tatoeba 10746415
 床にピアスを落としてしまい、四つん這いになって探した。	四つん這い	よつんばい		probe		tatoeba 8643906
+彼は鼻を右手で擦って笑った。	擦っ	こする		probe		hand-written; T70 cue with the hand named (T2/T45: conjugated 擦る took Sudachi's する)
+彼女はお腹を擦りながら言った。	擦り	さする		probe		hand-written; さする after お腹を (T70)
+二人の喧嘩を止めに入った。	止め	とめる		probe		hand-written; 止めに入る とめる (T39)
+壁に空いた小さな穴から光が漏れる。	空い	あく		probe		hand-written; 空いた…穴 あく (T39)
+兄が描いた絵を飾った。	描い	かく		probe		hand-written; 描いた絵 かく (T131)

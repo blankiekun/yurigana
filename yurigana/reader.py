@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -60,6 +60,20 @@ class Word(NamedTuple):
     # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see docs/how-it-works.md; None when unknown
+
+
+def _shared_conjugation(surface, form, readings, ranks) -> bool:
+    """Whether a っ-form (行っ, 通っ, 放っ) is also that of another listed verb with another reading, not
+    5 times rarer in the list (行く いく, 通る とおる, 放る ほうる; not 分かつ for 分かっ): Sudachi's lemma
+    is then a guess. Without ranks, any such verb."""
+    if not surface.endswith('っ') or len(surface) < 2:
+        return False
+    stem = surface[:-1]
+    mine = readings.get(form, ())
+    best = min((ranks.get((form, r), 0) for r in mine), default=0) if ranks else 0
+    others = [stem + end for end in ('う', 'つ', 'る') + (('く',) if stem.endswith('行') else ()) if stem + end != form]
+    return any(r not in mine and (not ranks or ranks.get((other, r), 0) <= 5 * best)
+               for other in others for r in readings.get(other, ()))
 
 
 def _end(token):
@@ -170,12 +184,14 @@ class Reader:
         self.jmdict = {form: jmdict[form] for form in self.readings if form in jmdict}
         # The list's single readings; `only` (certainty 1.0) when JMdict gives the form that reading
         # too, or has no entry for the form (声がけ こえかけ, 振り幅 しんぷく, 卵型 らんけい in Jiten's list).
-        # extra-readings.tsv's pairs don't count: they are taken from ruby and rules, and never cost a
-        # form its `only` (描く stays えがく unless a rule reads かく), unless a default gives one (刺青 いれずみ).
+        # extra-readings.tsv's pairs don't count for `single` (the voicing of compounds' tails), unless a
+        # default gives one (刺青 いれずみ); a form with one is never `only`, though: the extra reading is
+        # standard too, so the list's own isn't sure (描く えがく is shown only where a rule reads it).
         extra = extra_readings() - {(form, r) for (form, _), r in DEFAULT_READINGS.items()}
         own = {form: [r for r in readings if (form, r) not in extra] for form, readings in self.readings.items()}
         self.single = {form: readings[0] for form, readings in own.items() if len(readings) == 1}
-        self.only = {form: r for form, r in self.single.items() if r in self.jmdict.get(form, (r,))}
+        self.only = {form: r for form, r in self.single.items() if r in self.jmdict.get(form, (r,))
+                     and set(self.readings[form]) == {r}}
         self._tails = None
         # 一X whose ひと…/いっ… reading the list ranks 3+ times above its others (一重 ひとえ, not いちえ):
         # read so when Sudachi splits it 一|X; not forms with context rules (一行 いっこう/いちぎょう)
@@ -460,7 +476,9 @@ class Reader:
             return reading, 'rule', 1.0
         reading = self.model and self.model.reading(text, tokens, i, form, self.known)
         if reading:
-            return reading, 'model', round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
+            certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
+            # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
+            return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
         only = self.only.get(form)
@@ -468,12 +486,17 @@ class Reader:
         # (麻里 あさざと, 隆治 たかじ), not shown; Sudachi's reading, which is the same, stays for word lists
         if only and tokens[i].part_of_speech()[1] == '固有名詞' and form not in self.jmdict:
             only = None
+        if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, dict) else None):
+            only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):
             return only, 'only', 1.0
         if surface != form:  # the listed reading that conjugates to Sudachi's reading of the surface
             reading = conjugated_reading(surface, form, to_hiragana(tokens[i].reading_form()), self.readings.get(form, ()))
+            default = reading and DEFAULT_READINGS.get((form, reading))
+            if default and (form, default) in self.known and not default_kept(text, begin, begin + len(surface), form):
+                return default, 'default', None
             if reading:
                 return reading, 'dictionary', None
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
@@ -488,7 +511,7 @@ class Reader:
         if default and ((form, sudachi) not in HAND_DEFAULTS or (form, sudachi) in GLUED_CHECKED) \
                 and glued(text, begin, begin + len(surface)):
             default = None  # the table's readings are of words on their own (郵便局側 is がわ)
-        if default and ((form, default) in self.known or not listed):
+        if default and ((form, default) in self.known or not listed) and not default_kept(text, begin, begin + len(surface), form):
             return default, 'default', None
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
