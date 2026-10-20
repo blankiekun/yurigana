@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -168,8 +168,8 @@ class Reader:
             from .yomitan import reading_ranks
             known = reading_ranks(known)
         jmdict = jmdict_readings()
-        if known is None:  # no list: JMdict's pairs, and ruby that spells its kanji (names: 柚木 ゆき)
-            known = {(form, reading) for form, readings in jmdict.items() for reading in readings}
+        if known is None:  # no list: JMdict's pairs, extra-readings.tsv's, and ruby that spells its kanji (names: 柚木 ゆき)
+            known = {(form, reading) for form, readings in jmdict.items() for reading in readings} | extra_readings()
             self.plain = PlainReadings()
         else:
             self.plain = None
@@ -272,7 +272,7 @@ class Reader:
         for i, token in enumerate(tokens):
             if i < next_token:
                 continue
-            compound = self._compound(tokens, i, hint_at, counted)
+            compound = self._compound(tokens, i, hint_at, counted, text)
             if compound:
                 next_token, word = compound
                 words.append(word)
@@ -332,7 +332,7 @@ class Reader:
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
-    def _compound(self, tokens, i, hint_at, counted=()):
+    def _compound(self, tokens, i, hint_at, counted=(), text=''):
         """(next token, Word) for 2-4 adjacent tokens from i (the longest) whose joined form the list gives one
         reading: 三|日|月 みかづき, 身の上|話 みのうえばなし, 一|石|二鳥 いっせきにちょう. Left out:
         spans with particles or ending in kana (the list has phrases such as 彼の かの), spans with
@@ -371,6 +371,9 @@ class Reader:
             if reading and self._particle_inserted(span, reading):
                 reading = None  # お腹|空く is おなか|すく, not おなかがすく: が isn't in the text
             if reading:
+                rule = text and context_reading(text, begin, form, form, self.known)
+                if rule:  # a joined form with context rules (三つ目: みっつめ, the ordinal, unless eyes)
+                    return i + n, Word(begin, end, form, rule, 'rule', 1.0)
                 if joined:
                     return i + n, Word(begin, end, form, reading, 'only' if form in self.jmdict_one else 'default', None)
                 # a joined form JMdict lacks is mostly a name or noise (三日後 みひりあ, 利根川 さねがわ): not shown
@@ -457,6 +460,10 @@ class Reader:
             return reading, 'ruby', 1.0
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
+        if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (_CONTEXT_RULES)
+            reading = context_reading(text, begin, surface, form, self.known)
+            if reading:
+                return reading, 'rule', 1.0
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
         if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
             value = number_value(surface)
@@ -509,7 +516,7 @@ class Reader:
             # reads the form only with にっぽん (日本銀行, 日本男児).
             default, listed = sudachi.replace('にっぽん', 'にほん'), form in self.readings
         if default and ((form, sudachi) not in HAND_DEFAULTS or (form, sudachi) in GLUED_CHECKED) \
-                and glued(text, begin, begin + len(surface)):
+                and glued(text, begin, begin + len(surface), (form, sudachi) not in GLUED_BEFORE):
             default = None  # the table's readings are of words on their own (郵便局側 is がわ)
         if default and ((form, default) in self.known or not listed) and not default_kept(text, begin, begin + len(surface), form):
             return default, 'default', None
