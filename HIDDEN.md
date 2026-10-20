@@ -51,6 +51,11 @@ to "Shown again".
 | 入れ | いれ (was `only`) on its own before 」/。/と言う | はいれ (入る's imperative) | `Reader._reading` (`_HAIRE`): はいれ, source `dictionary` | bare 12/12 はいれ | T251 | はいれ listed for 入れ |
 | 外 | ほか (was `rule`) after a noun + の | そと (村の外の人); ほか for abstract nouns (想定の外) | `_CONTEXT_RULES['外']`: the rule needs no noun + の before | 22 bare changes: 19 そと | T252 | a cue for abstract nouns (想定, 理解, 意志) |
 | 癖 | くせ (was `only`) glued after a kanji/katakana noun or a verb's stem | ぐせ, へき (逃げ癖, 女装癖) | `Reader._reading`: `only` dropped, source `dictionary` | 17 in 176 books, most ぐせ or へき | T254 | ぐせ/へき from the first part |
+| 平伏す | ひれふす (was `only`) as 平伏し (平伏した, 平伏して) | へいふく (平伏 + する), ひれふす | `readings.SPLIT_TOKENS`: 平伏 へいふく, source `dictionary` | ruby over 平伏し: へいふく 109, ひれふ 53 (half the training-author post-war books); ~0.1 per book hidden | T272 | a cue for ひれふす |
+| 主に | おもに (was `only`) right after の | ぬし (声の主に), あるじ (屋敷の主に) | `readings.SPLIT_TOKENS`: kept おもに, source `dictionary` | ruby there: あるじ 30, ぬし 13, おも 0; bare ~0.04 per book | T273 | split 主 + に and read 主 as after の (`_CONTEXT_RULES['主']`) |
+| 地竜 | じりゅう (was `only`) | ちりゅう | `extra-readings.tsv` + `HAND_DEFAULTS`: ちりゅう, source `default` | ruby ちりゅう 41 in 10 books, じりゅう 0; bare ~0.24 per book, in fantasy series | T277 | ちりゅう listed in the frequency list |
+| 方 | かた (was `rule`) after a katakana word + の and だった/だって | ほう (…したのはルークの方だった), かた | `_CONTEXT_RULES['方']`: the katakana rule needs です/でし | 365 bare changes (~0.05 per book), 15 of 15 sampled ほう | T276 | – |
+| 風 | ふう (was `rule`) in ない風を unless 装う/演じる/して/見せる/意識 follows | かぜ (見えない風を感じる), ふう | `_CONTEXT_RULES['風']` | 12 bare changes, 11 かぜ (1 a name) | T276 | – |
 
 ## Shown again
 

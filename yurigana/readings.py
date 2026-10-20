@@ -139,6 +139,9 @@ _CONTEXT_RULES = {
           ('もと', _PERSON_OF, r'[へに][はもの]?と?(?:戻|帰|来|き[たて]|く[るれ]|向か|駆け|馳せ|走|届|行|い[っくかきこ]|赴|参|集|身を寄せ|仕え|嫁|弟子入|預け|送|連れ|やって|訪|通|引き取'
            r'|近づ|近寄|案内|つ[いく]|い[るろ]のが)'
            r'|で(?:働|修行|学|仕え|育)', 'and'),
+          # Under a titled person or a superior (フェルト様の下で, 上司の下で): もと, whatever follows (T270).
+          ('もと', r'(?<!お日)(?<!お陽)(?<!お月)(?<!お天道)(?<!お星)(?:様|さま|さん|殿|陛下|殿下|閣下|先生|師匠|上司|社長|部長|課長|団長|隊長|親方|教授|監督)'
+           r'(?:たち|達)?の$', r'で', 'and'),
           ('した', r'の$', r'で', 'and')],
     # 音: ね for instruments and insects (琴の音, 虫の音) and ぐうの音; Sudachi's おと otherwise.
     '音': [('ね', '(?:' + words(INSTRUMENT, INSECT, 'ぐう', 'グウ') + r'|(?<![霧汽警])笛)の$', None)],
@@ -146,7 +149,8 @@ _CONTEXT_RULES = {
     '風': [('かぜ', None, r'の吹き回し'),
            ('ふう', r'(?:[こそあど]んな|(?:[こそど]う|ああ)(?:いう|いった|言う|云う|言った|云った)'
               r'|と(?:いう|いった|言う|云う|言った|云った)|ような|ふうな)$', None),
-           ('ふう', r'ない$', r'[にでをも]', 'and'),
+           # 知らない風を装う, 気にしてない風をして: ふう; not 見えない風を感じる (かぜ, T276).
+           ('ふう', r'ない$', r'(?:[にでも]|を(?:装|よそお|演じ|し[てた]|する|見せ|意識))', 'and'),
            ('かぜ', None, r'に(?:そよ|揺|ゆれ|なび|吹|舞|乱|あお|煽|任|散|飛|はため|翻|ひるがえ|鳴|運ば|乗)'
               r'|が(?:吹|強|弱|やみ|止|冷|涼|出|そよ)|を(?:受け|切|感じ|起こ)|の(?:音|便り)')],
     # 中 after a stretch of time or a place, "all through" (一日中, 世界中): じゅう; Sudachi says ちゅう,
@@ -198,7 +202,7 @@ _CONTEXT_RULES = {
            ('かた', r'どんな$', r'(?:です|でし|だ|なの|なん)', 'and'),
            ('かた', '(?:' + words(PERSON, ROLE)
             + r'|[おご]' + words(CUSTOMER_ACT) + r')の$', r'(?![がへに])', 'and'),
-           ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし|だっ)', 'and'),  # ドイツの方ですか
+           ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし)', 'and'),  # ドイツの方ですか; not …したのはルークの方だった (ほう)
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)'),
            # Plural after a person (あなた方, 先輩方, お嬢様方); not 母/父 (お母さん方の祖母: かた), nor an address (山田さん方で).
@@ -491,6 +495,8 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('呆ける', 'ぼける'): 'ほうける', ('艶やか', 'あでやか'): 'つややか', ('正しく', 'まさしく'): 'ただしく',
                  # A word Sudachi has as a name only (T170, T261)
                  ('未来人', 'みきと'): 'みらいじん',
+                 # Fantasy's ground dragon: books' ruby ちりゅう (T277), Sudachi and the list じりゅう.
+                 ('地竜', 'じりゅう'): 'ちりゅう',
                  # Batch 2: (fixed - broken) >= 2 and 90%+ right on Tatoeba (half a + B1), not losing on
                  # NDL's held-out authors. 或いは is the one exception: Tatoeba never leaves it to Sudachi,
                  # and あるいわ only misspells あるいは (NDL +11/-0).
@@ -571,6 +577,7 @@ PRONOUNS_RA = {'あいつ', 'こいつ', 'そいつ', 'アイツ', 'コイツ', 
                'お主', 'てめえ', 'てめぇ', 'てめー', 'テメエ', 'テメー', '手前', '諸君', '僕', 'ぼく', 'ボク', '私', 'わたし', 'ワタシ', '我',
                'われ', 'ワレ', '彼', '彼奴', '其方', 'そなた', 'あんた', 'アンタ', 'あなた', '貴方', 'わし', 'ワシ', '儂', 'あたし', 'アタシ',
                'あっし', 'おいら', 'オイラ', '君', 'きみ', '自分', '貴兄', '貴下', '我々', '奴', 'やつ', 'ヤツ', 'それ', 'これ', 'あれ', '子供', '子ども', '小僧', '娘'}
+_OWN_FAMILY = r'の(?:お?[父母]|親|両親|子|娘|息子|兄|姉|弟|妹|家族|祖父|祖母|孫|叔父|叔母|伯父|伯母|パパ|ママ)'
 # 何時 before か, しか, だって, でも, になく, 、 or a verb (何時か必ず, 何時帰った; not 今何時か, 何時起き): いつ;
 # the model's なんじ is right in bare text elsewhere (何時に起きる, 今何時だ, 何時ぐらい), though authors ruby 何時 mostly where it is いつ.
 MODEL_FIX = {('何時', 'なんじ'): [(r'(?:今|いま)[、は]?$', None, 'なんじ', True),  # 今何時か分かる
@@ -582,7 +589,11 @@ MODEL_FIX = {('何時', 'なんじ'): [(r'(?:今|いま)[、は]?$', None, 'な�
              # 一|文: a sentence (その一文, 一文だけ), not money (一文も, 一文の得).
              ('文', 'もん'): [(r'(?<![〇一二三四五六七八九十百千万銭])一$', _NOT_MONEY, 'ぶん', True)],
              # 術 glued after a kanji or katakana noun is a technique (護衛術, 変身術, スピン術); not 他術 (他に術はない).
-             ('術', 'すべ'): [(r'[ァ-ヺー㐀-䶿一-鿿々](?<!他)$', None, 'じゅつ', True)]}
+             ('術', 'すべ'): [(r'[ァ-ヺー㐀-䶿一-鿿々](?<!他)$', None, 'じゅつ', True)],
+             # Xを地で行く (理想を地でいく): true to form, じ (T275).
+             ('地', 'ち'): [(r'を$', r'で(?:い[くかきけこっ]|行(?![わなう])|ゆ[くかきけこ])', 'じ', True)],
+             # 実の父, 実の娘: one's own family, じつ; み for fruit (実のなる木) (T275).
+             ('実', 'み'): [(None, _OWN_FAMILY, 'じつ', True)], ('実', 'まこと'): [(None, _OWN_FAMILY, 'じつ', True)]}
 MODEL_FIX = {key: [(before and re.compile(before), after and re.compile(after), reading, shown)
                    for before, after, reading, shown in fixes] for key, fixes in MODEL_FIX.items()}
 
@@ -590,7 +601,8 @@ MODEL_FIX = {key: [(before and re.compile(before), after and re.compile(after), 
 # TRADEOFFS T2). Where a hand default doesn't hold, Sudachi's reading stays: (text before, text after) the word.
 # Before the kana or katakana half of a compound Sudachi splits off (擦りきれる, 擦りおろす, 擦りガラス) and
 # after a match (マッチを擦る: する, 燐寸 8 of 9 in books' ruby).
-DEFAULT_KEEP = {'殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.compile(r'(?!)')),  # 一殿, 七殿: palace halls
+DEFAULT_KEEP = {'実': (re.compile(r'(?!)'), re.compile(_OWN_FAMILY)),  # 実の父: Sudachi's じつ, not み (T275)
+                '殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.compile(r'(?!)')),  # 一殿, 七殿: palace halls
                 '擦る': (re.compile(r'(?:マッチ|燐寸|まっち|墨)を$'),
                        re.compile(r'(?:きれ|きら|ぬけ|ぬか|おろ|下ろ|へっ|へら|へり|へる|むけ|むい|こ[まみむめん]|込|ガラス|硝子|リンゴ|りんご)'))}
 
@@ -598,6 +610,31 @@ DEFAULT_KEEP = {'殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.
 # Sudachi's lemma of a conjugated verb that the text right before shows is another verb: {lemma: (verb, before)}.
 # 雨は降り続けた, 雪も降ります, 軍門に降りなさい: 降る, not 降りる (T240, T260).
 WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'))}
+
+# A token Sudachi reads as one word that is another here, Word per entry (surface: [(before, after the token, kanji
+# span or None for the whole token, form, reading, shown)]). お話して, お話させて: 話 はなし + して (the し of
+# お話しして left out); 我が主に, 主に仕える: 主 あるじ + に, not おもに; 解せない: げせない, not かいする (意味を解せない:
+# かい); 平伏した: へいふく or ひれふす, not shown (T271-T274).
+_AFTER_ARUJI = (r'(?:お?仕え|忠誠|忠義|従[わいうえっ]|逆ら|楯突|盾突|たてつ|歯向|刃向|はむか|牙を|拝謁|謁見|相応し|ふさわし|'
+                r'捧げ|反抗|背[いくかけ])')
+SPLIT_TOKENS = {'話し': [(r'お$', r'(?:て|た|ま[すせしっ]|ちゃ|と[いくけこ]|よう)', 1, '話', 'はなし', True)],
+                '話さ': [(r'お$', r'(?:せ|れ)', 1, '話', 'はなし', True)],
+                '主に': [(r'(?:我が|わが|我らが|われらが|我等が|己が|汝が|最愛の|亡き|なき)$', None, 1, '主', 'あるじ', True),
+                         (r'(?<![一-鿿々ァ-ヺー])(?<!の)$', _AFTER_ARUJI, 1, '主', 'あるじ', True),
+                         (r'の$', None, None, '主に', 'おもに', False)],  # 声の主に: ぬし or あるじ
+                '解せ': [(r'(?<!を)$', r'(?:ない|なかっ|ぬ|ん|ず)', None, '解す', 'げす', True)],
+                '平伏し': [(None, None, None, '平伏', 'へいふく', False)]}
+SPLIT_TOKENS = {surface: [(before and re.compile(before), after and re.compile(after), *rest) for before, after, *rest in entries]
+                for surface, entries in SPLIT_TOKENS.items()}
+
+
+def split_token(text: str, begin: int, surface: str):
+    """(end, form, reading, shown) of SPLIT_TOKENS's first entry for the token `surface` at `begin`, else None."""
+    line = max(text.rfind('\n', 0, begin) + 1, begin - 12)
+    for before, after, span, form, reading, shown in SPLIT_TOKENS.get(surface, ()):
+        if (not before or before.search(text[line:begin])) and (not after or after.match(text, begin + len(surface))):
+            return begin + (span or len(surface)), form, reading, shown
+    return None
 
 
 def right_lemma(text: str, begin: int, form: str) -> str:
