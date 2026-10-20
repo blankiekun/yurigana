@@ -24,7 +24,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T9 | 一歩 reads いっぽ | #15 | ~0. Accept | – |
 | T11 | 下手 しもて only with stage/river cues (T61); へた elsewhere | #15 | ~0. Accept | – |
 | T12 | 方 かた only by person cues (担当の方, お方, この方は, after an honorific verb, `cues.PERSON`; a person-only quality `cues.TRAIT`, 様のような, 亡くなった) | #16, #58, #72 | ~1.5 (dev: 受けた方は かた). Needs work | 方 after a plain attributive verb (受けた方は, 依頼された方) needs a context model |
-| T13 | 後 うしろ and 中 うち have no rule; 後 のち only with clause cues (T55) | #16 | ~1. Needs work | a context model |
+| T13 | 後 うしろ and 中 うち have no rule; 後 のち only with clause cues (T55) | #16 | ~0 post-war: in books' ruby, 後 うしろ (75) is 12 of 14 authors pre-war (吉川英治, 永井荷風, 森鴎外, 江戸川乱歩) and 中 うち (176) mostly so (夢野久作, 江戸川乱歩, 永井荷風; ~20 post-war, among members: 三人の中); post-war writers write 後ろ and うち. Accept | a context model |
 | T17 | Left out of #17: 鬼 おに, 気味 ぎみ | #17 | ~0.05 (おされ気味 きみ). Accept | 気味 after a passive stem |
 | T18 | A number + counter token is read as a counter even in a name (三間) | #18 | ~0. Accept | the book's ruby wins |
 | T21 | A counter span Word overlaps its own tokens (三本 over 三 + 本) | #3 | none (word lists skip it) | – |
@@ -32,7 +32,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T24 | A split compound's second part is voiced when the list's compounds voice that tail ≥ 4 in 5 (小屋 ごや) | #21 | unmeasured (B1 8 broken). Needs work | per-pair evidence; non-noun tails |
 | T25 | A Sudachi reading one voicing from a 3+-character word's only listed reading takes the listed one (投票所 しょ) | #21 | 0. Accept | – (both standard) |
 | T26 | 一 + one token joins when the list's top reading starts with ひと/いっ (一思い, 一重 ひとえ) | #24 | ~0. Accept | per-form cues; UniDic word origin for unlisted 一冬 |
-| T28 | 一時 has no rule (いちじ / いっとき / ひととき) | #24 | ~0.3. Needs work | a context model |
+| T28 | 一時 いっとき has no rule (いちじ elsewhere); ひととき only after a pleasant word (至福の, 夢のような, 先輩との: #83, books' ruby 46 of 47), not after a time of day (夜の一時を回る is a clock) | #24, #83 | ~0.2: ruby いっとき 292 (一時の恥, 一時、言葉を失う), but bare 一時 is mostly いちじ (一時は, 一時停止). Needs work | a context model |
 | T30 | 金 defaults to かね when no きん cue fires (cues: metals, colours and things made of gold: 金の瞳/斧/縁取り, 白と金) | #28, #76 | ~0.1 (金の豆, 金 as an element). Needs work | more things made of gold |
 | T31 | 外 is a rule form (ほか), so its model no longer answers | #28 | ~0. Accept | retrain 外 on what no rule reads |
 | T33 | A conjugated word the list lacks takes Sudachi's surface reading (泳げ およげる) | #23 | none shown; rare in word lists. Accept | per-form lemma checks (往っ さる) |
