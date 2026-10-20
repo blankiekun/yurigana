@@ -17,6 +17,10 @@ A joined form JMdict doesn't have with that reading (mostly names and list noise
 words, not readings, so the readings of one word share a rank (言う いう = ゆう, 頭 あたま =
 かしら); wherever the rank picks a reading, readings tied at the top are decided by JMdict's
 order (its first kana reading), else not at all (`yomitan.preferred`).
+`yomitan.reading_ranks` adds the hand-checked pairs of `extra-readings.tsv` that Jiten's list lacks
+(描く かく, 良い いい, 刺青 いれずみ) to the forms it lists, ranked after the form's own readings: ruby
+and context rules may give them, but they never cost a form its `only` reading unless a default
+names them (刺青 しせい → いれずみ).
 Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
 readings: 一昨|日 いっさくひ → おととい, 一|日中 いちにっちゅう → いちにちじゅう. A lone 一 before
 the kana rest of a native word is ひ/ひと/いっ (一ト月, 一と息, 一しずく, 一たい), and ひと before
