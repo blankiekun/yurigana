@@ -349,8 +349,10 @@ _CONTEXT_RULES = {
     # 素 もと: what something is made from (鍋の素, スープの素, 魂を素にする); す (素の自分, 素で) otherwise (HAND_DEFAULTS).
     # 日本 is にほん (HAND_DEFAULTS; a rule here also keeps the public table's にっぽん guesses out); にっぽん in cheers.
     '日本': [('にっぽん', r'(?:がんばれ|頑張れ|ガンバレ|フレーフレー)[、！!　]*$', r'[、！!　]*(?:チャチャチャ|ちゃちゃちゃ)')],
-    # 転生 is てんせい (HAND_DEFAULTS); 輪廻転生 keeps the Buddhist てんしょう.
-    '転生': [('てんしょう', r'輪廻$', None)],
+    # 転生 てんせい, 輪廻転生 keeps the Buddhist てんしょう; 御方 おかた (Sudachi: みかた).
+    # Rules, not HAND_DEFAULTS, so the reading is shown (source rule).
+    '転生': [('てんせい', r'(?<!輪廻)$', None)],
+    '御方': [('おかた', r'$', None)],
     # 半身 はんみ: the body turned sideways (半身になる, 半身に構える); はんしん (half the body) otherwise.
     '半身': [('はんみ', r'(?<!の)$', r'に(?:な[っるりれろら]|構え|かまえ)|の(?:体勢|姿勢|構え)|で構え', 'and')],
     # 理 ことわり: the law of something (世の理, 自然の理); り otherwise (理にかなう, 理がある).
@@ -447,9 +449,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # Left out of default-readings.tsv for want of Tatoeba cases (T34); training-author library ruby:
                  # 咽喉 のど 448 of 449, 空地 あきち 40 of 43.
                  ('咽喉', 'いんこう'): 'のど', ('空地', 'くうち'): 'あきち',
-                 # Post-war bare text (TRADEOFFS T103): 転生 is てんせい (異世界転生), 御方 おかた, 妃 alone きさき
+                 # Post-war bare text (TRADEOFFS T103): 妃 alone きさき
                  # (glued it keeps ひ: 王妃, 第四妃), 素 alone す (素に戻る; glued そ: 元素).
-                 ('転生', 'てんしょう'): 'てんせい', ('御方', 'みかた'): 'おかた', ('妃', 'ひ'): 'きさき', ('素', 'そ'): 'す'
+                 ('妃', 'ひ'): 'きさき', ('素', 'そ'): 'す'
 }
 
 
