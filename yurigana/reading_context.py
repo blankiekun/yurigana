@@ -33,7 +33,8 @@ several readings (人気: にんき/ひとけ) are read, on real text instead of
 
 The rows hold the books' text, so OUT is scratch space: never commit it, nor a table built
 from copyrighted books (`reading-model-public.json.gz` is built only from fetch_aozora.py's
-public-domain works and half of fetch_tatoeba.py's sentences, and pruned on the other half).
+public-domain works and half of fetch_tatoeba.py's sentences, and pruned on the other half; plus
+tools/synthetic_table.py's entries from generated sentences).
 
 The classifier. Ruby'd text overstates the rare reading, so the prior that the table keeps
 is not the share among gold: it is re-estimated on unlabelled occurrences of the form
