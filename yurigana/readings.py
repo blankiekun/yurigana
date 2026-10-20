@@ -295,6 +295,9 @@ _CONTEXT_RULES = {
            ('そば', r'[のがはも]$', r'に(?:いる|い[てたらまれよ]|居|あ[るっ]|置|寄|座|控|仕え|付き添|はべ|侍|来|行)|で(?!は)|まで', 'and')],
     # 階 かい after 上の/下の/同じ/この (上の階へ): Sudachi's きざはし is the steps of a palace or shrine.
     '階': [('かい', r'(?:[上下]の|同じ|[こそあど]の|別の|各|次の|隣の|真[上下]の)$', None)],
+    # 棟 とう as a building's suffix Sudachi split off a kanji noun (研究棟, 理学部棟, 部室棟); Sudachi says むね.
+    # Not after a number (一棟 ひとむね: the counter's) or a lone kanji (別棟).
+    '棟': [('とう', r'(?:(?![〇一二三四五六七八九十百千万何数幾両])[㐀-䶿一-鿿々]){2}$', None)],
     # 傍 alone (not 傍ら) is そば before a particle: 彼の傍にいる, 窓の傍で; Sudachi says かたわら.
     '傍': [('そば', None, r'(?:に|で|まで|から|へ|を)')],
     # 留まる とどまる after に (その場に留まる, だけに留まる), but 目に留まる, 枝に留まる: とまる.
