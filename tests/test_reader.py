@@ -119,7 +119,15 @@ class ReaderTest(unittest.TestCase):
     def test_defaults_batch_2(self):
         known = {('箱', 'はこ'), ('深い', 'ふかい'), ('沿い', 'ぞい')}
         words = self.reader(known).read('箱。深い。沿い。')
-        self.assertEqual([w[3:5] for w in words], [('はこ', 'default'), ('ふかい', 'default'), ('ぞい', 'default')])
+        self.assertEqual([w[3:5] for w in words], [('はこ', 'rule'), ('ふかい', 'default'), ('ぞい', 'default')])
+
+    def test_shown_defaults(self):
+        # SHOWN_DEFAULTS (T320) are shown, source rule; a one-character one not glued or before katakana
+        known = {('他', 'ほか'), ('他', 'た'), ('都', 'みやこ'), ('都', 'と'), ('身体', 'からだ'), ('身体', 'しんたい')}
+        reader = Reader(known)
+        self.assertEqual(reader.read('身体が熱い。')[0][3:6], ('からだ', 'rule', 1.0))
+        self.assertEqual([w[3:5] for w in reader.read('この都を守る。') if w.form == '都'], [('みやこ', 'default')])  # not shown
+        self.assertEqual([w[3:5] for w in reader.read('他クラスの子。') if w.form == '他'], [('ほか', 'default')])
 
     def test_defaults_from_opus_nominations(self):
         known = {('擦る', 'こする'), ('擦る', 'する'), ('素', 'す'), ('素', 'もと')}
@@ -394,7 +402,7 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known)
         joined = {w.form: w[3:5] for w in reader.read('力尽くで三日月を見た。羅甸語の本。')}
         self.assertEqual(joined['力尽く'], ('ちからずく', 'default'))  # ranked 3+ times above its others
-        self.assertEqual(joined['三日月'], ('みかづき', 'default'))  # みかずき is its other spelling
+        self.assertEqual(joined['三日月'], ('みかづき', 'rule'))  # shown (SHOWN_DEFAULTS)  # みかずき is its other spelling
         self.assertEqual(joined['羅甸語'], ('らてんご', 'only'))  # not in the list: JMdict's one reading
         # top readings that differ (ひいじじ, そうそふ), two kanji (小|姑), a verb token (入り|方): not joined
         for text, form in (('曽祖父の家。', '曽祖父'), ('小姑がいる。', '小姑'), ('気合いの入り方。', '入り方')):
