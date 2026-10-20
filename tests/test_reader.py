@@ -294,6 +294,39 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(reader.read('意味を解せない。')[1][2:5], ('解する', 'かいする', 'only'))
         self.assertEqual(reader.read('騎士は主に忠誠を誓った。', [(3, 5, 'おもに')])[1][2:5], ('主に', 'おもに', 'ruby'))
 
+    def test_lemmas_sudachi_takes_for_another_word(self):
+        # T280: 宿する is 宿す (やどす), 欲す is 欲する (the list's ほりす is noise), 欲し before が is 欲しい
+        reader = Reader(known={('宿す', 'やどす'): 5, ('宿す', 'しゅくす'): 9, ('宿する', 'しゅくする'): 9,
+                               ('欲す', 'ほりす'): 9, ('欲する', 'ほっする'): 5, ('欲しい', 'ほしい'): 5})
+        def word(text, form):
+            return next(w for w in reader.read(text) if w.form.startswith(form[0]))[2:5]
+        self.assertEqual(word('その身に宿した力', '宿')[:2], ('宿す', 'やどす'))
+        self.assertEqual(word('彼が欲したのは力だ。', '欲'), ('欲する', 'ほっする', 'only'))
+        self.assertEqual(word('子供がおもちゃを欲しがる。', '欲'), ('欲しい', 'ほしい', 'only'))
+        self.assertEqual(word('平和を欲している。', '欲'), ('欲する', 'ほっする', 'only'))
+
+    def test_adjective_stems(self):
+        # T281: Sudachi's noun before すぎる or an emphatic い, and before a small ェ, is the adjective
+        reader = Reader(known={('酷', 'こく'): 5, ('酷い', 'ひどい'): 5, ('強', 'きょう'): 5, ('強い', 'つよい'): 5,
+                               ('熱', 'ねつ'): 5, ('熱い', 'あつい'): 5, ('手', 'て'): 5})
+        self.assertIn('酷[ひど]すぎる', reader.furigana('それは酷すぎる話だ。'))
+        self.assertIn('強[つえ]ェぞ', reader.furigana('こいつは強ェぞ。'))
+        self.assertIn('痛[いて]ぇな', reader.furigana('ああ、痛ぇな。'))
+        self.assertIn('熱[ねつ]さえ', reader.furigana('熱さえ下がれば'))  # not さ before え
+        self.assertEqual(reader.read('手ぇ出すな。')[0][2:4], ('手ぇ', 'て'))  # 手え isn't an adjective: Sudachi's
+        self.assertEqual(next(w for w in reader.read('酷だ。') if w.form == '酷').reading, 'こく')
+
+    def test_compound_tails_after_a_head(self):
+        # T282: tails voiced after a noun though the list's compounds are mixed (オウム返し; 繰り返し is a verb's stem)
+        known = {('返し', 'かえし'): 5, ('恩返し', 'おんがえし'): 5, ('裏返し', 'うらがえし'): 5, ('倍返し', 'ばいがえし'): 5,
+                 ('燕返し', 'つばめがえし'): 5, ('鼠返し', 'ねずみがえし'): 5, ('繰り返し', 'くりかえし'): 5,
+                 ('取り返し', 'とりかえし'): 5, ('折り返し', 'おりかえし'): 5, ('揺り返し', 'ゆりかえし'): 5,
+                 ('照り返し', 'てりかえし'): 5, ('揃い', 'そろい'): 5, ('美人', 'びじん'): 5, ('オウム', 'おうむ'): 5}
+        reader = Reader(known=known)
+        self.assertIn('オウム返[がえ]し', reader.furigana('オウム返しに言った。'))
+        self.assertIn('揃[ぞろ]い', reader.furigana('美人揃いのチーム'))
+        self.assertIn('揃[そろ]い', reader.furigana('靴が揃いだ。'))
+
     def test_unlisted_sudachi_reading(self):
         # Sudachi's ひょうしつ is neither listed nor JMdict's: the list's top reading, not shown
         reader = Reader(known={('氷室', 'ひむろ'): 5, ('上辺', 'うわべ'): 5, ('国', 'くに'): 5})

@@ -56,6 +56,13 @@ to "Shown again".
 | 地竜 | じりゅう (was `only`) | ちりゅう | `extra-readings.tsv` + `HAND_DEFAULTS`: ちりゅう, source `default` | ruby ちりゅう 41 in 10 books, じりゅう 0; bare ~0.24 per book, in fantasy series | T277 | ちりゅう listed in the frequency list |
 | 方 | かた (was `rule`) after a katakana word + の and だった/だって | ほう (…したのはルークの方だった), かた | `_CONTEXT_RULES['方']`: the katakana rule needs です/でし | 365 bare changes (~0.05 per book), 15 of 15 sampled ほう | T276 | – |
 | 風 | ふう (was `rule`) in ない風を unless 装う/演じる/して/見せる/意識 follows | かぜ (見えない風を感じる), ふう | `_CONTEXT_RULES['風']` | 12 bare changes, 11 かぜ (1 a name) | T276 | – |
+| 熱 | ねつ (was `only`, wrong there) before すぎ/そう/emphatic いっ | あつ (熱い's stem: 熱すぎる) | `Reader._adjectives`: the token becomes 熱い, which the list reads two ways (あつい, あっつい): `dictionary` | bare 300 training-author books: 11 occurrences, all あつ | T281 | `only` for an adjective whose listed readings share the stem's reading |
+| 酷 | こく (was `only`, wrong there) before すぎ/emphatic いっ and before a small ェ | ひど (酷すぎる), ひで (酷ェ) | `Reader._adjectives`: 酷い (listed with ひでぇ…) or Sudachi's 酷え: `dictionary` | bare: 6 + 1, all right after | T281 | list readings for the slang form; `only` as for 熱 |
+| 速 | そく (was `only`, wrong there) before すぎ and a small ェ | はや (速すぎ), はえ (速ぇ) | `Reader._adjectives`: 速い (listed はえー…) or 速え: `dictionary` | bare: 3, all right after | T281 | as for 酷 |
+| 強 | きょう (was `only`, wrong there) before a small ェ/ぇ | つえ (強ェ) | `Reader._adjectives`: Sudachi's 強え, which the list lacks: `dictionary` | bare: 4, all right after; ruby 23 of 24 つえ (one つぇ) | T281 | list readings for the slang form |
+| 弱 | じゃく (was `only`, wrong there) before a small ェ/ぇ | よえ (弱ぇ) | `Reader._adjectives`: Sudachi's 弱え: `dictionary` | bare: 3, all right after; ruby 9 of 9 | T281 | list readings for the slang form |
+| 臭 | しゅう (was `only`, wrong there) before a small ェ/ぇ | くせ (面倒臭ぇ) | `Reader._adjectives`: Sudachi's 臭え: `dictionary` | bare: 2, all right after; ruby 8 of 8 | T281 | list readings for the slang form |
+| 宿す | しゅくする (was `only` as Sudachi's 宿する, wrong) | やどす (瞳に宿し) | `WRONG_LEMMA` 宿する → 宿す, whose listed しゅくす is a hand default to やどす: `default` | bare: 7, all やどす | T280 | `only` for 宿す (the list's しゅくす is rare and old) |
 
 ## Shown again
 

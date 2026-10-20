@@ -550,7 +550,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('樽', 'そん'): 'たる', ('宴', 'えん'): 'うたげ', ('身体中', 'しんたいじゅう'): 'からだじゅう',
                  # Sudachi's ひける (can play) of 弾ける is mostly はじける in bare post-war text (24 of 30, 泡が弾ける);
                  # ひける after an instrument is a context rule (T241).
-                 ('弾ける', 'ひける'): 'はじける'
+                 ('弾ける', 'ひける'): 'はじける',
+                 # 宿す is やどす in modern text (瞳に宿した); しゅくす is Sudachi's reading of 宿する (WRONG_LEMMA, T280).
+                 ('宿す', 'しゅくす'): 'やどす'
 }
 
 
@@ -607,9 +609,15 @@ DEFAULT_KEEP = {'実': (re.compile(r'(?!)'), re.compile(_OWN_FAMILY)),  # 実の
                        re.compile(r'(?:きれ|きら|ぬけ|ぬか|おろ|下ろ|へっ|へら|へり|へる|むけ|むい|こ[まみむめん]|込|ガラス|硝子|リンゴ|りんご)'))}
 
 
-# Sudachi's lemma of a conjugated verb that the text right before shows is another verb: {lemma: (verb, before)}.
-# 雨は降り続けた, 雪も降ります, 軍門に降りなさい: 降る, not 降りる (T240, T260).
-WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'))}
+# Sudachi's lemma of a conjugated verb that the text around it shows is another word: {lemma: (word, before, after)},
+# where the text right before matches `before` or the text right after starts with `after`.
+# 雨は降り続けた, 雪も降ります, 軍門に降りなさい: 降る, not 降りる (T240, T260). Lemmas Sudachi takes where the
+# modern word is another (T280): 宿する (瞳に宿した: 宿す, read やどす, HAND_DEFAULTS), 欲す (the list's ほりす;
+# 欲した ほっした: 欲する), and 欲する before が (欲しがる: 欲しい).
+_ALWAYS = re.compile('')
+WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'), None),
+               '宿する': ('宿す', _ALWAYS, None), '欲す': ('欲する', _ALWAYS, None),
+               '欲する': ('欲しい', None, re.compile('が[らりるれろっ]'))}
 
 # A token Sudachi reads as one word that is another here, Word per entry (surface: [(before, after the token, kanji
 # span or None for the whole token, form, reading, shown)]). お話して, お話させて: 話 はなし + して (the し of
@@ -637,10 +645,11 @@ def split_token(text: str, begin: int, surface: str):
     return None
 
 
-def right_lemma(text: str, begin: int, form: str) -> str:
-    """The verb a token at `begin` with Sudachi's lemma `form` is (WRONG_LEMMA), else `form`."""
+def right_lemma(text: str, begin: int, form: str, end: int | None = None) -> str:
+    """The word a token at text[begin:end] with Sudachi's lemma `form` is (WRONG_LEMMA), else `form`."""
     fix = WRONG_LEMMA.get(form)
-    if fix and fix[1].search(text[max(text.rfind('\n', 0, begin) + 1, begin - 24):begin]):
+    if fix and (fix[1] and fix[1].search(text[max(text.rfind('\n', 0, begin) + 1, begin - 24):begin])
+                or fix[2] and end is not None and fix[2].match(text, end)):
         return fix[0]
     return form
 
