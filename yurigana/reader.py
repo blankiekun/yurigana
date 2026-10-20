@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -328,6 +328,11 @@ class Reader:
             if compound:
                 next_token, word = compound
                 words.append(word)
+                continue
+            split = split_token(text, token.begin, token.surface())
+            if split and not any(s < _end(token) and e > token.begin for s, (e, _) in hint_at.items()):
+                end, form, reading, shown = split
+                words.append(Word(token.begin, end, form, reading, 'rule' if shown else 'dictionary', 1.0 if shown else None))
                 continue
             surface, form = token.surface(), token.dictionary_form()
             if form != surface and unicodedata.normalize('NFKC', surface) == form:

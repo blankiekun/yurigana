@@ -282,6 +282,18 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
         self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
 
+    def test_split_tokens(self):
+        # T271-T274: one Sudachi token that is another word here (SPLIT_TOKENS); ruby over the token wins
+        reader = Reader(known={('話す', 'はなす'): 5, ('話', 'はなし'): 5, ('主に', 'おもに'): 5, ('解する', 'かいする'): 5})
+        self.assertIn('話[はなし]して', reader.furigana('後でお話してもいい？'))
+        self.assertIn('話[はな]しします', reader.furigana('後でお話しします。'))
+        self.assertEqual(reader.read('騎士は主に忠誠を誓った。')[1][2:5], ('主', 'あるじ', 'rule'))
+        self.assertEqual(reader.read('これは主に子供が使う。')[0][2:5], ('主に', 'おもに', 'only'))
+        self.assertEqual(reader.read('声の主に目を向けた。')[1][2:5], ('主に', 'おもに', 'dictionary'))
+        self.assertIn('解[げ]せない', reader.furigana('どうにも解せない。'))
+        self.assertEqual(reader.read('意味を解せない。')[1][2:5], ('解する', 'かいする', 'only'))
+        self.assertEqual(reader.read('騎士は主に忠誠を誓った。', [(3, 5, 'おもに')])[1][2:5], ('主に', 'おもに', 'ruby'))
+
     def test_unlisted_sudachi_reading(self):
         # Sudachi's ひょうしつ is neither listed nor JMdict's: the list's top reading, not shown
         reader = Reader(known={('氷室', 'ひむろ'): 5, ('上辺', 'うわべ'): 5, ('国', 'くに'): 5})
