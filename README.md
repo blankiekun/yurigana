@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.2.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.3.0.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -58,7 +58,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.2.0
+pnpm add github:blankiekun/yurigana#v0.3.0
 ```
 
 ```js
@@ -77,19 +77,19 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main, 2026-10-19, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana 0.3.0, 2026-10-19, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
-| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
+| | modern books | hard (440) | older books (NDL) | hard (910) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
 |---|---|---|---|---|---|---|---|
-| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **98.2** | **about 460** |
-| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | 97.4 | about 820 |
-| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | 97.3 | about 830 |
-| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | 96.7 | about 990 |
-| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | 96.9 | about 960 |
-| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | 95.5 | about 960 |
-| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | 93.6 | about 1,360 |
+| **yurigana** | **94.7** | **84.5** | **92.2**² | **89.2**² | **99.0**² | **98.3** | **about 460** |
+| Sudachi | 93.3 | 78.6 | 91.0 | 86.6 | 94.3 | 97.4 | about 820 |
+| GiNZA | 93.3 | 78.6 | 90.9 | 86.5 | 94.2 | 97.3 | about 830 |
+| yomikata | 92.2 | 79.1 | 91.1 | 86.8 | 93.0 | 96.7 | about 990 |
+| MeCab + unidic-lite | 91.9 | 76.8 | 90.7 | 85.9 | 93.2 | 96.9 | about 960 |
+| MeCab + IPAdic | 86.5 | 71.8 | 87.5 | 83.2 | 97.0 | 95.5 | about 960 |
+| pykakasi | 85.0 | 68.4 | 84.0 | 77.8 | 93.7 | 93.6 | about 1,360 |
 | Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – | – |
 | DeBERTa-CRF (Hu et al.)⁶ | – | – | – | – | – | 99.6 | – |
 
@@ -110,7 +110,7 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   toolkit (`jkyb-eval g2p`, the target kanji's reading). Every reading counts the same, so rare and
   literary readings (社 やしろ, 政 まつりごと) weigh far more than in real books: it measures coverage
   of the Jōyō table, not what a reader meets. MeCab here is unidic-lite (the paper's full UniDic:
-  96.66; its Sudachi 97.32 matches ours). Measured on yurigana main 79ac3b7.
+  96.66; its Sudachi 97.32 matches ours). Measured on yurigana 0.3.0.
 - ⁶ The dictionary-constrained CRF over a character DeBERTa (about 100M parameters, trained on GPUs
   on 2.3M LLM-annotated sentences) of Hu, Zhan and Lin (arXiv 2609.19805): their published number,
   not run here (no code or model released). For scale, frontier LLMs score 99.4-99.85 in the paper.
