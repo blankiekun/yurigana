@@ -82,7 +82,6 @@ def ndl(archive, lines):
 def tatoeba_modern(path):
     """Tatoeba's reviewed sentences of half a and B1 (half b without evaluate.py's B2 IDs)."""
     from yurigana.evaluate import B2_IDS, tatoeba_sentence
-    from yurigana.fetch_tatoeba import half_of
     with gzip.open(B2_IDS, 'rt') as f:
         b2 = {int(line) for line in f if line.strip()}
     for line in bz2.open(path).read().decode('utf-8').splitlines():
