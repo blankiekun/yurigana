@@ -37,7 +37,7 @@ also for slices the tokens already read that way; a word already shown keeps its
 the tokens already read one of them (他愛もない), the tail of a longer word (書き|甲斐|が|ある), a noun and case
 particle right after a modifier (大きな|音|を|上げ, 不気味な|音|を: literal おと; not after その/この, and not
 compounds or の-phrases: 大きな金ダライ, 従順な神の僕), two-token phrases ending in a particle (外|に
-isn't ほかに) and `readings.NOT_JOINED`'s phrases that books also read literally (頭を振る, 口の端).
+isn't ほかに) and `rules.NOT_JOINED`'s phrases that books also read literally (頭を振る, 口の端).
 `yomitan.reading_ranks` adds the hand-checked pairs of `extra-readings.tsv` that Jiten's list lacks
 (描く かく, 良い いい, 刺青 いれずみ) to the forms it lists, ranked after the form's own readings: ruby
 and context rules may give them, and a form with one is never `only` (描く えがく is shown only where a
@@ -63,7 +63,7 @@ reading wins:
    上手に じょうず, 上手と下手 かみて/しもて, あのお方 かた, 教えてくださった方 かた, 、後に知る のち, しかる後 のち,
    表世界 おもて, 主の命令 あるじ, 陛下の下へ もと, 上の階 かい, 研究棟 とう, いい画だ え, 目を擦る こする,
    攻撃を弾く はじく, 紐を解く ほどく, 涙を堪える こらえる, 被害を被る こうむる, ため息を吐く つく, 辛くなる つらい …), in
-   `readings._CONTEXT_RULES`.
+   `rules.CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき. 何 is なに before a counter kanji that
    starts a verb when the verb's okurigana follow (何着てる, 何話してる, 何間違えてる, 何歩いてる),
@@ -85,7 +85,7 @@ reading wins:
    悲し) or there is no list: Sudachi's reading of the stem plus the form's okurigana
    (`readings.unlisted_reading`, `source='dictionary'`, certainty None).
    A few of Sudachi's readings that are almost always wrong in modern text are replaced
-   (`readings.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
+   (`rules.DEFAULT_READINGS`, `source='default'`): 私 わたくし → わたし, 言う ゆう → いう,
    富士山 ふじやま → ふじさん, 鶏肉, 今日 こんにち, 明後日. They were chosen on Tatoeba's half a:
    each fixes 10+ occurrences there and is right 90%+ of the times it changes a reading.
    日本 にっぽん → にほん is the exception: Tatoeba's machine gold keeps にっぽん often enough
@@ -100,7 +100,7 @@ reading wins:
    sentences (where Opus reads a word otherwise than Sudachi in 3+ sentences by 3+ authors and 80%+
    of the time the same way) and checked on Tatoeba B1 (2 changes, both right); TRADEOFFS T45.
    Defaults are not shown, but those right 97%+ where they fire in training-author post-war books' ruby
-   (or, for rarer forms, in every sampled bare occurrence checked by hand) are (`readings.SHOWN_DEFAULTS`, source
+   (or, for rarer forms, in every sampled bare occurrence checked by hand) are (`rules.SHOWN_DEFAULTS`, source
    `rule`: 他 ほか, 身体 からだ, 箱 はこ, 数百 すうひゃく, 間近 まぢか …; a one-character one only on its own,
    not glued or before katakana: 他クラス; TRADEOFFS T320). 私 わたし, 言う いう and 日本 にほん
    are not: books' ruby reads them otherwise too often (わたくし, ゆう, にっぽん).
@@ -260,8 +260,8 @@ about 20 s and under 100 MB to load.
 | `ruby`, `book`, `rule`, `only` | 1.0 (`only` also for a dominant reading, below) |
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `terms` | None (Term dictionaries you supply) |
-| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` and the slices of `shown-idioms.tsv` phrases are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
-| `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
+| `default`, `counter` | None (the defaults in `rules.SHOWN_DEFAULTS` and the slices of `shown-idioms.tsv` phrases are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
+| `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`rules.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 A form the list reads several ways is still `only` where Sudachi's reading (or the listed one a conjugated
 word comes from) is the form's reading in `dominant-readings.tsv`: about 1,300 forms such as 俺 おれ, 声 こえ, 目 め,

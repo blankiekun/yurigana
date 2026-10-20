@@ -7,6 +7,8 @@ import os
 import re
 import zipfile
 
+from .kana import HAS_KANJI, to_hiragana
+
 # Jiten's list is one 55 MB bank; anything far bigger is likely a deflate bomb.
 MAX_MEMBER_BYTES = 128 * 1024 * 1024
 # Hand-checked (form, reading) pairs Jiten's list lacks (描く かく, 良い いい): see the file's header.
@@ -95,12 +97,7 @@ def preferred(ranks: dict, order=()) -> tuple:
 
 _KANJI = '㐀-䶿一-鿿豈-﫿々〆ヶ'
 _TERM = re.compile(f'^[{_KANJI}ぁ-ゖァ-ヺー]+$')
-_HAS_KANJI = re.compile('[㐀-䶿一-鿿豈-﫿]')
 _READING = re.compile('^[ぁ-ゖァ-ヺー]+$')
-
-
-def _hiragana(text: str) -> str:
-    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヶ' else c for c in text)
 
 
 def _aligned(term: str, reading: str) -> bool:
@@ -108,12 +105,12 @@ def _aligned(term: str, reading: str) -> bool:
     (an entry whose reading spells something else, or puts katakana under kanji, is noise)."""
     pattern = ''
     for run in re.findall(f'[{_KANJI}]+|[^{_KANJI}]', term):
-        if _HAS_KANJI.match(run) or run[0] in '々〆ヶ':
+        if HAS_KANJI.match(run) or run[0] in '々〆ヶ':
             pattern += '[ぁ-ゖー]{1,%d}' % (5 * len(run))
         elif run == 'ー':
             pattern += '[ーぁあいうえおっ]'
         else:
-            h = _hiragana(run)
+            h = to_hiragana(run)
             pattern += '[' + h + chr(ord(h) + 0x60) + ']' if 'ぁ' <= h <= 'ゖ' else re.escape(run)
     return bool(re.fullmatch(pattern, reading))
 
@@ -133,11 +130,11 @@ def term_readings(path: str) -> dict:
             for row in json.loads(_read(archive, name)):
                 term, reading = row[0], row[1] or row[0]
                 if (not isinstance(term, str) or not isinstance(reading, str) or not _TERM.match(term)
-                        or not _HAS_KANJI.search(term) or not _READING.match(reading)
+                        or not HAS_KANJI.search(term) or not _READING.match(reading)
                         or re.search('または|もしくは|あるいは', reading) and reading not in ('または', 'もしくは', 'あるいは')
                         or not _aligned(term, reading)):
                     continue
                 readings = out.setdefault(term, [])
-                if _hiragana(reading) not in readings:
-                    readings.append(_hiragana(reading))
+                if to_hiragana(reading) not in readings:
+                    readings.append(to_hiragana(reading))
     return out

@@ -35,7 +35,7 @@ sys.path.insert(0, ROOT)
 from tests.test_sanity import COLUMNS, outcome  # noqa: E402
 from yurigana import Reader, __version__, aozora_text, ruby_reading  # noqa: E402
 from yurigana.fetch_tatoeba import half_of, to_aozora  # noqa: E402
-from yurigana.readings import HAS_KANJI  # noqa: E402
+from yurigana.kana import HAS_KANJI  # noqa: E402
 from yurigana.reader import _Any  # noqa: E402
 from yurigana.tokens import SudachiTokenizer  # noqa: E402
 

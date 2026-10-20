@@ -57,7 +57,7 @@ class ModelTest(unittest.TestCase):
     def setUp(self):
         self.entry = build_form({r: c for r, (_, c) in counts(HITOKE + NINKI).items()},
                                 ['L1:に', 'R1:が', 'R2:ない', 'R2:ある', 'R1:の', 'W:店'], [math.log(.5)] * 2)
-        # 人家 stands in for a form without hand rules; 人気 has them (readings._CONTEXT_RULES).
+        # 人家 stands in for a form without hand rules; 人気 has them (rules.CONTEXT_RULES).
         self.model = ReadingModel({'人家': self.entry, '人気': self.entry})
 
     def test_context_decides(self):

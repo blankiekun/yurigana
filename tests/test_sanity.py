@@ -6,7 +6,7 @@ import sys
 import unittest
 from collections import Counter
 
-from yurigana.readings import HAS_KANJI, to_hiragana
+from yurigana.kana import HAS_KANJI, to_hiragana
 
 try:
     import sudachipy  # noqa: F401

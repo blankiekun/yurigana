@@ -70,7 +70,6 @@ import argparse
 import bisect
 import gzip
 import html
-import itertools
 import json
 import math
 import os
@@ -79,7 +78,9 @@ import unicodedata
 import zlib
 from collections import Counter, defaultdict
 
-from .readings import DEFAULT_READINGS, HAS_KANJI, _small_kana, context_reading, ruby_reading, to_hiragana
+from .kana import HAS_KANJI, KANA_READING, small_kana, to_hiragana
+from .readings import context_reading, ruby_reading
+from .rules import DEFAULT_READINGS
 from .reading_model import RULE_FORMS, WINDOW, ReadingModel, build_form, features, token_window  # noqa: F401
 from .reader import jmdict_readings
 from .yomitan import preferred, reading_ranks
@@ -96,7 +97,6 @@ _BOOK_ID = re.compile(r' \((\d+)\)$')  # Calibre's book folder: Title (id)
 _SERIES = re.compile(r'<meta name="calibre:series" content="([^"]+)"')
 _TAG_OR_VOLUME = re.compile(r'[\s_\-:・]*(?:[\[(【〈《「『][^\])】〉》」』]*[\])】〉》」』]|(?:vol\.?|第)?[0-9〇一二三四五六七八九十百]+[巻話部]?|[上中下]巻)$|\s+[上中下]$', re.I)
 
-_HIRAGANA = re.compile(r'^[ぁ-ゖー]+$')
 _KATAKANA = re.compile(r'[ァ-ヺ]')
 
 
@@ -109,7 +109,7 @@ def ambiguous_forms(known, jmdict=None) -> dict:
     {form: readings} gives for the form, when it gives any of them."""
     forms = defaultdict(dict)
     for (term, reading), rank in known.items():
-        if HAS_KANJI.search(term) and _HIRAGANA.match(reading):
+        if HAS_KANJI.search(term) and KANA_READING.match(reading):
             forms[term][reading] = rank
     for form, readings in forms.items():
         own = (jmdict or {}).get(form, ())
@@ -131,11 +131,11 @@ def label(ruby: str, readings) -> tuple:
         return None, 'katakana'
     if HAS_KANJI.search(ruby):
         return None, 'kanji'
-    if not _HIRAGANA.match(ruby):
+    if not KANA_READING.match(ruby):
         return None, 'other'
     if ruby in readings:
         return ruby, None
-    return next(((v, None) for v in _small_kana(ruby) if v in readings), (None, 'unlisted'))
+    return next(((v, None) for v in small_kana(ruby) if v in readings), (None, 'unlisted'))
 
 
 def split_of(author: str) -> int:

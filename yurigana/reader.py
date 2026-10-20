@@ -9,7 +9,12 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, SHOWN_IDIOMS, glued, split_suffix, split_token, _HIRAGANA_WORD, _small_kana, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_kanji, long_vowels, rendaku, small_kana, spelling,
+                   to_hiragana)
+from .readings import (conjugated_reading, context_reading, default_kept, glued, may_be_potential, right_lemma, ruby_reading,
+                       split_suffix, split_token, surface_reading, unlisted_reading)
+from .rules import (CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
+                    NOT_JOINED, SHOWN_DEFAULTS, SHOWN_IDIOMS)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
 from .yomitan import dominant_checked, dominant_readings, extra_readings, preferred, term_readings
@@ -30,23 +35,8 @@ def jmdict_readings(path: str = JMDICT_PAIRS) -> dict:
     """form -> JMdict's readings of it, in JMdict's order (tools/jmdict_pairs.py), with ー
     spelled out (ぎょーざ: ぎょうざ, as lists spell it)."""
     with gzip.open(path, 'rt', encoding='utf-8') as f:
-        return {form: [_long_vowels(r) for r in readings.split(' ')]
+        return {form: [long_vowels(r) for r in readings.split(' ')]
                 for form, readings in json.load(f)['pairs'].items()}
-
-
-_VOWEL = {**dict.fromkeys('あかさたなはまやらわがざだばぱぁゃゎ', 'あ'), **dict.fromkeys('いきしちにひみりぎじぢびぴぃ', 'い'),
-          **dict.fromkeys('うくすつぬふむゆるぐずづぶぷぅゅ', 'う'), **dict.fromkeys('えけせてねへめれげぜでべぺぇ', 'い'),
-          **dict.fromkeys('おこそとのほもよろごぞどぼぽぉょ', 'う')}
-
-
-def _long_vowels(reading: str) -> str:
-    """ー as the kana it stands for after a kana: o-row う, e-row い (こんぺいとー: こんぺいとう)."""
-    return re.sub('(?<=(.))ー', lambda m: _VOWEL.get(m.group(1), 'ー'), reading)
-
-
-def _spelling(reading: str) -> str:
-    """One spelling of a reading's sounds: ー spelled out, づ ず and ぢ じ alike (みかづき, みかずき)."""
-    return _long_vowels(reading).replace('づ', 'ず').replace('ぢ', 'じ')
 
 
 # Numeral compounds _numeral_idiom leaves split: counts (八文字 はちもじ, not はちもんじ, N文字 in the code; 八歳児
@@ -56,8 +46,6 @@ _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万�
 _MAX_COMPOUND = 4  # tokens
 _ALL_KANJI = re.compile(r'^[㐀-䶿一-鿿豈-﫿々]+$')
 _DEMONSTRATIVE = re.compile('^[こそあど](?:の|んな|ういう)$')
-_KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
-_KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 _UNITS = re.compile('[十百千万億兆]')
 _ONE_UNIT = re.compile('一百|^[万億兆]')
 # 一 with the rest of a native word in kana: 一ト月, 一と息 (ひ, と), 一しずく (ひと), 一たい (いっ)
@@ -110,11 +98,7 @@ class _Any:
         return True
 
 
-_VOICED = {'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'さ': 'ざ', 'し': 'じ', 'す': 'ず',
-           'せ': 'ぜ', 'そ': 'ぞ', 'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど', 'は': 'ばぱ',
-           'ひ': 'びぴ', 'ふ': 'ぶぷ', 'へ': 'べぺ', 'ほ': 'ぼぽ'}
-_UNVOICED = str.maketrans({v: k for k, vs in _VOICED.items() for v in vs})
-_VOICED_OBSTRUENT = re.compile('[がぎぐげござじずぜぞだぢづでどばびぶべぼ]')
+_UNVOICED = UNVOICED  # chimimouryou's jiten/service.py imports it (until it imports kana.UNVOICED)
 _HEAD_SURFACE = re.compile('[ァ-ヺー㐀-䶿一-鿿豈-﫿々]')
 # 入れ not after a noun or お (用具入れ, お入れになる) and before a quote's or sentence's end or と言う (「入れ」,
 # 入れと言わんばかり): 入る's imperative.
@@ -144,7 +128,7 @@ def _compound_head(pos) -> bool:
 
 def _one_voicing_apart(a: str, b: str) -> bool:
     diff = [(x, y) for x, y in zip(a, b) if x != y]
-    return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(_UNVOICED) == diff[0][1].translate(_UNVOICED)
+    return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(UNVOICED) == diff[0][1].translate(UNVOICED)
 
 
 # Sudachi picks between two entries by context (秋桜 コスモス/アキザクラ); the list has only one
@@ -168,14 +152,14 @@ def _spelled(span, reading: str) -> bool:
     each before the last ending in っ or not (学|校 がっこう)."""
     pattern = ''
     for k, t in enumerate(span):
-        part = _long_vowels(to_hiragana(t.reading_form()))
+        part = long_vowels(to_hiragana(t.reading_form()))
         forms = {part, k and rendaku(part) or part}
         if k < len(span) - 1:
             forms |= {f[:-1] + 'っ' for f in forms if f[-1:] in tuple('くつちき')}
         if k and part[:1] in 'はひふへほ':  # after っ (一|藩 いっぱん)
             forms.add(chr(ord(part[0]) + 2) + part[1:])
         pattern += '(?:' + '|'.join(map(re.escape, forms)) + ')'
-    return bool(re.fullmatch(pattern, _long_vowels(reading)))
+    return bool(re.fullmatch(pattern, long_vowels(reading)))
 
 
 def _split_name(a, b, reading: str) -> dict:
@@ -186,13 +170,6 @@ def _split_name(a, b, reading: str) -> dict:
             cut = len(known) if first else len(reading) - len(known)
             return {a.begin: reading[:cut], b.begin: reading[cut:]}
     return {}
-
-
-def rendaku(reading: str) -> str | None:
-    """The reading voiced at its start (たな → だな), or None: it can't voice, or Lyman's law
-    (a voiced obstruent later in it, かぜ) keeps it from voicing."""
-    voiced = _VOICED.get(reading[:1], '')[:1]
-    return voiced and not _VOICED_OBSTRUENT.search(reading[1:]) and voiced + reading[1:] or None
 
 
 class PlainReadings:
@@ -206,7 +183,7 @@ class PlainReadings:
 
     @staticmethod
     def _variants(reading: str):
-        for start in reading[0] + _VOICED.get(reading[0], ''):
+        for start in reading[0] + VOICED.get(reading[0], ''):
             word = start + reading[1:]
             yield word
             if len(word) > 1 and word[-1] in 'つちくき':
@@ -265,7 +242,7 @@ class Reader:
         # The list's hiragana readings per form, and the forms it gives exactly one.
         self.readings = defaultdict(list)
         for form, reading in known or ():
-            if _HIRAGANA_WORD.match(reading):
+            if HIRAGANA_WORD.match(reading):
                 self.readings[form].append(reading)
         # JMdict's readings of the list's forms: a check on the list (names, parser noise) and the
         # order of readings it ranks the same
@@ -286,7 +263,7 @@ class Reader:
         ranks = known if isinstance(known, dict) else {}
         self.one_x = {}
         for form, readings in self.readings.items():
-            if form[:1] == '一' and len(readings) > 1 and ranks and form not in _CONTEXT_RULES:
+            if form[:1] == '一' and len(readings) > 1 and ranks and form not in CONTEXT_RULES:
                 best, second = preferred({r: ranks[form, r] for r in readings}, self.jmdict.get(form, ()))
                 if best and best[:2] in ('ひと', 'いっ') and second >= 3 * ranks[form, best]:
                     self.one_x[form] = best
@@ -300,9 +277,9 @@ class Reader:
         self.ranked = {}
         plain = PlainReadings() if ranks else None
         for form, readings in self.readings.items():
-            if len(readings) > 1 and len(form) > 2 and ranks and form not in _CONTEXT_RULES:
+            if len(readings) > 1 and len(form) > 2 and ranks and form not in CONTEXT_RULES:
                 best, second = preferred({r: ranks[form, r] for r in readings}, self.jmdict.get(form, ()))
-                top = {_spelling(r) for r in readings if ranks[form, r] == ranks[form, best]} if best else ()
+                top = {spelling(r) for r in readings if ranks[form, r] == ranks[form, best]} if best else ()
                 if (best in self.jmdict.get(form, ()) and second >= 3 * ranks[form, best] and len(top) == 1
                         and (form, best) in plain):
                     self.ranked[form] = best
@@ -379,7 +356,7 @@ class Reader:
                 covering.update((k, reading) for k in range(start, end))
             for a, b in zip(tokens, tokens[1:]):
                 end, reading = hint_at.get(a.begin, (None, ''))
-                if end == _end(b) and _end(a) == b.begin and _HIRAGANA_WORD.match(reading):
+                if end == _end(b) and _end(a) == b.begin and HIRAGANA_WORD.match(reading):
                     parts.update(_split_name(a, b, reading))
         words, pending = [], defaultdict(list)
         next_token = 0
@@ -436,7 +413,7 @@ class Reader:
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
             if carry is not None and len(form) > 1:
-                if carry.get(form) and form in pending and _HIRAGANA_WORD.match(carry[form]):
+                if carry.get(form) and form in pending and HIRAGANA_WORD.match(carry[form]):
                     # a name rubied after bare use: its earlier bare occurrences in this text too
                     for k in pending.pop(form):
                         words[k] = words[k]._replace(reading=carry[form], source='book', certainty=1.0)
@@ -523,7 +500,7 @@ class Reader:
                 reading = joined
             term = not reading and len(form) > 2 and span[-1].surface() == span[-1].dictionary_form() and not any(
                 t.part_of_speech()[0] in ('動詞', '形容詞') or _NUMERAL.match(t.surface()) for t in span) and self._term_reading(
-                form, _long_vowels(''.join(to_hiragana(t.reading_form()) for t in span)))
+                form, long_vowels(''.join(to_hiragana(t.reading_form()) for t in span)))
             if term:
                 reading = term
             if reading and self._particle_inserted(span, reading):
@@ -608,7 +585,7 @@ class Reader:
 
     def _idiom(self, text, span, words, at, hint_at, counted):
         """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None."""
-        kana = [bool(_KANA_READING.match(to_hiragana(t.surface()))) for t in span]
+        kana = [bool(KANA_READING.match(to_hiragana(t.surface()))) for t in span]
         begin, end = span[0].begin, _end(span[-1])
         if (not any(kana) or all(kana)
                 or span[0].part_of_speech()[0] in ('助詞', '助動詞')
@@ -650,7 +627,7 @@ class Reader:
                 w = words[at[t.begin]] if t.begin in at else None
                 current.append(to_hiragana(parts[k]) if kana[k] else w and w.reading and (
                     w.reading if k == len(span) - 1 else surface_reading(t.surface(), w.form, w.reading)) or '?')
-            if _spelling(''.join(current)) in {_spelling(r) for r in self.readings[form]}:
+            if spelling(''.join(current)) in {spelling(r) for r in self.readings[form]}:
                 return None
         changes = []
         for k, (t, piece) in enumerate(zip(span, pieces)):
@@ -691,7 +668,7 @@ class Reader:
                 or any(t.part_of_speech()[0] in ('動詞', '形容詞') for t in span)):
             return None
         surface = ''.join(t.surface() for t in span)
-        sudachi = _long_vowels(''.join(to_hiragana(t.reading_form()) for t in span))  # こーひー: JMdict's こうひい
+        sudachi = long_vowels(''.join(to_hiragana(t.reading_form()) for t in span))  # こーひー: JMdict's こうひい
         if any(surface_reading(surface, form, r) == sudachi for r in (reading, *self.readings.get(form, ()))):
             return None
         return reading
@@ -700,9 +677,9 @@ class Reader:
         """The term dictionaries' reading of a form the list and JMdict lack (Reader.terms), where it isn't
         Sudachi's: their one reading, or the first when Sudachi has none (a word it doesn't know)."""
         readings = self.terms.get(form)
-        if not readings or sudachi and _spelling(sudachi) in map(_spelling, readings):
+        if not readings or sudachi and spelling(sudachi) in map(spelling, readings):
             return None
-        return readings[0] if len(readings) == 1 or not (sudachi and _KANA_READING.match(sudachi)) else None
+        return readings[0] if len(readings) == 1 or not (sudachi and KANA_READING.match(sudachi)) else None
 
     def _particle_inserted(self, span, reading: str) -> bool:
         """The reading is the tokens' readings with a particle the text doesn't write between two
@@ -723,7 +700,7 @@ class Reader:
         give for the form gets certainty 0."""
         if source in ('ruby', 'book'):
             return reading, source, certainty
-        if reading and not _KANA_READING.match(reading):
+        if reading and not KANA_READING.match(reading):
             return None, source, None
         if reading and (form, reading) not in self.known and (form, reading) not in self._term_pairs:
             certainty = 0.0
@@ -750,12 +727,12 @@ class Reader:
             # のぶかつ, 柚木 ゆき), which a kanji-spelling check (PlainReadings) refuses
             reading = ruby_reading(hint_at, begin, surface, form, _Any()) or parts.get(begin)
             if reading:  # ruby set in large kana (劉《りゆう》): Sudachi's or the list's small-kana reading
-                reading = next((r for r in _small_kana(reading) if r == found[0] or (form, r) in self.known), reading)
+                reading = next((r for r in small_kana(reading) if r == found[0] or (form, r) in self.known), reading)
             found = (reading, 'ruby', 1.0) if reading and reading not in _PRONOUNS else found
         if found[1] == 'ruby':
             if name:  # two readings, or a word's other one: none
                 carry[form] = found[0] if carry.get(form, found[0]) == found[0] == _CARRIED_WORDS.get(form, found[0]) else None
-        elif hint_at.get(begin, (None,))[0] == end or not all(_HIRAGANA_WORD.match(r) for r in under):
+        elif hint_at.get(begin, (None,))[0] == end or not all(HIRAGANA_WORD.match(r) for r in under):
             carry[form] = None  # flavour over the form: carry nothing more for it
         return found
 
@@ -795,7 +772,7 @@ class Reader:
             return reading, 'terms', None
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
-        if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (_CONTEXT_RULES)
+        if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (CONTEXT_RULES)
             reading = context_reading(text, begin, surface, form, self.known)
             if reading:
                 return reading, 'rule', 1.0
@@ -876,7 +853,7 @@ class Reader:
                 return self._dominant(text, tokens[i], form, reading, previous=previous)
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
-            term = not (reading and _KANA_READING.match(reading)) and self._term_reading(form, None)
+            term = not (reading and KANA_READING.match(reading)) and self._term_reading(form, None)
             if term and surface_reading(surface, form, term, ''):  # Sudachi has none (嘲笑っ): the term dictionaries'
                 return term, 'terms', None
             if reading:
@@ -894,7 +871,7 @@ class Reader:
         reading = self._unlisted_sudachi(tokens[i], form, sudachi)
         if reading:
             return reading, 'dictionary', None
-        reading = surface == form and not (sudachi and _KANA_READING.match(sudachi)) and self._term_reading(form, None)
+        reading = surface == form and not (sudachi and KANA_READING.match(sudachi)) and self._term_reading(form, None)
         if reading:
             return reading, 'terms', None
         entry = self.model and self.model.forms.get(form)
@@ -932,8 +909,8 @@ class Reader:
         if (len(form) < 2 or len(form) == 2 and _NUMERAL.match(form) or not listed or not own or not sudachi
                 or token.part_of_speech()[1] == '固有名詞' or sudachi in own
                 or (token.normalized_form(), sudachi) in self.known  # an okurigana variant's (幼ない おさない, T77)
-                or any(_spelling(r) == _spelling(sudachi) or _one_voicing_apart(sudachi, r)
-                       and sudachi.translate(_UNVOICED) == sudachi for r in listed)
+                or any(spelling(r) == spelling(sudachi) or _one_voicing_apart(sudachi, r)
+                       and sudachi.translate(UNVOICED) == sudachi for r in listed)
                 or _potential_of(form, sudachi, self.known)  # 弾ける ひける, can play (弾く ひく)
                 or form[-1:] == sudachi[-1:] == 'す' and (form[:-1] + 'する', sudachi[:-1] + 'する') in self.known  # 徹す てっす
                 or form in _KEEP_SUDACHI
@@ -963,7 +940,7 @@ class Reader:
         if token.part_of_speech()[1] == '固有名詞':
             return reading
         listed = self.readings.get(form, ())
-        plain = reading[0].translate(_UNVOICED) + reading[1:]
+        plain = reading[0].translate(UNVOICED) + reading[1:]
         pos = prev and prev.part_of_speech()
         # A first part: a noun ending in kanji or katakana right before it; not a number or counter
         # (一|箱, 時間|話), an adverbial or adjectival noun (今|風呂, いい加減|部屋), kana (こと|好き)

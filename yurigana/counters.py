@@ -13,6 +13,7 @@ Lexicalised words Sudachi keeps as one token (一人, 二十歳, 十分 じゅ�
 import re
 
 from .cues import DURATION_AFTER, DURATION_BEFORE, words
+from .kana import is_kanji, to_hiragana
 
 _DIGIT = {c: i for i, c in enumerate('〇一二三四五六七八九')}
 _DIGIT.update({c: i for i, c in enumerate('0123456789')})
@@ -87,7 +88,7 @@ _TSU_GOES_ON = '上下目分程位共毎余先前後隣横縦奥右左年頃数�
 _BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9０-９]分と?)$')
 _BU_AFTER = re.compile(r'と?[〇一二三四五六七八九十0-9０-９]+分|[咲目]|通り|どおり')
 # 十分 on its own (no number before it) is じゅうぶん, "enough", unless a cue says minutes (三時十分,
-# あと十分, 十分後, 十分ほど); readings._CONTEXT_RULES uses them too, where Sudachi keeps 十分 one token.
+# あと十分, 十分後, 十分ほど); rules.CONTEXT_RULES uses them too, where Sudachi keeps 十分 one token.
 # Also a stretch of time going by (十分もしないうちに, 十分が過ぎ, 十分だけ待って, 十分休憩), a trip's length
 # (歩いて十分, 車で十分) and a time next to it (二時間十分, 五分か十分か).
 TEN_MINUTES_BEFORE = ('(?:' + words(DURATION_BEFORE) + r'|[0-9０-９〇零一二三四五六七八九十何]時|時間と?'
@@ -301,7 +302,6 @@ def _is_numeral(token) -> bool:
 def _fused(token, number: str, counter: str) -> bool:
     """Whether a token that is a number and a counter (一回, 三軒) is read as one here: names
     (三軒 みのき, 一列 かずなみ) and words Sudachi reads without the sound change (一回 いちかい)."""
-    from .readings import to_hiragana
     pos = token.part_of_speech()
     value = number_value(number)
     return pos[2] == '人名' or pos[1] == '普通名詞' and value is not None and \
@@ -332,7 +332,6 @@ def spans(text: str, tokens: list):
     """(start, number end, end, number's reading, counter's reading) for each number + counter in
     `tokens` (Sudachi tokens of `text`); the number's reading is the whole span's and the counter's
     None when the reading doesn't split (一人 ひとり)."""
-    from .readings import is_kanji, to_hiragana
     def adjacent(a, b):
         return a.begin + len(a.surface()) == b.begin
 
