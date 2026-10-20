@@ -85,7 +85,7 @@ def goes(text: str, tokens: list, i: int) -> bool:
     if k < 0 or tokens[k].begin + len(tokens[k].surface()) != tokens[k + 1].begin or tokens[k].part_of_speech()[1] != '格助詞':
         return False
     particle = tokens[k].surface()
-    return particle in ('に', 'へ', 'まで') or particle == 'で' and bool(IKU_MEANS.search(text, 0, tokens[k].begin))
+    return particle in ('に', 'へ', 'まで') or particle == 'で' and bool(IKU_MEANS.search(text, max(0, tokens[k].begin - 12), tokens[k].begin))
 
 
 def default_kept(text: str, begin: int, end: int, form: str) -> bool:
