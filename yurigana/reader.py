@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -324,6 +324,7 @@ class Reader:
                 form = surface  # full-width digits Sudachi's lemma writes half-width (１人: 1人), not a conjugation
             if not HAS_KANJI.search(surface):
                 continue
+            form = right_lemma(text, token.begin, form)
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
             # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
             # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
@@ -574,6 +575,8 @@ class Reader:
             return min(self.jmdict[form], key=lambda r: ranks.get((form, r), math.inf)), 'dictionary', None
         if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, dict) else None):
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
+        if only and may_be_potential(text, begin, form):
+            only = None  # 部屋には入れない: はいれる (入る) or いれる
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):

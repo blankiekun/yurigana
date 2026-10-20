@@ -1038,3 +1038,10 @@ sentence	span	reading	alts	kind	status	note
 彼は高名な画家だった。	高名	こうめい		glaring		hand; T221
 二人は敵同士だった。	敵同士	てきどうし		glaring		hand; T221
 走ったせいで身体中が痛い。	身体中	からだじゅう		glaring		hand; T221
+雨は朝から降り続けている。	降り	ふる		glaring		hand; T240: Sudachi's 降りる after rain
+冬になると雪がたくさん降ります。	降り	ふる		glaring		hand; T240
+霜が降りた朝だった。	降り	おりる		glaring		hand; T240: frost is おりる
+妹はギターが弾けない。	弾け	ひける		glaring		hand; T241: not はじける
+僕はピアノなんて弾けないよ。	弾け	ひける		glaring		hand; T241
+泡が弾けて消えた。	弾け	はじける		glaring		hand; T241: Sudachi's ひける
+鍵がなくて家に入れなかった。	入れ	はいれる		glaring	xfail	hand; T242: 入る's potential, not shown; xfail: word lists keep いれる
