@@ -81,7 +81,7 @@ class SanityListTest(unittest.TestCase):
 
     def test_rows_are_well_formed(self):
         for row in rows():
-            self.assertIn(row['kind'], ('frequent', 'counter', 'convention', 'probe'), row)
+            self.assertIn(row['kind'], ('frequent', 'counter', 'convention', 'probe', 'glaring'), row)
             self.assertIn(row['status'], ('', 'xfail'), row)
 
 
