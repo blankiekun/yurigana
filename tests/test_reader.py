@@ -296,6 +296,15 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
+    def test_ateji_runs(self):
+        # a loanword spelt in kanji that Sudachi cuts in pieces: one Word, never shown, not over ruby
+        reader = Reader()
+        self.assertIn(Word(0, 3, '無問題', 'もーまんたい', 'dictionary', 0.0), reader.read('無問題だよ。'))
+        hints = []
+        text = aozora_text('無《む》問題だよ。', None, hints)
+        self.assertNotIn('無問題', [w.form for w in reader.read(text, hints)])
+        self.assertFalse({'東家', '立直', '満貫', '加油'} & set(reader.ateji))  # mahjong terms, native pieces
+
     def test_post_war_rules_are_shown(self):
         # read by a context rule, not HAND_DEFAULTS, so chimimouryou shows them (evaluate.SHOWN)
         reader = Reader()

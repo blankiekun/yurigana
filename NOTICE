@@ -18,6 +18,13 @@ JMdict by the Electronic Dictionary Research and Development Group
 same licence. tools/jmdict_pairs.py builds it; the file records the JMdict
 version (its creation date) it was built from.
 
+yurigana/ateji.tsv (loanwords spelt in kanji: JMdict forms of two or more kanji
+whose every reading is katakana, without mahjong terms and three forms removed by
+hand) is derived from JMdict by the Electronic Dictionary Research and Development
+Group (https://www.edrdg.org/jmdict/j_jmdict.html), licensed under CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/); it is distributed under the
+same licence.
+
 yurigana/extra-readings.tsv ((form, reading) pairs Jiten's list lacks) was made
 by hand for yurigana, from ruby counts in a private library (no text included)
 and checked against JMdict by the Electronic Dictionary Research and Development

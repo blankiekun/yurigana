@@ -100,6 +100,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T170 | A name token Sudachi gives an ordinary word is read as a word only for counts (数人 かずひと → すうにん, 数度, 数歩, 三百 みつお, 二十八 つちや: `_COUNT_NAME`); 未来人 みきと, 万代 もず, 土日月 (full dictionary) stay | #85 | ~0.7 fixed per book; the rest ~0.1. Accept: widening it to every name token whose reading JMdict and the list lack changed ~5,000 words in 300 books, mostly real names (最上さん, 高木, 金子, 月火 つきひ) | |
 | T171 | A joined form JMdict lacks keeps the list's reading (not shown) unless it spans a number the tokens can't spell (三日後 みひりあ → 三日|後) | #85 | 利根川 さねがわ, 竜人 きみひと left (~0.05, not shown). Accept: the same check without the number dropped real names split into words (沙|倉 さくら, 晴|翔 はると: ~2,400 in 300 books) | |
 | T172 | 1日/１日 is いちにち unless a month comes right before it (ついたち) | #85 | ~0.1 (1日 as the first of an unnamed month). Accept | |
+| T220 | Loanwords spelt in kanji that Sudachi cuts in pieces (無問題 もーまんたい, 油条, 麻辣; `ateji.tsv`: JMdict forms read only in katakana, no mahjong terms, not 加油 快手 三板) are one word, certainty 0, never shown, not where ruby or a token edge cuts them | this PR | ~0.02 words per book (6 fires in 300 training-author books, all right; 5 wrongly shown pieces 油 あぶら, 麻 あさ gone); single-token ateji (香港, 珈琲) were already Sudachi's. Mahjong terms stay pieces in mahjong books. Accept | ruby-mined ateji: book ruby over all-kanji bases was creative (自分 イスカ) |
 
 ### Period-justified
 
