@@ -103,6 +103,17 @@ def _one_voicing_apart(a: str, b: str) -> bool:
     return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(_UNVOICED) == diff[0][1].translate(_UNVOICED)
 
 
+_E_TO_U = dict(zip('えけげせてねべめれ', 'うくぐすつぬぶむる'))
+
+
+def _potential_of(form: str, reading: str, known) -> bool:
+    """Whether `reading` of `form` is the potential of a listed godan verb (弾ける ひける: 弾く ひく)."""
+    if len(form) < 3 or not form.endswith('る') or not reading.endswith('る') or len(reading) < 3:
+        return False
+    u = _E_TO_U.get(form[-2]), _E_TO_U.get(reading[-2])
+    return bool(u[0]) and u[0] == u[1] and (form[:-2] + u[0], reading[:-2] + u[1]) in known
+
+
 def _split_name(a, b, reading: str) -> dict:
     """{token start: reading} for ruby over two tokens, split where Sudachi's reading of one of
     them ends or starts it (姫野|芽衣 ひめのめい: ひめの + めい), or {}."""
@@ -524,11 +535,45 @@ class Reader:
             default = None  # the table's readings are of words on their own (郵便局側 is がわ)
         if default and ((form, default) in self.known or not listed) and not default_kept(text, begin, begin + len(surface), form):
             return default, 'default', None
+        reading = self._unlisted_sudachi(tokens[i], form, sudachi)
+        if reading:
+            return reading, 'dictionary', None
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]
             return sudachi, 'dictionary', round(priors[entry[0].index(sudachi)] / sum(priors), 3)
         return sudachi, 'dictionary', None
+
+    def _unlisted_sudachi(self, token, form, sudachi) -> str | None:
+        """The list's top reading of a form when Sudachi's reading of it is neither listed nor
+        JMdict's (七五三 ななごさん, 氷室 ひょうしつ, 欠片 けっぺん). Not when JMdict has Sudachi's
+        reading (上辺 じょうへん, 大罪 たいざい: the list lacks a reading), when Sudachi's is a listed one
+        unvoiced (越え こえ, listed ごえ: the place decides, _voicing), names, two numerals (四三 is
+        よんじゅうさん, not しそう) and one-character forms (国 こく after a name, 妾 わたし, 臭 におい:
+        Sudachi's is usually right there), nor when another listed form with one of its kanji reads
+        Sudachi's way (無性 むしょう as 無償, 朝陽 あさひ as 朝日: JMdict lacks a reading, Sudachi knows it)."""
+        listed = self.readings.get(form)
+        own = self.jmdict.get(form)
+        if (len(form) < 2 or len(form) == 2 and _NUMERAL.match(form) or not listed or not own or not sudachi
+                or token.part_of_speech()[1] == '固有名詞' or sudachi in own
+                or (token.normalized_form(), sudachi) in self.known  # an okurigana variant's (幼ない おさない, T77)
+                or any(_spelling(r) == _spelling(sudachi) or _one_voicing_apart(sudachi, r)
+                       and sudachi.translate(_UNVOICED) == sudachi for r in listed)
+                or _potential_of(form, sudachi, self.known)  # 弾ける ひける, can play (弾く ひく)
+                or 'ー' in sudachi  # a loanword's (麦酒 びーる): JMdict spells those in katakana
+                or set(form) & self._kanji_by_reading().get(sudachi, set())):
+            return None
+        ranks = self.known if isinstance(self.known, dict) else {}
+        return preferred({r: ranks.get((form, r), 0) for r in listed}, own)[0]
+
+    def _kanji_by_reading(self) -> dict:
+        """{reading: the kanji of the list's forms read that way}, built once."""
+        if getattr(self, '_kanji_index', None) is None:
+            self._kanji_index = defaultdict(set)
+            for form, readings in self.readings.items():
+                for reading in readings:
+                    self._kanji_index[reading].update(c for c in form if is_kanji(c))
+        return self._kanji_index
 
     def _voicing(self, tokens, i, form, reading):
         """The reading voiced or not by its place (rendaku); names keep theirs. After a compound's

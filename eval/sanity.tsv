@@ -982,3 +982,9 @@ sentence	span	reading	alts	kind	status	note
 温泉につかって、至福の一時を過ごした。	一時	ひととき		glaring		hand; #83
 夢のような一時だった。	一時	ひととき		glaring		hand; #83
 夜の一時を回っていた。	一時	いちじ		glaring		hand; a clock time; #83
+七五三のお祝いをした。	七五三	しちごさん		glaring		Sudachi ななごさん, neither listed nor JMdict's
+氷室に氷を蓄える。	氷室	ひむろ		glaring		Sudachi ひょうしつ
+獰猛な犬に吠えられた。	獰猛	どうもう		glaring		Sudachi ねいもう
+畏れ多いことです。	畏れ多い	おそれおおい		glaring		Sudachi おそれおうい
+数学で赤点を取った。	赤点	あかてん		glaring		Sudachi せきてん
+彼の予想は十中八九当たる。	十中八九	じっちゅうはっく	じゅっちゅうはっく	glaring	xfail	Sudachi splits it 十中 じゅうなか + 八九 はちきゅう: a list form over two tokens, left for a later PR
