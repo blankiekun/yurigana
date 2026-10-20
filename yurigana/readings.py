@@ -100,6 +100,7 @@ _PERSON_OF = (r'(?:様|さま|さん|君|くん|殿|陛下|先生|師匠|主|王
               r'(?:たち|達)?の$')
 _NOT_EYES = (r'(?!の?(?:眼|瞳|怪物|化け物|化物|妖怪|小僧|入道)|が(?:怪しく|ギョロ|ぎょろ|ぎろ|ギロ|光|輝|開|見開)'
              r'|を(?:ギョロ|ぎょろ|ぎろ|ギロ|見開|動か|細め|開|光))')
+ALWAYS = '(?:)'  # an after-pattern that always matches: the form's one reading in bare text, shown
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -425,6 +426,24 @@ _CONTEXT_RULES = {
            ('ひたい', None, r'[がは](?:熱|汗|広|狭)|に(?:汗|手|皺|しわ|傷|当て|かか|垂)|から汗|の(?:汗|傷|皺|しわ)'
             r'|を(?:拭|ぬぐ|押さえ|寄せ|集め)')],
     '一行': [('いちぎょう', words(EDGE, FEW - {'わずか', '僅か', 'ものの'}, '文章の', '冒頭の', '手紙の') + '$', r'目|ずつ|ごと|だけ|空け|の(?:文|文章|詩)')],
+    # Read wrong in bare post-war text (Opus labels of 40 bare occurrences each from training authors, T200).
+    # One reading there, shown: Sudachi's すうた, ふひょう, しゃらく, あらの, おにがみ.
+    # 艶やか and 正しく elsewhere, and 呆ける, are HAND_DEFAULTS: not shown, since bare text also reads them
+    # あでやか, まさしく, ぼける with no frame to tell (4, 6 and 2 of 40).
+    '艶やか': [('あでやか', None, r'な?(?:着物|和服|振袖|衣装|微笑|笑み|舞|姿|装い)')],
+    '正しく': [('まさしく', None, r'(?:それ|その通り|これ|あれ|奇跡|天才|神)')],
+    '数多': [('あまた', None, ALWAYS)], '歩兵': [('ほへい', None, ALWAYS)], '洒落': [('しゃれ', None, ALWAYS)],
+    '荒野': [('こうや', None, ALWAYS)], '鬼神': [('きしん', None, ALWAYS)],
+    # A frame decides: にも拘らず, 止めを刺す, 気色の悪い, 細々とした, 大人気ない, 灰燼に帰す, 初心な.
+    '拘る': [('かかわる', r'(?<!こと)に(?:も|さえ)?$', r'(?:わ?ら)?ず', 'and'), ('こだわる', None, ALWAYS)],
+    '止め': [('とどめ', None, r'[をは](?:刺|射|さ[しすさせ])|の一撃|とばかり')],
+    '気色': [('きしょく', None, r'[がの]?(?:悪|わる|ワル|[ッっ]悪)')],
+    '細々': [('こまごま', None, r'と?した')],
+    '大人気': [('おとなげ', None, r'(?:な|無)[いくかけさ]')],
+    '帰す': [('きす', r'(?:灰燼|水泡|烏有|無|失敗|徒労|手中)[』」]?[にと]$', None)],
+    '初心': [('うぶ', r'(?<!の)$', r'(?:な(?!い)|だ|で(?!は)|じゃ|すぎ|過ぎ|そう|っぽ|同)', 'and')],
+    '如何': [('いかん', None, r'せん|とも|に(?:かかわ|拘|関わ|よ[っらりるれ])'),
+           ('いかが', r'(?:ては|れば)$', r'(?!ほど|に)', 'and'), ('いかが', None, r'(?:です|でしょ|でした|でござ|なさ|いたし|致し|か[なね？?])')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
@@ -442,6 +461,8 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # Rendaku of ち is spelled ぢ (現代仮名遣い); Sudachi writes じ.
                  ('鼻血', 'はなじ'): 'はなぢ', ('間近', 'まじか'): 'まぢか', ('手近', 'てじか'): 'てぢか',
                  ('近々', 'ちかじか'): 'ちかぢか',
+                 # Bare post-war text, not shown: a minority reads them as Sudachi does (T200).
+                 ('呆ける', 'ぼける'): 'ほうける', ('艶やか', 'あでやか'): 'つややか', ('正しく', 'まさしく'): 'ただしく',
                  # Batch 2: (fixed - broken) >= 2 and 90%+ right on Tatoeba (half a + B1), not losing on
                  # NDL's held-out authors. 或いは is the one exception: Tatoeba never leaves it to Sudachi,
                  # and あるいわ only misspells あるいは (NDL +11/-0).

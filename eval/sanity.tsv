@@ -992,3 +992,19 @@ sentence	span	reading	alts	kind	status	note
 記念の碑が建っている。	碑	ひ		glaring	xfail	hand; #84 (T230): not shown since, word lists keep Sudachi's いしぶみ
 至れり尽くせりの宿だ。	尽く	つく		glaring	xfail	hand; #84 (T230): not shown since; Sudachi's lemma 尽く ことごとく
 彼は倦むことを知らない。	倦む	うむ		glaring	xfail	hand; #84 (T230): not shown since, word lists keep あぐむ
+彼はしばらく呆けたように立ち尽くしていた。	呆け	ほうける		glaring		T200 bare labels: ほうける 38/40
+艶やかな黒髪が肩に流れた。	艶やか	つややか		glaring		T200 bare labels: つややか 35/40
+数多の敵が城を取り囲んだ。	数多	あまた		glaring		T200 bare labels: あまた 40/40
+歩兵が前進を始めた。	歩兵	ほへい		glaring		T200 bare labels: ほへい 40/40
+それは洒落にならない。	洒落	しゃれ		glaring		T200 bare labels: しゃれ 40/40
+果てしない荒野を旅した。	荒野	こうや		glaring		T200 bare labels: こうや 40/40
+彼は鬼神のごとく戦った。	鬼神	きしん		glaring		T200 bare labels: きしん 40/40
+雨にも拘らず彼は来た。	拘ら	かかわる		glaring		T200 にも拘らず
+彼は味に拘る料理人だ。	拘る	こだわる		glaring		T200 bare labels: こだわる 27/40 outside にも拘らず
+倒れた敵に止めを刺した。	止め	とどめ		glaring		T200 止めを刺す
+気色の悪い笑みを浮かべた。	気色	きしょく		glaring		T200 気色の悪い
+細々とした用事を片付けた。	細々	こまごま		glaring		T200 細々とした
+子供相手に大人気ない真似をするな。	大人気	おとなげ		glaring		T200 大人気ない
+長年の努力が水泡に帰した。	帰し	きす		glaring		T200 水泡に帰す
+彼女は意外と初心な性格だ。	初心	うぶ		glaring		T200 初心な
+結果如何によっては罰する。	如何	いかん		glaring		T200 如何によって
