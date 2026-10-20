@@ -86,7 +86,7 @@ _LETTER = re.compile('[A-Za-zＡ-Ｚａ-ｚ]')  # a class or group's letter befo
 # After a kanji Sudachi took for a noun or suffix, the rest of an adjective (T281): 酷すぎる, 熱そう, 酷いっ (a
 # one-kanji adjective's stem), 強ェ, 痛ぇ (a slang adjective spelt with a small ェ; Sudachi knows 強え, 痛え).
 _STEM_AFTER = re.compile('すぎ|過ぎ|そう|い[っッーぃィ～〜]')
-_KANJI_RUN = re.compile('[㐀-䶿一-鿿豈-﫿々]{1,3}')
+_STEM_KANJI = re.compile('[㐀-䶿一-鿿豈-﫿々]{1,3}')
 # Tails voiced after a first part (a noun ending in kanji or katakana) though the list's compounds don't show it 4
 # times in 5: those after a verb's stem (繰り返し, 見通し, 取り皿) or a prefix (お返し) unvoiced, or too few (勢揃い):
 # オウム返し, 予定通り, ドヤ顔, 魔力切れ, 勉強机, 甘味処, 美人揃い (T282).
@@ -471,7 +471,7 @@ class Reader(Compounds):
             surface = token.surface()
             end = token.begin + len(surface)
             tail = text[end:end + 1]
-            if _KANJI_RUN.fullmatch(surface) and token.part_of_speech()[0] != '形容詞' and (
+            if _STEM_KANJI.fullmatch(surface) and token.part_of_speech()[0] != '形容詞' and (
                     tail in ('ェ', 'ぇ') or len(surface) == 1 and _STEM_AFTER.match(text, end) and surface + 'い' in self.readings):
                 small = tail in ('ェ', 'ぇ')
                 after = next((t for t in tokens if t.begin == end), None)
@@ -696,6 +696,9 @@ class Reader(Compounds):
                                 self._tails[form[k:], tail][1] += 1
             self._tails = dict(self._tails)
         return self._tails
+
+
+_KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
 
 
 def split_reading(surface: str, reading: str) -> list:

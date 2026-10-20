@@ -11,6 +11,10 @@ class SplitReadingTest(unittest.TestCase):
         self.assertEqual(split_reading('学校', 'がっこう'), [('学校', 'がっこう')])
         self.assertEqual(split_reading('人々', 'ひとびと'), [('人々', 'ひとびと')])
 
+    def test_long_kanji_run_is_one_piece(self):  # not cut after three kanji (一石二[い]鳥[っせきにちょう])
+        self.assertEqual(split_reading('一石二鳥', 'いっせきにちょう'), [('一石二鳥', 'いっせきにちょう')])
+        self.assertEqual(split_reading('〆切', 'しめきり'), [('〆切', 'しめきり')])
+
     def test_kana_that_do_not_line_up_keep_the_whole_word(self):
         self.assertEqual(split_reading('読ん', 'よみ'), [('読ん', 'よみ')])
 
