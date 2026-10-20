@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -481,6 +481,10 @@ class Reader:
         reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:
             return reading, 'rule', 1.0
+        reading = split_suffix(text, begin, surface, to_hiragana(tokens[i].reading_form()), tokens[i].part_of_speech(),
+                               previous and previous.part_of_speech())
+        if reading and (form, reading) in self.known:
+            return reading, 'default', None
         reading = self.model and self.model.reading(text, tokens, i, form, self.known)
         if reading:
             certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)

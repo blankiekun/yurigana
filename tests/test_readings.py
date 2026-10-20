@@ -250,6 +250,19 @@ class DefaultReadingsTest(unittest.TestCase):
         self.assertEqual(DEFAULT_READINGS['私', 'わたくし'], 'わたし')
         self.assertTrue(all(reading != sudachi for (_, sudachi), reading in DEFAULT_READINGS.items()))
 
+    def test_split_suffix(self):
+        from yurigana.readings import split_suffix
+        sfx, noun, pron, part = ('接尾辞', '名詞的', '一般'), ('名詞', '普通名詞', '一般'), ('代名詞', '*', '*'), ('助詞', '格助詞', '*')
+        self.assertEqual(split_suffix('いつ家に', 2, '家', 'や', sfx, pron), 'いえ')
+        self.assertEqual(split_suffix('一日中雨が', 3, '雨', 'う', sfx, noun), 'あめ')  # 一|日中: a time span
+        self.assertIsNone(split_suffix('豪雨が', 1, '雨', 'う', sfx, noun))
+        self.assertIsNone(split_suffix('いつ家に', 2, '家', 'や', noun, pron))  # not Sudachi's suffix
+        self.assertEqual(split_suffix('矢は的に', 2, '的', 'てき', sfx, part), 'まと')
+        self.assertIsNone(split_suffix('アタシ的に', 3, '的', 'てき', sfx, pron))
+        self.assertIsNone(split_suffix('私は的な', 2, '的', 'てき', sfx, part))
+        self.assertIsNone(split_suffix('Ａ君が', 1, '君', 'くん', sfx, ('補助記号', '一般', '*')))
+        self.assertEqual(split_suffix('「君が', 1, '君', 'くん', sfx, None), 'きみ')
+
     def test_glued(self):
         self.assertTrue(glued('郵便局側の', 3, 4))
         self.assertTrue(glued('今学期', 0, 1))

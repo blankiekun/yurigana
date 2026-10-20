@@ -526,6 +526,35 @@ GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種
 GLUED_BEFORE = frozenset({('種', 'しゅ')})
 
 
+# One-kanji nouns Sudachi takes as a suffix (接尾辞) after a word no suffix attaches to: a function word,
+# an adverb, a verb or a time word (一日中雨 う, いつ家 や, いつも君 くん, 矢は的 てき, 一度下 か, 立ち店 てん):
+# the noun's own reading. Not after nouns, names and counters (豪雨, 佐藤家, 田中君, 一号店, 五番街, 画面下);
+# 君 not after a verb's stem (指示待ち君) or a letter (Ａ君), 的 only after a particle, adverb or 連体詞 (アタシ的に).
+SPLIT_SUFFIX = {('雨', 'う'): 'あめ', ('家', 'か'): 'いえ', ('家', 'や'): 'いえ', ('君', 'くん'): 'きみ',
+                ('的', 'てき'): 'まと', ('下', 'か'): 'した', ('店', 'てん'): 'みせ', ('街', 'がい'): 'まち',
+                ('車', 'しゃ'): 'くるま', ('石', 'せき'): 'いし'}
+_NO_SUFFIX_POS = {'助詞', '助動詞', '代名詞', '副詞', '動詞', '連体詞', '接続詞', '感動詞', '補助記号'}
+_SPLIT_POS = {'的': {'助詞', '副詞', '連体詞'}, '君': _NO_SUFFIX_POS - {'動詞'}}
+_SPLIT_EDGE = {'的': '「『（(、。！？!?▼'}  # a 的 after a quote or space is the suffix (「暫定」的に, タイミング？　的には)
+_TIME_SPAN = re.compile(r'(?:日中|晩中|週間|時間|日間|度)$')
+
+
+def split_suffix(text: str, begin: int, surface: str, sudachi: str, pos, previous_pos) -> str | None:
+    """SPLIT_SUFFIX's reading of a suffix token `surface` at text[begin:], given its part of speech
+    and the previous adjacent token's (None at the start or after a space)."""
+    reading = SPLIT_SUFFIX.get((surface, sudachi))
+    if not reading or pos[0] != '接尾辞' or (surface == '的' and text.startswith('な', begin + 1)):
+        return None
+    if previous_pos is None or previous_pos[0] == '補助記号':  # after punctuation: only a sentence's or quote's edge
+        before = text[begin - 1:begin]                         # (not Ａ君, ○○君, 『剣聖』君, 「暫定」的, ……君)
+        return reading if (before or surface != '的') and before in _SPLIT_EDGE.get(surface, '「」『（）()、。，！？!?▼〝《》 \u3000\n') else None
+    if previous_pos[0] in _SPLIT_POS.get(surface, _NO_SUFFIX_POS):
+        return reading
+    if surface != '的' and (tuple(previous_pos[1:3]) == ('普通名詞', '副詞可能') or _TIME_SPAN.search(text[:begin])):
+        return reading
+    return None
+
+
 def glued(text: str, begin: int, end: int, after_too: bool = True) -> bool:
     """Whether a one-character word text[begin:end] is an affix Sudachi split off: a kanji or digit
     right before or after it, or a katakana word before it (郵便局側, 今学期, 3位, ダウンロード時),
