@@ -213,11 +213,19 @@ Sudachi guesses (大谷 おおや for おおたに, invented names). `reader.rea
 carries the book's ruby over a name to its later bare occurrences, as source `book`: pass `{}`
 for a whole book in one text, or the same dict to each of a book's texts in order. A name is a
 固有名詞 token or a form the list doesn't know (not a number); its hiragana ruby is taken even
-when the list lacks the reading (nanori, invented readings: 信雄 のぶかつ), except pronouns
-(鈴木《あいつ》); ruby over a two-token full name is split where Sudachi's reading of one part
-fits (姫野芽衣《ひめのめい》: ひめの + めい). Common words are never carried (hiragana ruby once
-isn't assumed for a heteronym's later bare occurrences), and a form stops being carried after
-ruby over it that isn't taken (flavour, katakana) or that gives a second reading. Without
+when the list lacks the reading (nanori, invented readings: 信雄 のぶかつ), except pronouns and
+words for here/there (鈴木《あいつ》, 東京《こっち》, 東大《うち》); ruby in old-style large kana takes the
+small-kana reading when Sudachi or the list has it (劉《りゆう》: りゅう); ruby over a two-token
+full name is split where Sudachi's reading of one part fits (姫野芽衣《ひめのめい》: ひめの + めい).
+A name of 2+ characters that the book rubies only after using it bare takes the reading at
+those earlier bare occurrences too (when the reading is all hiragana), within one text (so
+pass a whole book as one text for it); one-kanji names don't, as their earlier bare occurrences are often a common word (環, 春). Common
+words are never carried (hiragana ruby once isn't assumed for a heteronym's later bare
+occurrences), with one exception: 妾《わらわ》, which books that use it keep for the speaker
+(Opus-labelled bare 妾 after it: 42 of 42). Pronouns are not carried: a book's 私《わたくし》
+or 僕《しもべ》 is usually one character or one sense, and other speakers' bare 私 and 僕 read the
+default (Opus-labelled bare 私/僕 after such ruby: 14 of 51 take it). A form stops being carried
+after ruby over it that isn't taken (flavour, katakana) or that gives a second reading. Without
 `carry`, nothing changes.
 
 ## Term dictionaries you supply

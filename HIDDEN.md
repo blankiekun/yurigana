@@ -74,6 +74,7 @@ to "Shown again".
 | 類 | たぐい (was `only`) in 類を見ない, この類 | るい (たぐい in some books) | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 12 of 19 right after (ruby favours たぐい); bare 3, all るい | T360 | show the phrases right 99%+ in ruby and bare text |
 | 野 | の (was `only`, wrong there) in 野に下る, 野にある | や | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 3, all right after; ruby 0 of 3 (の) | T360 | show the phrases right 99%+ in ruby and bare text |
 | 男, 床, 鼓, others | おとこ, とこ/ゆか, つづみ … (was `only`) inside a JMdict phrase (男バス, 臨終の床, 鼓す) | だん, とこ, こ … | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 13 of 14 right after; bare under 1 per form | T360 | show the phrases right 99%+ in ruby and bare text |
+| names of 2+ characters (any) | the list's one reading (`only`) at bare occurrences before the book's first ruby of the name | the book's ruby (横浜 はま, 京坂 きょうさか) | `Reader.read` `carry` backfill: source `book`, not shown | 3 of 65 backfill changes were over `only` (Opus: 3 of 3 right for the book) | T440 (this PR) | show `book` readings |
 
 ## Shown again
 

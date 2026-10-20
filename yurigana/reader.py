@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, SHOWN_IDIOMS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, SHOWN_IDIOMS, glued, split_suffix, split_token, _HIRAGANA_WORD, _small_kana, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
 from .yomitan import dominant_checked, dominant_readings, extra_readings, preferred, term_readings
@@ -96,8 +96,12 @@ def _end(token):
     return token.begin + len(token.surface())
 
 
-# Ruby over a name that is a pronoun is flavour (鈴木《あいつ》), never the name's reading.
-_PRONOUNS = frozenset('あいつ こいつ そいつ どいつ やつ おれ おまえ かれ かのじょ あのこ あのひと わたし わたくし あたし ぼく'.split())
+# Ruby over a name that is a pronoun or a word for here/there is flavour (鈴木《あいつ》, 東京《こっち》, 東大《うち》),
+# never the name's reading.
+_PRONOUNS = frozenset('あいつ こいつ そいつ どいつ やつ おれ おまえ かれ かのじょ あのこ あのひと わたし わたくし あたし ぼく '
+                      'ここ そこ あそこ こちら そちら あちら こっち そっち あっち こつち そつち あつち うち'.split())
+# Common words whose ruby `carry` carries like a name's (T441): the book's 妾《わらわ》 is its later bare 妾 too.
+_CARRIED_WORDS = {'妾': 'わらわ'}
 
 
 class _Any:
@@ -363,8 +367,10 @@ class Reader:
         each of a book's texts in order (read() fills it). Only names: a 固有名詞 token or a form
         the list doesn't know, whose hiragana ruby is then taken even when unlisted, also from
         ruby over a two-token full name (姫野芽衣《ひめのめい》: 姫野 ひめの, 芽衣 めい); never a
-        common word (hiragana ruby once isn't assumed for its later bare heteronyms), and no
-        more after ruby over the form that isn't taken (flavour, katakana) or that differs."""
+        common word (hiragana ruby once isn't assumed for its later bare heteronyms) except
+        妾《わらわ》, and no more after ruby over the form that isn't taken (flavour, katakana,
+        a pronoun or here/there: 東京《こっち》) or that differs. A name of 2+ characters rubied
+        after bare use takes the reading at its earlier bare occurrences in the same text too."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
@@ -375,7 +381,7 @@ class Reader:
                 end, reading = hint_at.get(a.begin, (None, ''))
                 if end == _end(b) and _end(a) == b.begin and _HIRAGANA_WORD.match(reading):
                     parts.update(_split_name(a, b, reading))
-        words = []
+        words, pending = [], defaultdict(list)
         next_token = 0
         counted = list(counter_spans(text, tokens))
         for i, token in enumerate(tokens):
@@ -429,6 +435,13 @@ class Reader:
             if reading and source not in ('ruby', 'counter', 'book'):
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
+            if carry is not None and len(form) > 1:
+                if carry.get(form) and form in pending and _HIRAGANA_WORD.match(carry[form]):
+                    # a name rubied after bare use: its earlier bare occurrences in this text too
+                    for k in pending.pop(form):
+                        words[k] = words[k]._replace(reading=carry[form], source='book', certainty=1.0)
+                elif form not in carry and source not in ('ruby', 'book') and self._is_name(token, surface, form):
+                    pending[form].append(len(words) - 1)
         # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
@@ -716,12 +729,17 @@ class Reader:
             certainty = 0.0
         return reading, source, certainty
 
+    def _is_name(self, token, surface, form) -> bool:
+        """A name for `carry`: a 固有名詞 token or a form the list doesn't know, not a number."""
+        unlisted = not isinstance(self.known, _Any) and form not in self.readings
+        return surface == form and not _NUMERAL.match(surface) and (unlisted or token.part_of_speech()[1] == '固有名詞')
+
     def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
         """_reading with the book's ruby over names carried (Reader.read's `carry`)."""
         begin, end = tokens[i].begin, _end(tokens[i])
-        unlisted = not isinstance(self.known, _Any) and form not in self.readings
-        name = surface == form and not _NUMERAL.match(surface) and (unlisted or tokens[i].part_of_speech()[1] == '固有名詞')
+        name = self._is_name(tokens[i], surface, form)
         under = {covering[k] for k in range(begin, end) if k in covering}
+        name = name or form in _CARRIED_WORDS
         if not under:
             if name and carry.get(form):
                 return carry[form], 'book', 1.0
@@ -731,10 +749,12 @@ class Reader:
             # A name's hiragana ruby, listed or not: names take nanori and invented readings (信雄
             # のぶかつ, 柚木 ゆき), which a kanji-spelling check (PlainReadings) refuses
             reading = ruby_reading(hint_at, begin, surface, form, _Any()) or parts.get(begin)
+            if reading:  # ruby set in large kana (劉《りゆう》): Sudachi's or the list's small-kana reading
+                reading = next((r for r in _small_kana(reading) if r == found[0] or (form, r) in self.known), reading)
             found = (reading, 'ruby', 1.0) if reading and reading not in _PRONOUNS else found
         if found[1] == 'ruby':
-            if name:
-                carry[form] = found[0] if carry.get(form, found[0]) == found[0] else None  # two readings: none
+            if name:  # two readings, or a word's other one: none
+                carry[form] = found[0] if carry.get(form, found[0]) == found[0] == _CARRIED_WORDS.get(form, found[0]) else None
         elif hint_at.get(begin, (None,))[0] == end or not all(_HIRAGANA_WORD.match(r) for r in under):
             carry[form] = None  # flavour over the form: carry nothing more for it
         return found
