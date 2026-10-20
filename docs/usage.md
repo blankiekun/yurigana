@@ -50,7 +50,9 @@ Options, all optional:
 - `Reader(tables=[path])`: reading-model tables built from your own library ([training](training.md)), tried
   before the public one. A missing file is skipped, so you can always pass the path.
 - `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;
-  the default is SudachiDict-full in split mode C.
+  the default is `SudachiTokenizer()`: SudachiDict-core in split mode C, or the dictionary
+  `SudachiTokenizer("full")` or the environment variable `YURIGANA_SUDACHI_DICT` names
+  (`full` needs `pip install "yurigana[full]"`).
 
 ## JavaScript: "Known" furigana
 

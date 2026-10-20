@@ -227,7 +227,7 @@ class ReaderTest(unittest.TestCase):
             self.assertNotIn(pair, plain)
 
 
-@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-full')
+@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-core')
 class SudachiReaderTest(unittest.TestCase):
     def test_lemma_with_extra_kana(self):
         # Sudachi's lemma for the misspelt 可愛いく is 可愛いい (可愛 read かわ); the list's 可愛い holds the い

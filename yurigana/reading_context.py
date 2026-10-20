@@ -61,7 +61,8 @@ biased toward the rare reading: ruby'd 人気 is ひとけ seven times out of ei
 opposite of plain text. Forms then weigh the same. A reading needs MIN_GOLD held-out
 occurrences to count.
 
-Needs SudachiPy and SudachiDict-full (yurigana's dependencies) and the library readable:
+Needs SudachiPy and a SudachiDict (yurigana's dependencies: core, or $YURIGANA_SUDACHI_DICT) and
+the library readable:
   python -m yurigana.reading_context build LIBRARY STATE --dictionary frequency-dictionary.zip
 """
 import argparse

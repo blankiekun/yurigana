@@ -138,6 +138,7 @@ numbers in kanji (三十五, 一九九九), digits (35, ３５) and 何, 幾, �
 | 羽 | わ, ば after 3/何/千, っぱ after 6, 8, 10, 100 |
 | no sound change | 枚 台 度 番 倍 秒 名 円 年 年間 時 時間 人 列 畳 分目 (八分目 はちぶんめ) 話 (episodes: 第三話 さんわ) |
 | 4, 7, 9 | よん, なな, きゅう; 時, 時間 よ, しち, く; 人 よ, しち; 円, 年, 畳 よ; 月 し, しち, く |
+| native つ (1-9) | ひとつ ふたつ みっつ よっつ いつつ むっつ ななつ やっつ ここのつ (４つ よっつ); み, よ, む, や before a one-kanji noun that makes a compound (四つ辻 よつつじ, 八つ裂き) and in つ切り/つ折り (六つ切り むつぎり), not before 上/下/目/分/先/前/隣… (三つ上 みっつ) |
 | days (日, 日間) | ついたち after 月, else いちにち; ふつか … とおか, じゅうよっか, はつか, にじゅうよっか, 十七日 じゅうしちにち |
 | others | 一人 ひとり, 二人 ふたり, 二十歳 はたち, 月 がつ only as a month name (1-12, 何); two consecutive digits are "two or three" (二三日 にさんにち, 三四日 さんよっか, 四五人 しごにん), but a year after an era name (昭和二三年 にじゅうさんねん; 明治 大正 昭和 平成 令和 元禄) |
 

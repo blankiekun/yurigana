@@ -44,7 +44,8 @@ folded everywhere (ゃ = や); `display` is strict about voicing (さんぼん �
 must be right), the other metrics fold it, as word lists do.
 
 Systems (`--systems all` runs every one installed; the others are skipped with a note):
-ours (yurigana.Reader with --known, the shipped pipeline), sudachi-A/B/C (SudachiDict-full),
+ours (yurigana.Reader with --known, the shipped pipeline), sudachi-A/B/C (SudachiDict-core, or
+$YURIGANA_SUDACHI_DICT, which ours and the tags use too),
 mecab-ipadic and mecab-unidic (fugashi; UniDic full when the unidic package's dictionary is
 downloaded, else unidic-lite), pykakasi. `pip install "yurigana[eval]"` installs them.
 ginza (spaCy + ja_ginza; Sudachi readings through GiNZA's own model) and yomikata (a BERT model
@@ -106,6 +107,7 @@ from collections import Counter, defaultdict
 
 from .reader import split_reading
 from .readings import HAS_KANJI, surface_reading, to_hiragana
+from .tokens import sudachi_dictionary
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 B2_IDS = os.path.join(HERE, 'tatoeba-b2-ids.txt.gz')
@@ -142,7 +144,7 @@ def _ours(known):
 
 def _sudachi(mode):
     from sudachipy import Dictionary, SplitMode
-    tokenizer = Dictionary(dict='full').create(getattr(SplitMode, mode))
+    tokenizer = Dictionary(dict=sudachi_dictionary()).create(getattr(SplitMode, mode))
     return lambda text: [(m.begin(), m.end(), to_hiragana(m.reading_form()) or None, None) for m in tokenizer.tokenize(text)]
 
 
@@ -368,8 +370,8 @@ def _covering(tokenizer, text):
 def sudachi_tokenizer():
     try:
         from sudachipy import Dictionary, SplitMode
-        return Dictionary(dict='full').create(SplitMode.C)
-    except Exception as error:  # not installed, or a SudachiDict-full this SudachiPy can't read (the second environment)
+        return Dictionary(dict=sudachi_dictionary()).create(SplitMode.C)
+    except Exception as error:  # not installed, or a SudachiDict this SudachiPy can't read (the second environment)
         NOTES.append(f'tags without Sudachi ({type(error).__name__}): forms are lemma or surface, proper/number from numerals')
         return None
 

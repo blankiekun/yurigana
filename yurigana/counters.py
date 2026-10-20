@@ -75,6 +75,13 @@ _HITOMA_AFTER = re.compile('の(?:部屋|座敷|和室)|に(?:住|暮|通|案内
 _P = str.maketrans('はひふへほわ', 'ぱぴぷぺぽぱ')
 _DAYS = {2: 'ふつ', 3: 'みっ', 4: 'よっ', 5: 'いつ', 6: 'むい', 7: 'なの', 8: 'よう', 9: 'ここの', 10: 'とお', 20: 'はつ'}
 _MONTH = ('し', 'しち', 'く')
+# native つ counts (四つ よっつ; Sudachi reads 四 よん, 六 むい, 八 よう) and their compound forms (四つ切り よつぎり,
+# 四つ辻 よつつじ), the same for 1, 2, 5, 7 and 9
+_TSU = {1: 'ひと', 2: 'ふた', 3: 'みっ', 4: 'よっ', 5: 'いつ', 6: 'むっ', 7: 'なな', 8: 'やっ', 9: 'ここの'}
+_TSU_COMPOUND = {3: 'み', 4: 'よ', 6: 'む', 8: 'や'}
+# a one-kanji noun after Xつ makes a compound (四つ辻, 八つ腕; and 裂く: 八つ裂き), except these, which go on
+# counting (三つ上, 四つ目, 二つ分, 三つ先, 三つ四つ); longer nouns are counted (三つ指摘, ６つ部屋がある)
+_TSU_GOES_ON = '上下目分程位共毎余先前後隣横縦奥右左年頃数〇一二三四五六七八九十百千'
 # 分 as a tenth (ぶ): in pairs (五分五分, 七分三分, 五分と五分), after 割/寸/両 (三割五分, 一寸五分) and before
 # 咲き/目/通り (三分咲き, 八分目)
 _BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9０-９]分と?)$')
@@ -162,12 +169,19 @@ def number_reading(value: int, one_thousand: bool = False) -> str:
     return ''.join(kana for kana, _ in _elements(value, one_thousand))
 
 
-def reading(number: str, counter: str, sudachi: str = '', before: str = '', after: str = ''):
+def reading(number: str, counter: str, sudachi: str = '', before: str = '', after: str = '',
+            compound: bool = False):
     """(number's reading, counter's reading) for `number` followed by the counter token
     (`counter`: its normalized form, `sudachi`: Sudachi's reading of it in hiragana), or
     (reading of the whole, None) when it can't be split (一人 ひとり, 二十日 はつか), or None.
     `before`: the text before the number (月 there makes 一日 ついたち), `after`: the text after
-    the counter (五分五分: 分 ぶ)."""
+    the counter (五分五分: 分 ぶ), `compound`: a noun follows that makes a compound with it (四つ辻)."""
+    if counter in ('つ', 'つ切り', 'つ折り'):
+        value = number_value(number)
+        if value not in _TSU:
+            return None
+        kana = _TSU_COMPOUND.get(value, _TSU[value]) if compound or counter != 'つ' else _TSU[value]
+        return kana, sudachi or 'つ'
     if _PAIR.fullmatch(number) and _DIGIT[number[1]] == _DIGIT[number[0]] + 1 and not is_year(number, before):
         if counter in ('日', '日間'):  # 二三日 にさんにち, 三四日 さんよっか
             return _PAIR_FIRST[number[0]] + ('よっ' if number[1] == '四' else _KANA[_DIGIT[number[1]]]), \
@@ -249,7 +263,7 @@ def spans(text: str, tokens: list):
     """(start, number end, end, number's reading, counter's reading) for each number + counter in
     `tokens` (Sudachi tokens of `text`); the number's reading is the whole span's and the counter's
     None when the reading doesn't split (一人 ひとり)."""
-    from .readings import to_hiragana
+    from .readings import is_kanji, to_hiragana
     def adjacent(a, b):
         return a.begin + len(a.surface()) == b.begin
 
@@ -285,8 +299,12 @@ def spans(text: str, tokens: list):
                 continue
             # 一対一 (one on one) is いったいいち
             if not (counter.normalized_form() == '対' and NUMERAL.match(text[end:end + 1])):
+                following = tokens[j + 1] if j + 1 < len(tokens) and adjacent(counter, tokens[j + 1]) else None
+                word = following.surface() if following else ''
+                compound = word[:1] == '裂' or len(word) == 1 and is_kanji(word) and word not in _TSU_GOES_ON \
+                    and following.part_of_speech()[0] == '名詞'
                 found = reading(text[token.begin:counter.begin], counter.normalized_form(),
-                                to_hiragana(counter.reading_form()), text[:token.begin], text[end:end + 4])
+                                to_hiragana(counter.reading_form()), text[:token.begin], text[end:end + 4], compound)
                 if found:
                     out.append((token.begin, counter.begin, end, *found))
         i = j
