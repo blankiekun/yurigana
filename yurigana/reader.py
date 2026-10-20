@@ -15,6 +15,14 @@ from .yomitan import extra_readings, preferred
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
+ATEJI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ateji.tsv')
+
+
+def ateji_readings(path: str = ATEJI) -> dict:
+    """ateji.tsv: loanwords spelt in kanji (無問題 モーマンタイ) -> their reading in hiragana."""
+    with open(path, encoding='utf-8') as f:
+        return {x[0]: to_hiragana(x[1].strip()) for x in (line.split('\t') for line in f if not line.startswith('#'))
+                if len(x) > 1}
 
 
 def jmdict_readings(path: str = JMDICT_PAIRS) -> dict:
@@ -251,6 +259,8 @@ class Reader:
                         and (form, best) in plain):
                     self.ranked[form] = best
         self.model = load_tables([*tables, PUBLIC_TABLE])
+        self.ateji = ateji_readings()
+        self._ateji_re = re.compile('|'.join(sorted(map(re.escape, self.ateji), key=len, reverse=True)))
         if tokenizer is None:
             from .tokens import SudachiTokenizer
             tokenizer = SudachiTokenizer()
@@ -363,6 +373,15 @@ class Reader:
                 plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
                 reading = {'ぶん': own.reading, 'ぶ': 'ぶ', 'ま': 'ま'}.get(counter, plain[0] if plain else own.reading)
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
+        # A loanword spelt in kanji that Sudachi cuts in pieces (無問題 = 無 む + 問題 もんだい, shown `only`):
+        # one Word with the loanword's reading, never shown, where it starts and ends on token edges and has no ruby
+        begins, ends = {t.begin for t in tokens}, {_end(t) for t in tokens}
+        for m in self._ateji_re.finditer(text):
+            start, end = m.span()
+            if (start in begins and end in ends and end not in {_end(t) for t in tokens if t.begin == start}
+                    and not any(s < end and e > start for s, (e, _) in hint_at.items())):
+                words = [w for w in words if w.end <= start or w.start >= end]
+                words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 

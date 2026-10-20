@@ -147,6 +147,6 @@ They include the regression list `eval/sanity.tsv` ([docs/evaluation.md](docs/ev
 
 Free for any use, commercial or not, open or closed, as long as you give credit (keep the copyright
 notice in LICENSE and NOTICE). The code is BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2), `jmdict-pairs.json.gz`
-(JMdict) and `extra-readings.tsv` (hand-checked against JMdict), which are CC BY-SA 4.0 (EDRDG): also usable commercially with credit, and changed copies
+(JMdict), `ateji.tsv` (JMdict) and `extra-readings.tsv` (hand-checked against JMdict), which are CC BY-SA 4.0 (EDRDG): also usable commercially with credit, and changed copies
 of those files stay CC BY-SA. Jiten's frequency list, which `known=` takes, is CC BY-SA 4.0 as well.
 The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.

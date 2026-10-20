@@ -31,7 +31,9 @@ and context rules may give them, and a form with one is never `only` (描く え
 rule reads it). A conjugated っ-form that another listed verb shares (行っ: 行う or 行く, 通っ: 通う or
 通る) isn't `only` either, unless that verb is 5 times rarer in the list (分かっ: not 分かつ).
 Conjugated words take the hand default of the reading they conjugate from (擦った: こする).
-Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
+A loanword spelt in kanji that Sudachi cuts in pieces (無|問題 for 無問題 もーまんたい; `ateji.tsv`, from JMdict)
+becomes one word with the loanword's reading, certainty 0, never shown, where it starts and ends on token
+edges and has no ruby. Splits of words Sudachi doesn't keep whole get DEFAULT_READINGS (below) on their joined
 readings: 一昨|日 いっさくひ → おととい, 一|日中 いちにっちゅう → いちにちじゅう. A lone 一 before
 the kana rest of a native word is ひ/ひと/いっ (一ト月, 一と息, 一しずく, 一たい), and ひと before
 a verb's stem (一睨み). Otherwise each token is read on its own; the first step that gives a
