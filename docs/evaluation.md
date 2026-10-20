@@ -83,7 +83,7 @@ ruby, not NDL's readings).
 
 ## The sanity list
 
-`eval/sanity.tsv` is a regression list of 890 rows, checked by `tests/test_sanity.py` in CI. Each
+`eval/sanity.tsv` is a regression list of 902 rows, checked by `tests/test_sanity.py` in CI. Each
 row is a sentence, a span in it, the expected reading and other accepted ones (`alts`, `|`
 between them). The test runs `Reader().read` on the sentence (no ruby, no reading list) and
 compares the reading of the word that is exactly the span, else the readings of the words inside
@@ -93,10 +93,10 @@ it joined with its kana (三 + 本 gives さんほん). Kinds:
   way 90%+ of 10+ times, ordered by Jiten's frequency list (used only to choose them); expected is
   JMdict's only reading with a priority tag, else half a's majority; one half-a sentence each, or a hand-written one
   where half a's sentence joins the form into a JMdict compound (10 rows).
-- `counter` (326): numbers 1-10, 百, 千 and 何 with 25 counters, and a few dates, written from
+- `counter` (333): numbers 1-10, 百, 千 and 何 with 25 counters, and a few dates, written from
   standard grammar (いっぽん, さんびき, なんばい, ついたち, はつか).
 - `convention` (20): words with two standard readings (明日 あした/あす, 家 いえ/うち).
-- `probe` (44): numbers with counters in real Tatoeba sentences.
+- `probe` (49): numbers with counters in real Tatoeba sentences.
 
 Rows the reader gets wrong are marked `xfail` in the `status` column, with what it gives in the
 note, so the list measures progress. The test fails when a passing row starts failing or an
