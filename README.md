@@ -44,6 +44,11 @@ list, JMdict's (form, reading) pairs (bundled) are the list: words JMdict reads 
 [Jiten's](https://jiten.moe/frequency-dictionaries), not included) replaces them; pairs Jiten's list
 lacks (描く かく, 良い いい) come from the bundled, hand-checked `extra-readings.tsv`.
 
+Bring your own dictionary: `Reader(terms=['my-dictionary.zip'])` reads Yomitan term dictionaries you
+have (none is bundled) for words the list and JMdict both lack: coined compounds Sudachi splits, words it
+doesn't know, ruby over them. Those readings are `source='terms'` and never shown
+([how it works](docs/how-it-works.md#term-dictionaries-you-supply)).
+
 For one sentence, `furigana` gives it back with readings in brackets:
 
 ```python

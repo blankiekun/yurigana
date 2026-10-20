@@ -47,6 +47,9 @@ Options, all optional:
   振り幅 しんぷく). Without one, JMdict's pairs are the list (about 0.5 s and 140 MB more at
   start), and ruby JMdict doesn't list is still taken when it is spelled by its kanji's readings
   (`kanji-readings.json`: names, 柚木 ゆき).
+- `Reader(terms=[path])`: Yomitan term dictionaries you supply (bring your own; none is bundled), read
+  only for words the list and JMdict lack, as `source='terms'`, never shown
+  ([Term dictionaries you supply](how-it-works.md#term-dictionaries-you-supply)).
 - `Reader(tables=[path])`: reading-model tables built from your own library ([training](training.md)), tried
   before the public one. A missing file is skipped, so you can always pass the path.
 - `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;

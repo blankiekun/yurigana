@@ -217,6 +217,29 @@ isn't assumed for a heteronym's later bare occurrences), and a form stops being 
 ruby over it that isn't taken (flavour, katakana) or that gives a second reading. Without
 `carry`, nothing changes.
 
+## Term dictionaries you supply
+
+`Reader(terms=[path, ...])` takes Yomitan term dictionaries (zips of `term_bank_*.json`) you bring;
+none is bundled, and without one nothing changes. They are read only for words of 2+ characters that
+neither the list nor JMdict has, all as `source='terms'` with certainty None (never shown):
+
+- ruby over such a word that a dictionary gives for it (with a list, such ruby isn't taken otherwise);
+- a word Sudachi has no reading for (a word it doesn't know, 鬩霆), conjugated or not; where Sudachi has
+  one, it stays (a dictionary's one reading replacing it was often another word's: a token Sudachi split
+  off a longer word);
+- 2-4 tokens of 3+ characters Sudachi splits, joined as for the list (above; no verb, adjective or number
+  token, unconjugated last token), where the dictionaries give the form one reading and Sudachi's tokens
+  read it otherwise (女|剣豪 じょけんごう → おんなけんごう). The joined Word replaces its tokens' own, shown
+  ones included.
+
+User-made dictionaries are noisy, so entries are cleaned (`yomitan.term_readings`): a term or reading
+with anything but kanji and kana (qualifiers in brackets, Latin, digits, spaces), a reading with
+または/もしくは/あるいは in it (two readings in one), and a reading that doesn't fit its term (its kana as
+written, 1-5 hiragana per kanji, no katakana under kanji) are left out, and so is a reading the kanji
+don't spell (`PlainReadings`: a flavour reading such as a loanword over kanji), unless the term has a
+kanji outside its table. Earlier dictionaries' readings come first. A large dictionary (100,000+ terms) takes
+about 20 s and under 100 MB to load.
+
 ## Certainty
 
 `source` and `certainty`:
@@ -225,6 +248,7 @@ ruby over it that isn't taken (flavour, katakana) or that gives a second reading
 |---|---|
 | `ruby`, `book`, `rule`, `only` | 1.0 (`only` also for a dominant reading, below) |
 | `model` | the model's posterior for its reading (0.7 or more) |
+| `terms` | None (Term dictionaries you supply) |
 | `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
@@ -238,7 +262,7 @@ rank. Not for forms with a reading from `extra-readings.tsv` (良い いい, 夜
 to a kanji, digit or katakana word (`readings.glued`), or a longer token with a kanji or digit beside it
 (一|文字 いちもんじ, 背筋|運動 はいきん: a compound Sudachi split). TRADEOFFS T300.
 
-Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
+Whatever the source (but `ruby`), a reading the list (or a term dictionary) doesn't give for the form (Sudachi's
 reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that
 isn't hiragana or ー (Sudachi's reading of a word it doesn't know is the word's own kanji, 於)
 is None. Loanword readings keep ー (ラーメン屋 らーめんや): fine in a word list, never shown
