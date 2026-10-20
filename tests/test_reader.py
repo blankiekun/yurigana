@@ -257,6 +257,21 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
+    def test_compounds_the_list_doesnt_give_one_reading(self):
+        known = {('力尽く', 'ちからずく'): 9000, ('力尽く', 'ちからづく'): 9000, ('力', 'ちから'): 300,
+                 ('三日月', 'みかづき'): 17920, ('三日月', 'みかずき'): 17920, ('三日月', 'みかげ'): 144990,
+                 ('曽祖父', 'ひいじじ'): 59755, ('曽祖父', 'そうそふ'): 59755, ('小姑', 'こじゅうと'): 40000,
+                 ('小姑', 'こじゅうとめ'): 200000, ('入り方', 'いりがた'): 30000, ('入り方', 'はいりかた'): 100000}
+        reader = Reader(known)
+        joined = {w.form: w[3:5] for w in reader.read('力尽くで三日月を見た。羅甸語の本。')}
+        self.assertEqual(joined['力尽く'], ('ちからずく', 'default'))  # ranked 3+ times above its others
+        self.assertEqual(joined['三日月'], ('みかづき', 'default'))  # みかずき is its other spelling
+        self.assertNotIn('三日', joined)  # the counter span under it is dropped
+        self.assertEqual(joined['羅甸語'], ('らてんご', 'only'))  # not in the list: JMdict's one reading
+        # top readings that differ (ひいじじ, そうそふ), two kanji (小|姑), a verb token (入り|方): not joined
+        for text, form in (('曽祖父の家。', '曽祖父'), ('小姑がいる。', '小姑'), ('気合いの入り方。', '入り方')):
+            self.assertNotIn(form, [w.form for w in reader.read(text)], text)
+
     def test_one_x(self):
         known = {('一昨日', 'おととい'): 7614, ('一昨日', 'いっさくじつ'): 7614, ('一日中', 'いちにちじゅう'): 5374,
                  ('一日', 'いちにち'): 1344, ('一日', 'ついたち'): 29440, ('一重', 'ひとえ'): 41973,

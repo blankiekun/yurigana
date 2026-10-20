@@ -34,6 +34,11 @@ def _long_vowels(reading: str) -> str:
     return re.sub('(?<=(.))ー', lambda m: _VOWEL.get(m.group(1), 'ー'), reading)
 
 
+def _spelling(reading: str) -> str:
+    """One spelling of a reading's sounds: ー spelled out, づ ず and ぢ じ alike (みかづき, みかずき)."""
+    return _long_vowels(reading).replace('づ', 'ず').replace('ぢ', 'じ')
+
+
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
@@ -177,6 +182,22 @@ class Reader:
                 best, second = preferred({r: ranks[form, r] for r in readings}, self.jmdict.get(form, ()))
                 if best and best[:2] in ('ひと', 'いっ') and second >= 3 * ranks[form, best]:
                     self.one_x[form] = best
+        # 3+-character compounds Sudachi splits that the list doesn't give one reading (_joined): JMdict's
+        # one reading of a form the list lacks (羅甸語 らてんご, 水餃子 すいぎょうざ), and the list's reading
+        # of a form it ranks 3+ times above its others (力尽く ちからずく, 須弥山 しゅみせん)
+        self.jmdict_one = {} if self.plain else {form: readings[0] for form, readings in jmdict.items()
+                                                 if len(readings) == 1 and len(form) > 2 and form not in self.readings}
+        # (a top rank shared only by spellings of one reading: 三日月 みかづき = みかずき, not 小姑 こじゅうと =
+        # こじゅうとめ; and one its kanji spell: the list ranks 真正面 まとも first, books read ましょうめん)
+        self.ranked = {}
+        plain = PlainReadings() if ranks else None
+        for form, readings in self.readings.items():
+            if len(readings) > 1 and len(form) > 2 and ranks and form not in _CONTEXT_RULES:
+                best, second = preferred({r: ranks[form, r] for r in readings}, self.jmdict.get(form, ()))
+                top = {_spelling(r) for r in readings if ranks[form, r] == ranks[form, best]} if best else ()
+                if (best in self.jmdict.get(form, ()) and second >= 3 * ranks[form, best] and len(top) == 1
+                        and (form, best) in plain):
+                    self.ranked[form] = best
         self.model = load_tables([*tables, PUBLIC_TABLE])
         if tokenizer is None:
             from .tokens import SudachiTokenizer
@@ -276,8 +297,8 @@ class Reader:
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
         for start, number_end, end, number, counter in counted:
-            if any(s < end and e > start for s, (e, _) in hint_at.items()):
-                continue
+            if any(s < end and e > start for s, (e, _) in hint_at.items()) or (start in at and words[at[start]].end > end):
+                continue  # ruby over it, or a compound joined over it (三|日|月 みかづき)
             word = Word(start, end, text[start:end], number + (counter or ''), 'counter', None)
             if start in at and words[at[start]].end == end:  # one token (三軒 みのき, 一回 いちかい)
                 words[at[start]] = word
@@ -324,9 +345,14 @@ class Reader:
                     reading = None
                     if form in self.one_x:
                         return i + n, Word(begin, end, form, self.one_x[form], 'default', None)
+            joined = not reading and self._joined(span, form)
+            if joined:
+                reading = joined
             if reading and self._particle_inserted(span, reading):
                 reading = None  # お腹|空く is おなか|すく, not おなかがすく: が isn't in the text
             if reading:
+                if joined:
+                    return i + n, Word(begin, end, form, reading, 'only' if form in self.jmdict_one else 'default', None)
                 # a joined form JMdict lacks is mostly a name or noise (三日後 みひりあ, 利根川 さねがわ): not shown
                 if form in self.jmdict and form in self.only:
                     return i + n, Word(begin, end, form, reading, 'only', 1.0)
@@ -336,6 +362,24 @@ class Reader:
             if default and (form, default) in self.known:
                 return i + n, Word(begin, end, form, default, 'default', None)
         return None
+
+    def _joined(self, span, form: str) -> str | None:
+        """The reading of a span the list doesn't join: JMdict's one reading of a form the list lacks
+        (羅甸|語 らてんご), or the list's reading of a form it ranks 3+ times above its others (Reader.ranked).
+        Only forms of 3+ characters (two-kanji ones are mostly other words or names: 家|中 いえじゅう,
+        日|南 ひなみ, 御|霊 ごりょう), without verb or adjective tokens (入り|方 isn't いりがた), not over
+        a number (counters.py reads those: 二十|年 isn't はたとせ) but for a ranked form of 3+ tokens
+        (三|日|月 みかづき), and not when Sudachi's tokens already read the span a way the list gives."""
+        reading = self.ranked.get(form) or self.jmdict_one.get(form)
+        number = any(t.part_of_speech()[1] == '数詞' or _NUMERAL.match(t.surface()) for t in span)
+        if (not reading or number and (form not in self.ranked or len(span) < 3)
+                or any(t.part_of_speech()[0] in ('動詞', '形容詞') for t in span)):
+            return None
+        surface = ''.join(t.surface() for t in span)
+        sudachi = _long_vowels(''.join(to_hiragana(t.reading_form()) for t in span))  # こーひー: JMdict's こうひい
+        if any(surface_reading(surface, form, r) == sudachi for r in (reading, *self.readings.get(form, ()))):
+            return None
+        return reading
 
     def _particle_inserted(self, span, reading: str) -> bool:
         """The reading is the tokens' readings with a particle the text doesn't write between two

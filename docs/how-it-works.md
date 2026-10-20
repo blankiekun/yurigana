@@ -13,7 +13,15 @@ with ruby. 一 + one token is joined only for a ひと…/いっ… reading, the
 misses (一|思い ひとおもい, 一|票 いっぴょう; the list's いち… there is mostly names, 一章 かずあき),
 also when the list ranks that reading 3+ times above its others (一|重 ひとえ, `source='default'`).
 A joined form JMdict doesn't have with that reading (mostly names and list noise: 三|日|後
-みひりあ, 利根|川 さねがわ) is still joined, as `source='dictionary'`. A list like Jiten's ranks
+みひりあ, 利根|川 さねがわ) is still joined, as `source='dictionary'`. Forms of 3+ characters
+the list doesn't give one reading are joined too: one the list lacks with JMdict's only reading
+(羅甸|語 らてんご, 水|餃子 すいぎょうざ, `source='only'`), and one whose top-ranked reading the
+list ranks 3+ times above its others, its top rank shared only by spellings of that reading
+(力|尽く ちからずく, 須弥|山 しゅみせん, 三|日|月 みかづき = みかずき; `source='default'`). Not
+over a verb or adjective token (入り|方 isn't いりがた), not over a number but for such a ranked
+form of 3+ tokens (二十|年 isn't JMdict's はたとせ), and not when Sudachi's tokens already read
+the span a way the list gives. Two-kanji forms aren't joined this way: in book ruby they were
+mostly other words or names (家|中 いえじゅう, 日|南 ひなみ). A list like Jiten's ranks
 words, not readings, so the readings of one word share a rank (言う いう = ゆう, 頭 あたま =
 かしら); wherever the rank picks a reading, readings tied at the top are decided by JMdict's
 order (its first kana reading), else not at all (`yomitan.preferred`).
