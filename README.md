@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.3.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.4.0.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -58,7 +58,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.3.0
+pnpm add github:blankiekun/yurigana#v0.4.0
 ```
 
 ```js
@@ -77,20 +77,20 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana 0.3.0, 2026-10-19, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana 0.4.0 (main 817671e), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
-| | modern books | hard (440) | older books (NDL) | hard (910) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
+| | modern books | hard (442) | older books (NDL) | hard (912) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
 |---|---|---|---|---|---|---|---|
-| **yurigana** | **94.7** | **84.5** | **92.2**² | **89.2**² | **99.0**² | **98.3** | **about 460** |
-| Sudachi | 93.3 | 78.6 | 91.0 | 86.6 | 94.3 | 97.4 | about 820 |
-| GiNZA | 93.3 | 78.6 | 90.9 | 86.5 | 94.2 | 97.3 | about 830 |
-| yomikata | 92.2 | 79.1 | 91.1 | 86.8 | 93.0 | 96.7 | about 990 |
-| MeCab + unidic-lite | 91.9 | 76.8 | 90.7 | 85.9 | 93.2 | 96.9 | about 960 |
-| MeCab + IPAdic | 86.5 | 71.8 | 87.5 | 83.2 | 97.0 | 95.5 | about 960 |
-| pykakasi | 85.0 | 68.4 | 84.0 | 77.8 | 93.7 | 93.6 | about 1,360 |
-| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – | – |
+| **yurigana** | **94.9** | **85.7** | **92.3**² | **89.4**² | **99.2**² | **98.6** | **about 290** |
+| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | 97.4 | about 720 |
+| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.3 | 97.3 | about 740 |
+| yomikata | 92.2 | 79.0 | 91.1 | 86.8 | 93.1 | 96.7 | about 920 |
+| MeCab + unidic-lite | 91.9 | 76.7 | 90.7 | 86.0 | 93.3 | 96.9 | about 870 |
+| MeCab + IPAdic | 86.5 | 71.7 | 87.5 | 83.2 | 97.1 | 95.5 | about 880 |
+| pykakasi | 85.0 | 68.1 | 84.0 | 77.9 | 93.8 | 93.6 | about 1,310 |
+| Claude Opus³ | 97.7 | 95.2 | 95.4 | 93.3 | – | – | – |
 | DeBERTa-CRF (Hu et al.)⁶ | – | – | – | – | – | 99.6 | – |
 
 - **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
@@ -100,33 +100,36 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   Aozora Bunko texts), authors held out; 2,306 clean words.
 - ¹ **Tatoeba B2**: 27,000 sentences. Its gold is MeCab + IPAdic machine furigana, so
   MeCab + IPAdic's score there is inflated, and yurigana's is saturated: most of its remaining
-  misses are IPAdic's readings, not errors. Clean only.
+  misses are IPAdic's readings, not errors. Clean only; 32 transcription errors found on review are left
+  out (`--exclude`).
 - ² Slightly favours yurigana: the public table was trained on Aozora texts that include the NDL
   test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
-  is rebuilt without them).
+  is rebuilt without them); #96's rules were picked from 12 of B2's disagreements (#97-#99 only report it).
 - ³ One blind annotation run per set.
 - ⁵ **Joyo-Kanji-Yomi** (JKYB-Parakeet revision, 13,536 sentences, MIT; Sarashina2.2-TTS, arXiv
   2606.25369): three native-checked sentences per reading of every Jōyō kanji, scored with its own
   toolkit (`jkyb-eval g2p`, the target kanji's reading). Every reading counts the same, so rare and
   literary readings (社 やしろ, 政 まつりごと) weigh far more than in real books: it measures coverage
   of the Jōyō table, not what a reader meets. MeCab here is unidic-lite (the paper's full UniDic:
-  96.66; its Sudachi 97.32 matches ours). Measured on yurigana 0.3.0.
+  96.66; its Sudachi 97.32 matches ours).
 - ⁶ The dictionary-constrained CRF over a character DeBERTa (about 100M parameters, trained on GPUs
   on 2.3M LLM-annotated sentences) of Hu, Zhan and Lin (arXiv 2609.19805): their published number,
   not run here (no code or model released). For scale, frontier LLMs score 99.4-99.85 in the paper.
 - ⁴ Kanji words read wrong in a typical book: the median of 20 post-war library books has about
   19,000 kanji words (114,000 characters), times each system's error rate on plain sentences of
-  held-out authors (1,000 sentences, 4,837 kanji words), scored against Claude Opus reading them
+  held-out authors (1,000 sentences, 4,832 kanji words), scored against Claude Opus reading them
   blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
   favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
   and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
-  furigana yurigana marks as sure (about 13,000 a book), about 65 are wrong (0.5%).
+  furigana yurigana marks as sure (about 14,600 a book), about 35 are wrong (0.2%). The Tatoeba and
+  plain-sentence golds were rebuilt and reviewed on 2026-10-19 (accepted readings in `--alts`), which
+  moved every system's numbers here, not only yurigana's.
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
   about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
   from pykakasi; the ranking doesn't change without those items.
 
-The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`) are right 99.1% of
-the time on the modern books and cover 71% of their words; the rest are left for the reader.
+The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`, and number + counter spans
+with certainty 1.0) are right 99.2% of the time on the modern books and cover 77% of their words; the rest are left for the reader.
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
