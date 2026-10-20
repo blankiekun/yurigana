@@ -61,6 +61,16 @@ rule or the reading model rather than the list or Sudachi's one context-free rea
 plain DEV silver (2,996 post-war sentences) it is 8.1%; the Sudachi fallback (`dictionary`) reads
 3,449 of 4,232 hard items, 2.3% of them wrong.
 
+Characters between gold spans that no span reads: kanji numerals, ASCII and full-width digits and
+latin letters match any reading, none included (gold 人 ひとり in 1人, 全農 in ＪＡ全農); a token
+over digits or latin alone may have no reading. A small ヶ/ヵ or a counter ケ between spans reads
+か, が or こ, or nothing when the next span's reading already starts with it (一 いっ + ヶ + 月
+かげつ is いっかげつ); other kana are compared as hiragana. Tatoeba's per-character markup gives a
+kanji whose slot is empty no reading of its own (乳母車 うば||ぐるま is うばぐるま, not うば母ぐるま),
+and `--predictions` reads 〇 inside a bracketed run (二〇一九年[...]) and gives a kanji left
+outside brackets no reading. Okurigana typed into a reading (話[はなし]し) and historical kana
+(かは for 河) can't be told from real readings by rule: they go in an `--exclude` file.
+
 Left in on purpose: items where yurigana, Sudachi and Opus agree on a reading the book's ruby
 rejects. In book ruby these are nearly always real author readings, not gold errors (on
 Tatoeba they are mostly IPAdic's: there `--exclude` is the way). Names Sudachi tags 固有名詞

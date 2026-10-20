@@ -39,7 +39,9 @@ reading of that stretch is its spans' readings with the kana between them; the s
 its tokens' readings. An item fails alignment when the stretch holds a kanji or other
 non-kana character no gold span reads (a token swallowed an unlabelled kanji; a token with two
 kanji runs is first cut at them when its kana place the cut one way only: 幼い頃 against gold 頃), except kanji
-numerals, which match any reading (NDL gives 漢数字 no kana: 三人 is scored on 人). Small kana are
+numerals, digits and latin, which match any reading, none included (NDL gives 漢数字 no kana: 三人 is
+scored on 人; gold 人 ひとり in １人), and a small ヶ/ヵ or ケ, read か/が/こ or nothing when the next
+span's reading starts with it (一 いっ + ヶ + 月 かげつ). Small kana are
 folded everywhere (ゃ = や); `display` is strict about voicing (さんぼん ≠ さんほん: furigana
 must be right), the other metrics fold it, as word lists do.
 
@@ -238,6 +240,8 @@ def make_system(name: str, known=None):
 # ---------------------------------------------------------------------------- scoring
 
 _DIGIT_OR_LATIN = re.compile(r'[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]')
+_DIGITS_ONLY = re.compile(r'^[0-9A-Za-z０-９Ａ-Ｚａ-ｚ]+$')
+_KA = frozenset('ヶヵケ')  # the counter か written small or as ケ (一ヶ月, 三ケ所, 関ヶ原)
 
 
 def is_item(surface: str) -> bool:
@@ -266,11 +270,16 @@ def _gold_readings(text, b, e, spans_at):
         if span and span['e'] <= e:
             parts.append([span['reading'], *span.get('alts', ())])
             i = span['e']
+        elif text[i] in _KA and span is None:  # 一ヶ月: silent when the next span's reading holds it (月 かげつ)
+            after = spans_at.get(i + 1)
+            silent = after and after['e'] <= e and fold(after['reading'], True)[:1] in 'かこ'
+            parts.append([text[i], 'か', 'が', 'こ', *([''] if silent else [])])
+            i += 1
         elif _KANA.match(text[i]):
             parts.append([text[i]])
             i += 1
-        elif text[i] in _NUMERALS:
-            parts.append(['*'])  # any reading
+        elif text[i] in _NUMERALS or _DIGIT_OR_LATIN.match(text[i]):
+            parts.append(['*'])  # any reading, none included (gold 人 ひとり in １人)
             i += 1
         else:
             return None
@@ -280,7 +289,7 @@ def _gold_readings(text, b, e, spans_at):
 def _reads(reading, gold, voicing):
     """Whether reading is one of the gold readings, folded; a * there stands for any reading."""
     reading = fold(reading, voicing)
-    return any(re.fullmatch('.+'.join(map(re.escape, fold(g, voicing).split('*'))), reading) for g in gold)
+    return any(re.fullmatch('.*'.join(map(re.escape, fold(g, voicing).split('*'))), reading) for g in gold)
 
 
 def _system_reading(text, b, e, tokens_at):
@@ -293,7 +302,8 @@ def _system_reading(text, b, e, tokens_at):
             if _KANA.match(surface):
                 out.append(surface)
             elif token[2] is None:
-                return None, False, token[4:]
+                if not _DIGITS_ONLY.match(surface):  # digits and latin may go unread: the gold reads them as any
+                    return None, False, token[4:]
             else:
                 out.append(token[2])
                 shown.append(token[3])
@@ -596,7 +606,7 @@ def compare(old: dict, new: dict):
                     c[x] = paired(data['tags'][x])
 
 
-_FURIGANA = re.compile(r'([㐀-䶿一-鿿豈-﫿々〆ヶ]+)\[([^\[\]]+)\]')
+_FURIGANA = re.compile(r'([㐀-䶿一-鿿豈-﫿々〆ヶ〇]+)\[([^\[\]]+)\]')
 
 
 def prediction_tokens(annotated: str, text: str):
@@ -605,7 +615,7 @@ def prediction_tokens(annotated: str, text: str):
     out, plain, pos = [], '', 0
     for m in [*_FURIGANA.finditer(annotated), None]:
         for c in annotated[pos:m.start() if m else len(annotated)]:
-            out.append((len(plain), len(plain) + 1, c, None))
+            out.append((len(plain), len(plain) + 1, c if _KANA.match(c) else None, None))
             plain += c
         if m:
             out.append((len(plain), len(plain) + len(m[1]), to_hiragana(m[2]), None))
@@ -735,7 +745,9 @@ def tatoeba_sentence(sentence_id: int, transcription: str):
     for m in _BRACKET.finditer(transcription):
         text.append(transcription[last:m.start()])
         base, readings = m.group(1), m.group(2).split('|')[1:]
-        reading = ''.join(r or c for r, c in zip(readings, base)) if len(readings) == len(base) else ''.join(readings)
+        # an empty slot: the kana as written, a kanji nothing (乳母車 うば||ぐるま: 母 is in うば)
+        reading = ''.join(r or ('' if HAS_KANJI.match(c) else c) for r, c in zip(readings, base)) \
+            if len(readings) == len(base) else ''.join(readings)
         b = sum(map(len, text))
         spans.append({'b': b, 'e': b + len(base), 'surface': base, 'reading': to_hiragana(reading)})
         text.append(base)
