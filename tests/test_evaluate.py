@@ -2,7 +2,7 @@
 import importlib.util
 import unittest
 
-from yurigana.evaluate import (_binomial_p, compare, items_of, make_system, metrics, ndl_lines, ndl_readings,
+from yurigana.evaluate import (_binomial_p, by_source, compare, items_of, make_system, metrics, ndl_lines, ndl_readings,
                                score_sentence, surface_reading, tatoeba_sentence, yomikata_pieces)
 from yurigana.evaluate import add_alts, item_tags, prediction_tokens, read_exclude, triage
 
@@ -70,6 +70,18 @@ class ScoreTest(unittest.TestCase):
         score_sentence(sentence, [(0, 2, 'みもと', False, 'dictionary')], misses)
         score_sentence(sentence, [(0, 2, 'さんぼん', True, 'rule')], misses)
         self.assertEqual(misses, [(7, '三本', 'さんぼん', 'みもと', 'dictionary')])
+
+    def test_by_source(self):
+        sentence = {'id': 7, 'text': '三本方', 'spans': [span(0, 2, '三本', 'さんぼん'), span(2, 3, '方', 'かた')]}
+        read = []
+        results = score_sentence(sentence, [(0, 1, 'さん', True, 'counter'), (1, 2, 'ほん', True, 'rule'),
+                                            (2, 3, 'ほう', False, 'dictionary')], readings=read)
+        self.assertEqual([r[3] for r in read], ['counter', 'dictionary'])  # the weakest token's source
+        report = by_source(results, read, {'7:2'}, ['7:0', '7:2'])
+        self.assertEqual(report['sources']['dictionary'], {'items': 1, 'wrong': 1, 'hard': 1, 'hard wrong': 1})
+        self.assertEqual(report['sources']['counter'], {'items': 1, 'wrong': 0, 'hard': 0, 'hard wrong': 0})  # voicing folded
+        self.assertEqual(report['context share'], 0)
+        self.assertEqual(by_source([('align', False, False, False)], [None], set(), ['1:0'])['sources']['none']['items'], 1)
 
     def test_surface_reading(self):
         self.assertEqual(surface_reading('行っ', '行く', 'いく'), 'いっ')
