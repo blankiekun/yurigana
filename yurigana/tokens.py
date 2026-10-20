@@ -1,9 +1,22 @@
 """Sudachi tokens with their offsets in the text, as the readings in context use them
-(SudachiDict-core unless chosen otherwise, split mode C)."""
+(SudachiDict-core unless chosen otherwise, split mode C), and the Words read from them."""
 import os
 import re
+from typing import NamedTuple
 
 HAS_CONTENT = re.compile(r'[0-9A-Za-z぀-ヿ㐀-䶿一-鿿豈-﫿０-ｚ々]')
+
+
+class Word(NamedTuple):
+    start: int  # offset of the word's token in the text
+    end: int
+    form: str  # dictionary form (行った: 行く)
+    reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
+    source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi),
+    # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`), 'terms' (a term dictionary you
+    # supplied, Reader's `terms`, for a word the list and JMdict lack)
+    # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
+    certainty: float | None  # see docs/how-it-works.md; None when unknown
 
 
 class Token:
