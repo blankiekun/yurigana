@@ -4,6 +4,7 @@ import json
 import math
 import os
 import re
+import unicodedata
 from collections import defaultdict
 from typing import NamedTuple
 
@@ -114,6 +115,24 @@ def _potential_of(form: str, reading: str, known) -> bool:
         return False
     u = _E_TO_U.get(form[-2]), _E_TO_U.get(reading[-2])
     return bool(u[0]) and u[0] == u[1] and (form[:-2] + u[0], reading[:-2] + u[1]) in known
+
+
+_COUNT_NAME = re.compile('数[^字]|[一二三四五六七八九十百千万]{2,}')
+
+
+def _spelled(span, reading: str) -> bool:
+    """Whether the tokens' readings spell the reading, each after the first voiced or not (利根|川 とねがわ),
+    each before the last ending in っ or not (学|校 がっこう)."""
+    pattern = ''
+    for k, t in enumerate(span):
+        part = _long_vowels(to_hiragana(t.reading_form()))
+        forms = {part, k and rendaku(part) or part}
+        if k < len(span) - 1:
+            forms |= {f[:-1] + 'っ' for f in forms if f[-1:] in tuple('くつちき')}
+        if k and part[:1] in 'はひふへほ':  # after っ (一|藩 いっぱん)
+            forms.add(chr(ord(part[0]) + 2) + part[1:])
+        pattern += '(?:' + '|'.join(map(re.escape, forms)) + ')'
+    return bool(re.fullmatch(pattern, _long_vowels(reading)))
 
 
 def _split_name(a, b, reading: str) -> dict:
@@ -291,6 +310,8 @@ class Reader:
                 words.append(word)
                 continue
             surface, form = token.surface(), token.dictionary_form()
+            if form != surface and unicodedata.normalize('NFKC', surface) == form:
+                form = surface  # full-width digits Sudachi's lemma writes half-width (１人: 1人), not a conjugation
             if not HAS_KANJI.search(surface):
                 continue
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
@@ -389,10 +410,19 @@ class Reader:
                     return i + n, Word(begin, end, form, rule, 'rule', 1.0)
                 if joined:
                     return i + n, Word(begin, end, form, reading, 'only' if form in self.jmdict_one else 'default', None)
-                # a joined form JMdict lacks is mostly a name or noise (三日後 みひりあ, 利根川 さねがわ): not shown
+                # a joined form JMdict lacks is mostly a name or noise (利根川 さねがわ): not shown; over a number
+                # the tokens can't spell (三日後 みひりあ), noise: not taken (names split into words, 沙|倉 さくら, stay)
+                if form not in self.jmdict and any(t.part_of_speech()[1] == '数詞' for t in span) and not _spelled(span, reading):
+                    continue
                 if form in self.jmdict and form in self.only:
                     return i + n, Word(begin, end, form, reading, 'only', 1.0)
                 return i + n, Word(begin, end, form, reading, 'dictionary', None)
+            # A noun split before its last kanji, then 前 (朝|食前, 大|戦前): the noun, then まえ; not inside
+            # a longer word (再|現前|化 さいげんぜんか)
+            head = form[:-1]
+            if (n == 2 and form[-1] == '前' and len(span[1].surface()) > 1 and form not in self.readings
+                    and head in self.only and all(map(is_kanji, head)) and not (text[end:end + 1] and is_kanji(text[end]))):
+                return i + n, Word(begin, end, form, self.only[head] + 'まえ', 'default', None)
             # Sudachi's split of a word it doesn't keep whole: 一昨|日 いっさく|ひ is おととい
             default = DEFAULT_READINGS.get((form, ''.join(to_hiragana(t.reading_form()) for t in span)))
             if default and (form, default) in self.known:
@@ -478,6 +508,10 @@ class Reader:
             if reading:
                 return reading, 'rule', 1.0
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
+        if surface in ('1日', '１日') and not re.search('月 ?$', text[:begin]):  # Sudachi's ついたち is a date, after a month
+            return 'いちにち', 'rule', 1.0
+        if '〇' in surface[1:] and surface[0] != '〇':  # digit by digit with 〇 (六八〇, 二〇〇): the number, not れい
+            value = number_value(surface)
         if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
             value = number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
@@ -510,6 +544,15 @@ class Reader:
         # (麻里 あさざと, 隆治 たかじ), not shown; Sudachi's reading, which is the same, stays for word lists
         if only and tokens[i].part_of_speech()[1] == '固有名詞' and form not in self.jmdict:
             only = None
+        # A count Sudachi reads as a name, with a reading neither JMdict nor the list gives the form
+        # (数人 かずひと, 三百 みつお): JMdict's reading, the list's best of them. Only counts: other name
+        # tokens that are also words are mostly names (最上さん, 高木, 金子, 月火 つきひ).
+        name = tokens[i].part_of_speech()[1] == '固有名詞' and _COUNT_NAME.fullmatch(form)
+        if name and sudachi and form in self.jmdict and sudachi not in self.readings[form] + self.jmdict[form]:
+            if only in self.jmdict[form]:
+                return only, 'only', 1.0
+            ranks = self.known if isinstance(self.known, dict) else {}
+            return min(self.jmdict[form], key=lambda r: ranks.get((form, r), math.inf)), 'dictionary', None
         if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, dict) else None):
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).

@@ -1008,3 +1008,13 @@ sentence	span	reading	alts	kind	status	note
 長年の努力が水泡に帰した。	帰し	きす		glaring		T200 水泡に帰す
 彼女は意外と初心な性格だ。	初心	うぶ		glaring		T200 初心な
 結果如何によっては罰する。	如何	いかん		glaring		T200 如何によって
+コンサート中、数人が寝ているのに気付いた。	数人	すうにん		glaring		tatoeba; T170: Sudachi's name 数人 かずひと
+三日後に会おう。	三日後	みっかご		glaring		hand; T171: the list's noise 三日後 みひりあ
+朝食前に顔を洗う。	朝食前	ちょうしょくまえ		glaring	xfail	hand; 朝|食前 split: not あさしょくぜん; xfail: joins need a word list, and the sanity list reads without one
+大戦前の話だ。	大戦前	たいせんまえ		glaring		hand; 大|戦前 split: not だいせんぜん
+哨戒艇六八〇号が沈んだ。	六八〇	ろっぴゃくはちじゅう		glaring		hand; 〇 in a numeral: not ろくはちれい
+二〇〇人が集まった。	二〇〇人	にひゃくにん		glaring		hand
+一〇ラウンド戦った。	一〇	じゅう		glaring		hand; not いちれい
+１人で行く。	１人	ひとり		glaring		hand; full-width digit: a reading at all
+仕事は1日で終わらない。	1日	いちにち		glaring		hand; T172: Sudachi's ついたち outside a date
+三月１日に発行した。	１日	ついたち		glaring		hand; T172
