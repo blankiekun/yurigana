@@ -100,6 +100,8 @@ reading wins:
    Sudachi's longer tokens too (日本一, 日本の伝統, 北日本), unless the reading list gives the
    form only with にっぽん (日本銀行, 日本男児). 気味 is ぎみ right after a noun or a verb's 連用形
    (風邪気味, 太り気味, a context rule).
+   A one-kanji noun Sudachi took as a suffix after a word no suffix attaches to (いつ家 や, 一日中雨 う,
+   矢は的 てき) is read as the noun (いえ, あめ, まと); after nouns and names the suffix stays (豪雨, 田中君).
 
 Then, for every reading but ruby, its voicing follows its place (rendaku, `_voicing`), with
 a reading list. Sudachi splits many compounds (プレハブ|小屋, 縮緬|細工) and gives the second
