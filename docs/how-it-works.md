@@ -200,7 +200,10 @@ Whatever the source (but `ruby`), a reading the list doesn't give for the form (
 reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that
 isn't hiragana or ー (Sudachi's reading of a word it doesn't know is the word's own kanji, 於)
 is None. Loanword readings keep ー (ラーメン屋 らーめんや): fine in a word list, never shown
-(the list's reading of such a word is katakana, so it is never `only`). To show furigana
+(the list's reading of such a word is katakana, so it is never `only`). A name (a token Sudachi
+tags 固有名詞) that JMdict doesn't have is never `only` either: names take many readings and the
+list's one is a guess (麻里 あさざと, 隆治 たかじ), so it is `dictionary`, with the same reading for
+word lists; the book's ruby carried with `carry` shows it as `book`. To show furigana
 only where they are likely right, show `ruby`, `rule`, `model` and `only`.
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule

@@ -92,7 +92,7 @@ class ReaderTest(unittest.TestCase):
     def test_jmdict_checks_the_list(self):
         known = {('廊下', 'ろうげ'), ('室子', 'さやこ'), ('学校', 'がっこう'), ('彼話', 'かのわ'), ('身の上話', 'みのうえばなし')}
         reader = self.reader(known)
-        # 廊下 ろうげ isn't JMdict's; 室子 isn't in JMdict at all (the list's reading stays `only`)
+        # 廊下 ろうげ isn't JMdict's; 室子 isn't in JMdict at all (the list's reading stays, `only` unless Sudachi tags it a name)
         self.assertEqual(reader.only, {'室子': 'さやこ', '学校': 'がっこう', '彼話': 'かのわ', '身の上話': 'みのうえばなし'})
         self.assertEqual(reader.read('廊下')[0][3:5], ('ろうか', 'dictionary'))
         # a joined form JMdict lacks is joined, but not shown
@@ -219,7 +219,9 @@ class ReaderTest(unittest.TestCase):
                         Token('学校', '学校', '学校', noun, 'ガッコウ', 7)]
         known = {('健', 'けん'), ('珈琲', 'コーヒー'), ('廊下', 'ろうか'), ('学校', 'がくこう')}
         words = Reader(known, tokenizer=Fixed()).read('健珈琲鵝毛廊下学校')
-        self.assertEqual(words[0][2:], ('健', 'けん', 'only', 1.0))  # names keep their source
+        # a name JMdict lacks: the list's one reading is a guess between a name's readings, so not shown (T42)
+        self.assertEqual(words[0][2:4], ('健', 'けん'))
+        self.assertEqual(words[0].source, 'dictionary')
         self.assertEqual([w.reading for w in words[1:3]], ['こーひー', None])  # ー is kept; an unknown word's kanji is not
         self.assertEqual(words[3][3:], ('ろうか', 'only', 1.0))
         self.assertEqual(words[4][3:], ('がっこう', 'dictionary', 0.0))  # not a listed reading

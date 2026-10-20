@@ -464,6 +464,10 @@ class Reader:
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
         only = self.only.get(form)
+        # A name the list reads one way but JMdict doesn't have: a guess between a name's readings
+        # (麻里 あさざと, 隆治 たかじ), not shown; Sudachi's reading, which is the same, stays for word lists
+        if only and tokens[i].part_of_speech()[1] == '固有名詞' and form not in self.jmdict:
+            only = None
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):
