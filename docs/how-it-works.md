@@ -142,7 +142,7 @@ span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅう�
 after a month) are its own, except names (三軒 みのき, 一列 かずなみ) and words it reads without
 the sound change (一回 いちかい), which get the span's reading; 三十分 (三 + 十分) and 二十人 are
 read as numbers. A number alone gets the same readings (六百 ろっぴゃく, 三千
-さんぜん; Sudachi reads them digit by digit), as `source='counter'` with certainty None (十 とお, 二十 はたち); a written 一千 is いっせん
+さんぜん; Sudachi reads them digit by digit), as `source='counter'` with certainty None (十 とお, 二十 はたち); a written 一千 or １千 is いっせん
 (一千万 いっせんまん).
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
