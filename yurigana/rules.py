@@ -638,6 +638,18 @@ SPLIT_TOKENS.update({surface: [(r'(?<!御)お$', None, 1, '供', 'とも', True)
 SPLIT_TOKENS = {surface: [(before and re.compile(before), after and re.compile(after), *rest) for before, after, *rest in entries]
                 for surface, entries in SPLIT_TOKENS.items()}
 
+# 行っ that Sudachi takes for 行う (おこなっ) but is 行く (いっ), T432: going somewhere (に, へ, まで before it), with
+# company or by a vehicle (二人で, 車で), eyes or understanding (目が行った, 納得が行った), coming back (行ってくる),
+# back and forth (行ったり来たり), the better way or having been (行った方が, 行ったことがある), or along a path
+# (先を行く, 道を行って). Not after を in the clause, but for a path or 行ったり: books' 行う is mostly 〜を行った,
+# and also 〜が行った調査, 定期的に行っている.
+IKU_MEANS = re.compile(r'(?:[一二三四五六七八九十何数大０-９0-9]人|ひとり|ふたり|みんな|皆|大勢|家族|友達|友人|旅行|車|バス|タクシー|'
+                       r'電車|列車|徒歩|自転車|飛行機|船|新幹線)$')
+IKU_AFTER = re.compile(r'て(?:く[るれ]|き|来|こ[いよ]|らっしゃ)|たり(?:来|き)|た(?:ほう|方)が|たところ|'
+                       r'た(?:こと|事)(?:が|も)?(?:ある|あり|あっ|ない|なかっ|無)')
+IKU_PATH = re.compile(r'(?:先|(?<![㐀-䶿一-鿿々])道|前|後ろ|最先端|先頭)を$')
+IKU_IDIOM = re.compile(r'(?:目|視線|注意|納得|合点|得心|連絡|情報)が$')  # 目が行く, 納得が行く
+
 # Joined forms the list reads one way that are a phrase of their tokens where the text after matches: 行く方が, 行く行く！
 # (いく + ほう, いく + いく; not ゆくかた, ゆくゆく as in 行く方知れず, 行く行くは) (T290).
 NOT_JOINED = {'行く方': re.compile(r'(?!知|し[れらりるろ])'), '行く行く': re.compile(r'(?!は)'),
