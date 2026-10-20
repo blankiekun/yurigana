@@ -8,7 +8,7 @@ import unicodedata
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
+from .counters import COUNTERS, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
@@ -387,10 +387,14 @@ class Reader:
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
+        token_at = {t.begin: t for t in tokens}
         for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
-            word = Word(start, end, text[start:end], number + (counter or ''), 'counter', None)
+            # shown (certainty 1.0) unless the counter or span is often read otherwise, or Sudachi took it for a name
+            sure = counter_shown(text[start:end], text[number_end:end], text[end:end + 2], text[max(0, start - 2):start]) and not (
+                start in token_at and token_at[start].part_of_speech()[1] == '固有名詞')
+            word = Word(start, end, text[start:end], number + (counter or ''), 'counter', 1.0 if sure else None)
             if start in at and words[at[start]].end == end:  # one token (三軒 みのき, 一回 いちかい)
                 words[at[start]] = word
             else:

@@ -277,6 +277,26 @@ def _fused(token, number: str, counter: str) -> bool:
         to_hiragana(token.reading_form()) == number_reading(value) + COUNTERS[counter][0]
 
 
+# Counter spans are shown as furigana (certainty 1.0, T321) but for counters and spans books often read
+# otherwise: N月 (一月 ひとつき, 五月 さつき), N分 (一分 いちぶ, 五分 ごぶ), old measures (一寸 ちょっと), 羽 (なんわ/なんば),
+# 足 (百足 むかで), 頭 (九頭), 一度/三度/四度/七度/九度 (ひとたび, みたび), 110番 (ひゃくとおばん), 一時 (いっとき,
+# ひととき), 何時 (いつ), 一日 (ひとひ, いちじつ), 三晩 (三日三晩 みばん), 四番 (a batter: よばん), 十八番 (おはこ), 千歳, a bare
+# 万/億/兆 (万人 ばんにん, 万歳 ばんざい), 日間 before 違 (１日|間違って) and the second number of a range (２、３日
+# にさんにち, not みっか); also numbers with 七 (しち/なな both standard: 七時, 七十五日), 幾年 (いくとせ), 三三九度 (さんさんくど),
+# 二十歳 (はたち) and 十時/十話 (names: ととき, とうわ).
+_UNSHOWN_COUNTERS = frozenset('月 分 寸 尺 間 町 丁 羽 足 頭 貫 升 銭 坪'.split())
+_UNSHOWN_SPAN = re.compile('[一三四七九]度|三晩|四番|[一何]時|一日|十八番|千歳|(?:110|１１０|一一〇|百十)番|幾年|三三九度|十[時話]|(?:二十|20|２０)歳')
+_RANGE_BEFORE = re.compile('[0-9０-９〇一二三四五六七八九十][、・，,〜～~]$')
+
+
+def shown(surface: str, counter: str, after: str, before: str = '') -> bool:
+    """Whether a number + counter span `surface` (counter: its counter's surface, after/before: the text
+    around it) is shown as furigana."""
+    return not (counter in _UNSHOWN_COUNTERS or _RANGE_BEFORE.search(before) or surface[:1] in ('万', '億', '兆')
+                or counter != 'つ' and re.search('[七７7]', surface[:len(surface) - len(counter)])
+                or _UNSHOWN_SPAN.fullmatch(surface) or counter.endswith('間') and re.match('違|ちが', after))
+
+
 def spans(text: str, tokens: list):
     """(start, number end, end, number's reading, counter's reading) for each number + counter in
     `tokens` (Sudachi tokens of `text`); the number's reading is the whole span's and the counter's
