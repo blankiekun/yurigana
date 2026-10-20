@@ -130,15 +130,19 @@ list: fold voicing to look it up there.
 
 Sudachi gives a number and its counter as separate tokens with fixed readings (三/さん +
 本/ぽん), so `read` also gives one `Word` per number + counter span with the reading of the
-whole, `source='counter'` and certainty None: `Word(start, end, '三本', 'さんぼん', 'counter', None)`.
+whole, `source='counter'` and certainty 1.0: `Word(start, end, '三本', 'さんぼん', 'counter', 1.0)`, shown as
+furigana. Certainty is None (not shown) for counters and spans books often read otherwise (`counters.shown`:
+N月 ひとつき, N分 ぶ, old measures, 羽, 足, 頭, 一度/三度 ひとたび/みたび, 一時, 何時, 一日, 三晩, 四番, 十八番, 千歳, 110番,
+a bare 万/億/兆, the second number of a range: ２、３日, numbers with 七 (しち or なな), 二十歳 はたち, 幾年, 三三九度,
+十時/十話 (names: ととき, とうわ)) and where Sudachi takes the span for a name (TRADEOFFS T321).
 It comes just before the tokens' own Words, which stay: the counter's Word gets the
 counter's plain reading (本 ほん) for word lists, with `source='counter'` too (never `only`:
-the plain reading is not how it reads there). Ruby over any part of the span wins: no
+the plain reading is not how it reads there; certainty None). Ruby over any part of the span wins: no
 span Word then. Words Sudachi keeps whole (一人, 二十歳, 十分 じゅうぶん, 何本, 一日 ついたち
 after a month) are its own, except names (三軒 みのき, 一列 かずなみ) and words it reads without
 the sound change (一回 いちかい), which get the span's reading; 三十分 (三 + 十分) and 二十人 are
 read as numbers. A number alone gets the same readings (六百 ろっぴゃく, 三千
-さんぜん; Sudachi reads them digit by digit), as `source='counter'`; a written 一千 is いっせん
+さんぜん; Sudachi reads them digit by digit), as `source='counter'` with certainty None (十 とお, 二十 はたち); a written 一千 or １千 is いっせん
 (一千万 いっせんまん).
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
@@ -208,7 +212,7 @@ ruby over it that isn't taken (flavour, katakana) or that gives a second reading
 |---|---|
 | `ruby`, `book`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
-| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`) |
+| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
@@ -219,7 +223,7 @@ is None. Loanword readings keep ー (ラーメン屋 らーめんや): fine in a
 tags 固有名詞) that JMdict doesn't have is never `only` either: names take many readings and the
 list's one is a guess (麻里 あさざと, 隆治 たかじ), so it is `dictionary`, with the same reading for
 word lists; the book's ruby carried with `carry` shows it as `book`. To show furigana
-only where they are likely right, show `ruby`, `rule`, `model` and `only`.
+only where they are likely right, show `ruby`, `rule`, `model`, `only` and `counter` with certainty 1.0.
 
 Certainty is not calibrated. A ruby reading is the book's own, a rule reading what the rule
 says; the model's posterior is a naive Bayes posterior, which is overconfident, and the only
