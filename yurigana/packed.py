@@ -6,6 +6,7 @@ slot count, entry count]} and per table its entries (`key \\0 value \\0`, UTF-8,
 it) and an open-addressing hash table of uint32 entry offsets (crc32 of the key, linear probing, 0 = empty)."""
 import json
 import mmap
+import os
 import struct
 import zlib
 from array import array
@@ -35,12 +36,14 @@ def write(path: str, tables: dict, meta=None) -> None:
         offset += 4 * len(slots)
     head = json.dumps({'tables': header, 'meta': meta or {}}).encode()
     base = len(MAGIC) + 4 + len(head) + 3 & ~3
-    with open(path, 'wb') as f:
+    # a new file, renamed over the old: processes that mapped the old one keep reading it (no SIGBUS)
+    with open(path + '.tmp', 'wb') as f:
         f.write(MAGIC + struct.pack('<I', len(head)) + head)
         f.write(b'\0' * (base - f.tell()))
         for _, entries, slots in blobs:
             f.write(entries + b'\0' * (-len(entries) % 4))
             f.write(slots.tobytes())
+    os.replace(path + '.tmp', path)
 
 
 class Packed:

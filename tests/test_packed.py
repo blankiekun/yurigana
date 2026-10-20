@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 from yurigana import Reader
 from yurigana.packed import Packed, PairMap, write
@@ -29,6 +30,12 @@ class PackedTest(unittest.TestCase):
         self.assertEqual((len(packed.table('empty')), packed.table('empty').get('a')), (0, None))
         pairs = PairMap(packed.table('pairs'))
         self.assertEqual((pairs[('人気', 'にんき')], ('人気', None) in pairs, pairs.get(('人気', 'ひとけ'), 0)), (3, False, 0))
+
+    def test_other_version(self):
+        Reader({('人気', 'にんき')}, tokenizer=ToyTokenizer()).save(self.path)
+        with mock.patch('yurigana.reader._source_hash', return_value='other'):
+            with self.assertRaises(ValueError):
+                Reader.load(self.path, tokenizer=ToyTokenizer())
 
     def test_not_packed(self):
         with open(self.path, 'wb') as f:

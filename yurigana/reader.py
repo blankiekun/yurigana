@@ -294,13 +294,15 @@ class Reader(Compounds):
         tables |= {name: dict(getattr(self, name)) for name in self._STRINGS}
         tables['tails'] = {f'{f}\t{r}': f'{v} {u}' for (f, r), (v, u) in self._tail_counts().items()}
         tables['kanji_index'] = {r: ''.join(sorted(kanji)) for r, kanji in self._kanji_by_reading().items()}
-        packed.write(path, tables, {'ranked': ranked, 'plain': self.plain is not None})
+        packed.write(path, tables, {'ranked': ranked, 'plain': self.plain is not None, 'source': _source_hash()})
 
     @classmethod
     def load(cls, path: str, tables=(), tokenizer=None) -> 'Reader':
         """A Reader from Reader.save's file; `tables` and `tokenizer` as in Reader()."""
         from .packed import Decoded, Packed, PairMap, PairSet
         pack = Packed(path)
+        if pack.meta.get('source') != _source_hash():
+            raise ValueError(f'{path} was saved by another version of yurigana: build the Reader and save it again')
         self = cls.__new__(cls)
         self.known = PairMap(pack.table('known')) if pack.meta['ranked'] else PairSet(pack.table('known'))
         for name in cls._LISTS:
@@ -759,6 +761,17 @@ class Reader(Compounds):
 
 
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
+
+
+def _source_hash() -> str:
+    """The package's code and data, which Reader.save's tables are derived from."""
+    import hashlib
+    here, digest = os.path.dirname(os.path.abspath(__file__)), hashlib.sha256()
+    for name in sorted(os.listdir(here)):
+        if name.endswith(('.py', '.tsv', '.json', '.gz')):
+            with open(os.path.join(here, name), 'rb') as f:
+                digest.update(name.encode() + b'\0' + f.read())
+    return digest.hexdigest()
 
 
 def _split(value: str) -> list:
