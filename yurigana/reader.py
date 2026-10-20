@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, SHOWN_IDIOMS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
 from .yomitan import dominant_readings, extra_readings, preferred, term_readings
@@ -569,18 +569,24 @@ class Reader:
                 if modified and span[1].surface() in ('を', 'が', 'に', 'で', 'と') and span[1].part_of_speech()[0] == '助詞':
                     continue
                 found = self._idiom(text, span, words, at, hint_at, counted)
-                if found:
+                if found and (found[0] in SHOWN_IDIOMS or any((f, r) != (words[k].form, words[k].reading) for k, r, f in found[1])):
                     break
+                found = None
             if not found:
                 i += 1
                 continue
+            phrase, found = found
+            shown = phrase in SHOWN_IDIOMS
             for k, reading, form in found:
-                words[k] = words[k]._replace(form=form, reading=reading, source='default', certainty=None)
+                same = (form, reading) == (words[k].form, words[k].reading)
+                if not same or shown and words[k].source not in ('only', 'rule', 'model'):
+                    words[k] = words[k]._replace(form=form, reading=reading, source='rule' if shown else 'default',
+                                                 certainty=1.0 if shown else None)
             i += n
         return words
 
     def _idiom(self, text, span, words, at, hint_at, counted):
-        """[(index in words, reading, form)] of the Words _idioms changes in `span`, or None."""
+        """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None."""
         kana = [bool(_KANA_READING.match(to_hiragana(t.surface()))) for t in span]
         begin, end = span[0].begin, _end(span[-1])
         if (not any(kana) or all(kana)
@@ -636,10 +642,11 @@ class Reader:
             if k == len(span) - 1 or surface == w.form:
                 if surface != w.form and piece.endswith('いい'):
                     return None  # いい doesn't conjugate: 寝つきが良く is よく
-                if w.form == parts[k] and w.reading != piece:
+                if w.form == parts[k]:
                     changes.append((at[t.begin], piece, w.form))
                 continue
             if surface_reading(surface, w.form, w.reading) == piece:
+                changes.append((at[t.begin], w.reading, w.form))
                 continue
             # a conjugated token: its lemma's listed reading (or another verb's: 放っ is 放る's, ほうっ) that gives the slice
             stem = surface[:-1] if surface.endswith('っ') else None
@@ -648,7 +655,7 @@ class Reader:
             if not hit:
                 return None
             changes.append((at[t.begin], *hit))
-        return changes
+        return form, changes
 
     def _joined(self, span, form: str) -> str | None:
         """The reading of a span the list doesn't join: JMdict's one reading of a form the list lacks

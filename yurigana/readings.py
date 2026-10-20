@@ -594,6 +594,11 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
 # Defaults shown as furigana (source 'rule'): right 97%+ where they fire in training-author post-war books' ruby
 # (n >= 20) or, for rarer forms, in every sampled bare occurrence checked by hand (T320). A one-character one only on its
 # own: not glued (glued), nor before katakana (他クラス た).
+# Phrases Reader._idioms shows (each kanji token's slice, as a rule): training-author ruby agrees with the slices
+# 97%+ of 10+ times (tools/shown_idioms.py, T435)
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shown-idioms.tsv'), encoding='utf-8') as _f:
+    SHOWN_IDIOMS = frozenset(line.split('\t')[0] for line in _f if line.strip() and not line.startswith('#'))
+
 SHOWN_DEFAULTS = frozenset({
     ('他', 'ほか'), ('身体', 'からだ'), ('明後日', 'あさって'), ('一昨日', 'おととい'), ('隙', 'すき'), ('胡坐', 'あぐら'),
     ('鶏肉', 'とりにく'), ('箱', 'はこ'), ('民', 'たみ'), ('咽喉', 'のど'), ('間近', 'まぢか'),
