@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.1.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -68,7 +68,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.5.0
+pnpm add github:blankiekun/yurigana#v0.5.1
 ```
 
 ```js
@@ -106,6 +106,8 @@ column measures, its biases and the footnotes: [docs/evaluation.md](docs/evaluat
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`, and number + counter spans
 with certainty 1.0) are right 99.3% of the time on the modern books and cover 79% of their words; the rest are left for the reader.
+With JMnedict as a name dictionary (`Reader(names='JMnedict.zip')`, not included), names read one way are
+shown too: 99.2% right over 81% of the words (main 33f45a5, 2026-10-20).
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
