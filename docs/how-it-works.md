@@ -29,8 +29,9 @@ reading wins:
    books do (いつしよ gives いっしょ).
 2. **A context rule** (`context_reading`): about 55 forms whose reading depends on the
    words around them (人気, 今日, 明日, 上手, 市場, 金, 方, 間, 何, 今, 外, 気に入る いる, 尼君 ぎみ, カナダ人 じん,
-   表に出る おもて, 館の主 あるじ, 赤ん坊を抱く だく, ローズ家 け, すぐ側 そば, この後 あと, その場に留まる とどまる,
-   あのお方 かた, 教えてくださった方 かた, 、後に知る のち, しかる後 のち …), in
+   表に出る おもて, 館の主 あるじ, 赤ん坊を抱く だく, ローズ家 け, 佐藤家 け (after Sudachi's surname tag), 侯爵家 け,
+   すぐ側 そば, この後 あと, この前 まえ, その場に留まる とどまる, 感情を露にする あらわ, 鍋の素 もと, 間に割って入る あいだ,
+   上手に じょうず, 上手と下手 かみて/しもて, あのお方 かた, 教えてくださった方 かた, 、後に知る のち, しかる後 のち …), in
    `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき. 何 is なに before a counter kanji that
@@ -79,7 +80,7 @@ reading wins:
    金 きん → かね: alone, 金 is money unless a rule finds the metal (銀 or 鉄 nearby, 金のくさり,
    金の値段). Four of Sudachi's dictionary entries carry a particle or extra kana in their
    reading and are cut back to the word: 中宮 ちゅうぐうの, 河原 かわらの, 甲斐 かいの, 土堤 どてい.
-   鬼 き → おに, but not glued to a kanji like the table's (善鬼 ぜんき). 日本 is にほん in
+   下手 しもて → へた (the stage's side is a rule: 舞台の下手, 上手と下手). 鬼 き → おに, but not glued to a kanji like the table's (善鬼 ぜんき). 日本 is にほん in
    Sudachi's longer tokens too (日本一, 日本の伝統, 北日本), unless the reading list gives the
    form only with にっぽん (日本銀行, 日本男児). 気味 is ぎみ right after a noun or a verb's 連用形
    (風邪気味, 太り気味, a context rule).
