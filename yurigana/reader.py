@@ -54,6 +54,7 @@ def _spelling(reading: str) -> str:
 _NOT_IDIOMS = {'八歳児', '十二神将'}
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
+_ALL_KANJI = re.compile(r'^[㐀-䶿一-鿿豈-﫿々]+$')
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
 _KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 _UNITS = re.compile('[十百千万億兆]')
@@ -279,6 +280,15 @@ class Reader:
                 if (best in self.jmdict.get(form, ()) and second >= 3 * ranks[form, best] and len(top) == 1
                         and (form, best) in plain):
                     self.ranked[form] = best
+                elif best and _ALL_KANJI.match(form) and form in self.jmdict:
+                    # a top rank shared by readings of a kanji compound: JMdict's first, when it is the only one
+                    # the kanji spell (曽祖父 そうそふ, not ひいじじ, ひじじ) (T91)
+                    first = self.jmdict[form][0]
+                    tied = [r for r in readings if ranks[form, r] == ranks[form, best]]
+                    if len(top) > 1 and first in tied and [r for r in tied if (form, r) in plain] == [first]:
+                        self.ranked[form] = first
+        self._jmdict_all = jmdict
+        self._plain_check = self.plain or PlainReadings()
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.dominant = dominant_readings()
         self.ateji = ateji_readings()
@@ -417,6 +427,7 @@ class Reader:
         words = [w._replace(source='rule', certainty=1.0) if w.source == 'default' and (w.form, w.reading) in SHOWN_DEFAULTS
                  and not (w.end - w.start == 1 and (glued(text, w.start, w.end) or re.match('[ァ-ヺー]', text[w.end:w.end + 1])))
                  else w for w in words]
+        words = self._idioms(text, tokens, words, hint_at, counted)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
@@ -498,6 +509,94 @@ class Reader:
                     and not form.endswith('文字') and form not in _NOT_IDIOMS
                     and any(_NUMERAL.match(t.surface()) for t in span)
                     and ''.join(to_hiragana(t.reading_form()) for t in span) != reading)
+
+    def _idioms(self, text, tokens, words, hint_at, counted):
+        """Phrases JMdict reads one way over 2-8 tokens with a kana token inside (歩|を|進める ほをすすめる,
+        放っ|て|おく, 一|か|八|か): each kanji token's Word takes its slice of the phrase's reading, when the slice
+        is a plain (PlainReadings, rendaku) or listed reading of the token; one Word per token, so word lists keep
+        their rows. Not shown (`default`, certainty None); ruby, rules and counters win. Left out: phrases the list
+        reads otherwise or two ways, the tail of a longer word, starting in a particle or, over two tokens, ending in one (外|に isn't ほかに), NOT_JOINED's (頭を振る: あたま too)."""
+        at = {w.start: k for k, w in enumerate(words)}
+        i = 0
+        while i < len(tokens):
+            found = None
+            # not the tail of a longer word (書き|甲斐|が|ある: がい, not かいがある)
+            glued = i and _end(tokens[i - 1]) == tokens[i].begin and tokens[i - 1].part_of_speech()[0] in (
+                '名詞', '代名詞', '動詞', '形容詞', '形状詞', '接頭辞', '接尾辞')
+            for n in range(min(8, len(tokens) - i), 1, -1) if not glued else ():
+                span = tokens[i:i + n]
+                found = self._idiom(text, span, words, at, hint_at, counted)
+                if found:
+                    break
+            if not found:
+                i += 1
+                continue
+            for k, reading, form in found:
+                words[k] = words[k]._replace(form=form, reading=reading, source='default', certainty=None)
+            i += n
+        return words
+
+    def _idiom(self, text, span, words, at, hint_at, counted):
+        """[(index in words, reading, form)] of the Words _idioms changes in `span`, or None."""
+        kana = [bool(_KANA_READING.match(to_hiragana(t.surface()))) for t in span]
+        begin, end = span[0].begin, _end(span[-1])
+        if (not any(kana) or all(kana)
+                or span[0].part_of_speech()[0] in ('助詞', '助動詞')
+                or len(span) < 3 and span[-1].part_of_speech()[0] in ('助詞', '助動詞')
+                or any(_end(a) != b.begin for a, b in zip(span, span[1:]))):
+            return None
+        form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
+        readings = self._jmdict_all.get(form)
+        if (not readings or len(readings) != 1 or form in NOT_JOINED and NOT_JOINED[form].match(text, end)
+                or form in self.readings and self.readings[form] != readings  # the list reads it otherwise, or two ways (他愛もない)
+                or any(s < end and e > begin for s, (e, _) in hint_at.items())
+                or any(s < end and e > begin for s, _, e, _, _ in counted)):
+            return None
+        plain = self._plain_check
+        parts = [t.surface() for t in span[:-1]] + [span[-1].dictionary_form()]
+
+        def align(k, pos):  # each token's slice of the reading, the first way that fits
+            if k == len(parts):
+                return [] if pos == len(readings[0]) else None
+            if kana[k]:
+                own = to_hiragana(parts[k])
+                rest = readings[0].startswith(own, pos) and align(k + 1, pos + len(own))
+                return None if rest is None or rest is False else [own] + rest
+            stops = [len(readings[0])] if k == len(parts) - 1 else range(pos + 1, len(readings[0]))
+            for stop in stops:
+                piece = readings[0][pos:stop]
+                if (parts[k], piece) in self.known or (parts[k], piece) in plain:
+                    rest = align(k + 1, stop)
+                    if rest is not None:
+                        return [piece] + rest
+            return None
+        pieces = align(0, 0)
+        if pieces is None:
+            return None
+        changes = []
+        for k, (t, piece) in enumerate(zip(span, pieces)):
+            if kana[k]:
+                continue
+            w = words[at[t.begin]] if t.begin in at else None
+            if not w or w.end != _end(t) or w.source in ('ruby', 'rule', 'counter', 'book'):
+                return None  # a Word over several tokens, or a sure reading: leave the phrase
+            surface = t.surface()
+            if k == len(span) - 1 or surface == w.form:
+                if surface != w.form and piece.endswith('いい'):
+                    return None  # いい doesn't conjugate: 寝つきが良く is よく
+                if w.form == parts[k] and w.reading != piece:
+                    changes.append((at[t.begin], piece, w.form))
+                continue
+            if surface_reading(surface, w.form, w.reading) == piece:
+                continue
+            # a conjugated token: its lemma's listed reading (or another verb's: 放っ is 放る's, ほうっ) that gives the slice
+            stem = surface[:-1] if surface.endswith('っ') else None
+            lemmas = [w.form] + ([stem + e for e in 'うつる' if stem + e != w.form] if stem else [])
+            hit = next(((r, f) for f in lemmas for r in self.readings.get(f, ()) if surface_reading(surface, f, r) == piece), None)
+            if not hit:
+                return None
+            changes.append((at[t.begin], *hit))
+        return changes
 
     def _joined(self, span, form: str) -> str | None:
         """The reading of a span the list doesn't join: JMdict's one reading of a form the list lacks

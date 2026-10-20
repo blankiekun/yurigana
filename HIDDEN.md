@@ -63,6 +63,17 @@ to "Shown again".
 | 何 | なに (was `rule`, wrong there) before 玉, 作, 針, か国 | なん (何作目, 何か国語) | `readings._CONTEXT_RULES['何']`: the なに rule doesn't fire, Sudachi's なん, `dictionary` | bare: 1 in 300 books; ruby lines 11, all なん by hand | T291 | なん as a shown rule before counters |
 | 行く方, 行く行く | ゆくかた, ゆくゆく (was `only`, wrong there) before a particle or !/、 | いく + ほう, いく + いく | `readings.NOT_JOINED`: read as their tokens, 行く Sudachi's いく, `dictionary` | bare: 9 in 300 books, all いく by hand; ruby 行=い 1 of 1 | T290 | 行く いく as a rule before 方が/行く |
 | 辛い | つらい (was `rule`) with a taste or food word within 12 characters | からい mostly (甘くて辛くて, それに辛い！); つらい in 食べられない日も辛かった | `readings._CONTEXT_RULES['辛い']`, `_TASTE`: the model's reading kept, `dictionary` (`MODEL_UNSHOWN`) | bare: 13 changes in 300 books, ~4 wrong つらい no longer shown, ~3 right つらい hidden; ruby where つらい fires 97 → 98% | T294 | からい cues for 辛さ/辛そう of food |
+| 口 | くち (was `only`, wrong there) inside 憎まれ口, 減らず口 | ぐち | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 10 in 40 books, all right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 話 | はなし (was `only`, wrong there) inside ひそひそ話 | ばなし | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 4, all right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 声 | こえ (was `only`, wrong there) inside ひそひそ声 | ごえ | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 3, all right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 腰 | こし (was `only`, wrong there) inside へっぴり腰, けんか腰 | ごし | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 71 of 73 right after; bare 1 | T360 | show the phrases right 99%+ in ruby and bare text |
+| 叩く | たたく (was `only`, wrong there) in 大枚を叩く | はたく | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 30 of 31 right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 拳 | こぶし (was `only`, wrong there) in 北斗の拳 | けん | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 26 of 26 right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 被る | かぶる (was `only`, wrong there) in ごめん被る | こうむる | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 25 of 25 right after | T360 | show the phrases right 99%+ in ruby and bare text |
+| 度 | たび (was `only`, wrong there) in 度が過ぎる, 度を越す, 度を過ごす | ど | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 19 of 19 right after; bare 2 | T360 | show the phrases right 99%+ in ruby and bare text |
+| 類 | たぐい (was `only`) in 類を見ない, この類 | るい (たぐい in some books) | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 12 of 19 right after (ruby favours たぐい); bare 3, all るい | T360 | show the phrases right 99%+ in ruby and bare text |
+| 野 | の (was `only`, wrong there) in 野に下る, 野にある | や | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 3, all right after; ruby 0 of 3 (の) | T360 | show the phrases right 99%+ in ruby and bare text |
+| 男, 床, 鼓, others | おとこ, とこ/ゆか, つづみ … (was `only`) inside a JMdict phrase (男バス, 臨終の床, 鼓す) | だん, とこ, こ … | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 13 of 14 right after; bare under 1 per form | T360 | show the phrases right 99%+ in ruby and bare text |
 
 ## Shown again
 

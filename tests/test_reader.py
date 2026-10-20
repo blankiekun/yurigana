@@ -281,6 +281,18 @@ class SudachiReaderTest(unittest.TestCase):
         reader.dominant = {}
         self.assertEqual(read('俺は目を閉じた。')['目'][1], 'dictionary')
 
+    def test_phrases_jmdict_reads_one_way(self):
+        # T360: each kanji token of a phrase JMdict reads one way takes its slice of that reading, not shown;
+        # not phrases books also read literally (NOT_JOINED), the tail of a longer word, or under ruby
+        reader = Reader()
+        read = lambda text, hints=(): [(w.form, w.reading, w.source) for w in reader.read(text, hints)]
+        self.assertIn(('歩', 'ほ', 'default'), read('彼は歩を進めた。'))
+        self.assertIn(('異', 'い', 'default'), read('異を唱える者'))
+        self.assertIn(('持す', 'じす', 'default'), read('満を持して登場した。'))
+        self.assertIn(('頭', 'あたま', 'dictionary'), read('彼は頭を振った。'))
+        self.assertIn(('甲斐', 'がい', 'dictionary'), read('からかい甲斐がある。'))
+        self.assertIn(('歩', 'ふ', 'ruby'), read('歩を進めた。', [(0, 1, 'ふ')]))
+
     def test_okurigana_variant(self):
         # the list reads 幼ない only いとけない; Sudachi reads it おさない, the reading of its normalized form 幼い
         reader = Reader(known={('幼ない', 'いとけない'), ('幼い', 'おさない'), ('幼い', 'いとけない')})
@@ -408,8 +420,10 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(joined['力尽く'], ('ちからずく', 'default'))  # ranked 3+ times above its others
         self.assertEqual(joined['三日月'], ('みかづき', 'rule'))  # shown (SHOWN_DEFAULTS)  # みかずき is its other spelling
         self.assertEqual(joined['羅甸語'], ('らてんご', 'only'))  # not in the list: JMdict's one reading
-        # top readings that differ (ひいじじ, そうそふ), two kanji (小|姑), a verb token (入り|方): not joined
-        for text, form in (('曽祖父の家。', '曽祖父'), ('小姑がいる。', '小姑'), ('気合いの入り方。', '入り方')):
+        # top readings that differ: JMdict's first when it is the only one the kanji spell (そうそふ, not ひいじじ) (T91)
+        self.assertIn(('曽祖父', 'そうそふ', 'default'), [w[2:5] for w in reader.read('曽祖父の家。')])
+        # two kanji (小|姑), a verb token (入り|方): not joined
+        for text, form in (('小姑がいる。', '小姑'), ('気合いの入り方。', '入り方')):
             self.assertNotIn(form, [w.form for w in reader.read(text)], text)
 
     def test_one_x(self):

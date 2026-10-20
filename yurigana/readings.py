@@ -689,7 +689,14 @@ SPLIT_TOKENS = {surface: [(before and re.compile(before), after and re.compile(a
 
 # Joined forms the list reads one way that are a phrase of their tokens where the text after matches: 行く方が, 行く行く！
 # (いく + ほう, いく + いく; not ゆくかた, ゆくゆく as in 行く方知れず, 行く行くは) (T290).
-NOT_JOINED = {'行く方': re.compile(r'(?!知|し[れらりるろ])'), '行く行く': re.compile(r'(?!は)')}
+NOT_JOINED = {'行く方': re.compile(r'(?!知|し[れらりるろ])'), '行く行く': re.compile(r'(?!は)'),
+              # JMdict's one reading of a phrase that books also read literally (library ruby under 90%, or the
+              # literal reading common in bare text): Reader._idioms leaves them to the tokens' own readings
+              **dict.fromkeys('頭を振る 頭を垂れる 頭をたれる 首を垂れる 気もない 夜が明ける 夜があける 後になる 口の端 あの娘 その様 この様 '
+                              '堪えられない 朱に染まる 鈴を鳴らす 術ない 床につく 主として 主だった 主になる 主とする 身体の自由 '
+                              '面目が立つ 止めになる 止めておく 目に留める 鐘の音 骨を埋める 奴さん 端ない お頭 阿呆らしい 拍手を打つ '
+                              '汚れのない 夜の静寂 五葉の松 棺に納める 食わず嫌い 拳を打つ 時間の歪み 大人の玩具 汚れを知らない '
+                              '何れにも 間にある 言葉が過ぎる その実 杯を重ねる 灯をつける もう先 天の下 男の娘'.split(), re.compile(''))}
 
 
 def split_token(text: str, begin: int, surface: str):

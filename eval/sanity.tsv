@@ -990,7 +990,7 @@ sentence	span	reading	alts	kind	status	note
 彼の予想は十中八九当たる。	十中八九	じっちゅうはっく	じゅっちゅうはっく	glaring	xfail	Sudachi splits it 十中 じゅうなか + 八九 はちきゅう: a list form over two tokens, left for a later PR
 崖下を覗き込んだ。	崖下	がけした		glaring	xfail	hand; #84 (T230): not shown since, word lists keep Sudachi's がいか
 記念の碑が建っている。	碑	ひ		glaring	xfail	hand; #84 (T230): not shown since, word lists keep Sudachi's いしぶみ
-至れり尽くせりの宿だ。	尽く	つく		glaring	xfail	hand; #84 (T230): not shown since; Sudachi's lemma 尽く ことごとく
+至れり尽くせりの宿だ。	尽く	つく		glaring		hand; #84 (T230): not shown since; Sudachi's lemma 尽く ことごとく; read つく inside JMdict's 至れり尽くせり (T360)
 彼は倦むことを知らない。	倦む	うむ		glaring	xfail	hand; #84 (T230): not shown since, word lists keep あぐむ
 彼はしばらく呆けたように立ち尽くしていた。	呆け	ほうける		glaring		T200 bare labels: ほうける 38/40
 艶やかな黒髪が肩に流れた。	艶やか	つややか		glaring		T200 bare labels: つややか 35/40

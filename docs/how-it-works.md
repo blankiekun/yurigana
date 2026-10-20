@@ -24,7 +24,15 @@ the span a way the list gives. Two-kanji forms aren't joined this way: in book r
 mostly other words or names (家|中 いえじゅう, 日|南 ひなみ). A list like Jiten's ranks
 words, not readings, so the readings of one word share a rank (言う いう = ゆう, 頭 あたま =
 かしら); wherever the rank picks a reading, readings tied at the top are decided by JMdict's
-order (its first kana reading), else not at all (`yomitan.preferred`).
+order (its first kana reading), else not at all (`yomitan.preferred`); a kanji compound whose readings
+tie at the top is read JMdict's first way when that is the only tied one its kanji spell (曽|祖父
+そうそふ, not ひいじじ).
+Phrases JMdict reads one way over 2-8 tokens with a kana token inside (歩|を|進める ほをすすめる,
+放っ|て|おく, 一|か|八|か) keep one `Word` per token, each kanji token taking its slice of the phrase's
+reading where the slice is a plain or listed reading of the token (`Reader._idioms`; `source='default'`,
+not shown; ruby, rules and counters win). Left out: phrases the list reads otherwise or two ways
+(他愛もない), the tail of a longer word (書き|甲斐|が|ある), two-token phrases ending in a particle (外|に
+isn't ほかに) and `readings.NOT_JOINED`'s phrases that books also read literally (頭を振る, 口の端).
 `yomitan.reading_ranks` adds the hand-checked pairs of `extra-readings.tsv` that Jiten's list lacks
 (描く かく, 良い いい, 刺青 いれずみ) to the forms it lists, ranked after the form's own readings: ruby
 and context rules may give them, and a form with one is never `only` (描く えがく is shown only where a
