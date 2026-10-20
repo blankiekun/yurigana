@@ -1,0 +1,32 @@
+# form	reading	evidence
+# (form, reading) pairs Jiten's frequency list lacks, hand-checked as standard post-war readings.
+# yomitan.reading_ranks adds them to a list's forms, ranked after the form's own readings, so a list's
+# usual reading stays the usual one; Reader takes them from a book's ruby and from context rules, and
+# they never cost a form its `only` reading. Evidence: ruby over the form in a 200-book sample of
+# training-author post-war library books (occurrences/authors), Sudachi's reading of bare occurrences
+# there, JMdict. No creative ruby (娘 こ, 他人 ひと, 理由 わけ), names, rendaku or pre-war readings.
+# CC BY-SA 4.0 (checked against JMdict, EDRDG): see NOTICE.
+良い	いい	ruby 426/23 authors; both standard in bare text (plain DEV: Opus よい 4, いい 3), Sudachi's よい stays
+描く	かく	ruby 910 かく / 999 えがく in 2,500 books; JMdict; かく after 絵/漫画/イラスト… (rule)
+傍	はた	ruby 35/30 (傍から見る); JMdict
+端	はな	ruby 17/14 (端から); JMdict
+経緯	いきさつ	ruby 8/7; JMdict
+兄妹	きょうだい	ruby 90/14; Sudachi's reading; JMdict
+刺青	いれずみ	ruby 57/12; Sudachi's reading; JMdict
+肋骨	ろっこつ	ruby 28/16; JMdict
+面子	めんつ	ruby 11/6; Sudachi's reading; JMdict (the list has メンツ only)
+烏賊	いか	ruby 4/4; Sudachi's reading; JMdict (the list has イカ only)
+浪漫	ろまん	ruby 5/4; JMdict (the list has ロマン)
+婆	ばあ	ruby 22/14 (お婆さん, 婆ちゃん); Sudachi's reading
+姐	ねえ	ruby 7/5 (姐さん); Sudachi's reading
+夜	よ	ruby 4/2 (夜が明ける); 常用漢字表; JMdict
+陸	おか	ruby 9/6 (陸に上がる); JMdict
+雷	いかずち	ruby 7/4; JMdict (the list spells it いかづち)
+従妹	いとこ	ruby 10/5; JMdict
+嚥下	えんか	ruby 8/6; JMdict
+轍	てつ	ruby 8/8 (同じ轍を踏む); JMdict
+憧憬	しょうけい	ruby 5/5; JMdict
+空咳	からぜき	ruby 4/4; JMdict
+法衣	ほうえ	ruby 6/4; JMdict
+禿頭	とくとう	ruby 9/6; JMdict
+性質	たち	ruby 19/17 (性質が悪い); 国語辞典 (たち【質・性質】)

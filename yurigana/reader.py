@@ -10,7 +10,7 @@ from typing import NamedTuple
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, _HIRAGANA_WORD, conjugated_reading, context_reading, is_kanji, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
-from .yomitan import preferred
+from .yomitan import extra_readings, preferred
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
@@ -169,8 +169,12 @@ class Reader:
         # order of readings it ranks the same
         self.jmdict = {form: jmdict[form] for form in self.readings if form in jmdict}
         # The list's single readings; `only` (certainty 1.0) when JMdict gives the form that reading
-        # too, or has no entry for the form (声がけ こえかけ, 振り幅 しんぷく, 卵型 らんけい in Jiten's list)
-        self.single = {form: readings[0] for form, readings in self.readings.items() if len(readings) == 1}
+        # too, or has no entry for the form (声がけ こえかけ, 振り幅 しんぷく, 卵型 らんけい in Jiten's list).
+        # extra-readings.tsv's pairs don't count: they are taken from ruby and rules, and never cost a
+        # form its `only` (描く stays えがく unless a rule reads かく), unless a default gives one (刺青 いれずみ).
+        extra = extra_readings() - {(form, r) for (form, _), r in DEFAULT_READINGS.items()}
+        own = {form: [r for r in readings if (form, r) not in extra] for form, readings in self.readings.items()}
+        self.single = {form: readings[0] for form, readings in own.items() if len(readings) == 1}
         self.only = {form: r for form, r in self.single.items() if r in self.jmdict.get(form, (r,))}
         self._tails = None
         # 一X whose ひと…/いっ… reading the list ranks 3+ times above its others (一重 ひとえ, not いちえ):

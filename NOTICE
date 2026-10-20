@@ -18,6 +18,13 @@ JMdict by the Electronic Dictionary Research and Development Group
 same licence. tools/jmdict_pairs.py builds it; the file records the JMdict
 version (its creation date) it was built from.
 
+yurigana/extra-readings.tsv ((form, reading) pairs Jiten's list lacks) was made
+by hand for yurigana, from ruby counts in a private library (no text included)
+and checked against JMdict by the Electronic Dictionary Research and Development
+Group (https://www.edrdg.org/jmdict/j_jmdict.html), licensed under CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/); it is distributed under the
+same licence.
+
 yurigana/reading-model-public.json.gz is a model trained on public-domain works
 from Aozora Bunko (https://www.aozora.gr.jp/) and on sentences with reviewed
 readings from Tatoeba (https://tatoeba.org/), by Tatoeba's contributors,

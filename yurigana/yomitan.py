@@ -2,10 +2,13 @@
 jiten.moe/frequency-dictionaries): the `known` set of (form, reading) pairs."""
 import json
 import math
+import os
 import zipfile
 
 # Jiten's list is one 55 MB bank; anything far bigger is likely a deflate bomb.
 MAX_MEMBER_BYTES = 128 * 1024 * 1024
+# Hand-checked (form, reading) pairs Jiten's list lacks (描く かく, 良い いい): see the file's header.
+EXTRA_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extra-readings.tsv')
 
 
 def _read(archive: zipfile.ZipFile, name: str) -> bytes:
@@ -33,12 +36,31 @@ def entries(path: str):
 
 
 def reading_ranks(path: str) -> dict:
-    """(term, reading) -> best (lowest) rank; its keys are the `known` readings."""
+    """(term, reading) -> best (lowest) rank; its keys are the `known` readings. With_extra_readings'
+    pairs are added."""
     ranks = {}
     for term, reading, value in entries(path):
         if reading:
             ranks[term, reading] = min(value, ranks.get((term, reading), value))
-    return ranks
+    return with_extra_readings(ranks)
+
+
+def extra_readings(path: str = EXTRA_READINGS) -> set:
+    """The (form, reading) pairs of extra-readings.tsv."""
+    with open(path, encoding='utf-8') as f:
+        return {tuple(line.split('\t')[:2]) for line in f if line.strip() and not line.startswith('#')}
+
+
+def with_extra_readings(ranks: dict, extra=None) -> dict:
+    """`ranks` plus the `extra` pairs (default extra_readings()) of terms it lists, each ranked after
+    the term's own readings, so preferred never makes one a term's usual reading. Terms the list
+    lacks get none: Reader reads those with Sudachi anyway."""
+    worst = {}
+    for (term, _), rank in ranks.items():
+        worst[term] = max(rank, worst.get(term, rank))
+    added = {(term, reading): worst[term] + 1 for term, reading in (extra_readings() if extra is None else extra)
+             if term in worst and (term, reading) not in ranks}
+    return {**ranks, **added}
 
 
 def preferred(ranks: dict, order=()) -> tuple:

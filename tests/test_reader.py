@@ -55,6 +55,14 @@ class ReaderTest(unittest.TestCase):
         reader.model = ReadingModel({'人家': entry('R1:がない')})
         return reader
 
+    def test_extra_readings_keep_the_lists_only_reading(self):
+        # 擦る: a list giving only こする; an extra-readings.tsv pair (made up here) doesn't make it ambiguous
+        from unittest import mock
+        with mock.patch('yurigana.reader.extra_readings', return_value={('擦る', 'する')}):
+            reader = self.reader({('擦る', 'こする'), ('擦る', 'する')})
+        self.assertEqual(reader.only, {'擦る': 'こする'})
+        self.assertEqual(self.reader({('擦る', 'こする'), ('擦る', 'する')}).only, {})
+
     def test_sources_in_order(self):
         hints = []
         text = aozora_text('宇宙《うちゅう》の人気のない廊下。\n人家がない。\n人家。', None, hints)

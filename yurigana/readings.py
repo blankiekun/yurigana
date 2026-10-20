@@ -10,7 +10,7 @@ import os
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
-from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, EDGE, FEW, FOOTWEAR, GROUNDS,
+from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
                    HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
                    OPEN_HOURS, PEOPLE, PERSON, PLAYED, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
                    STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
@@ -221,6 +221,7 @@ _CONTEXT_RULES = {
     '堪える': [('こらえる', r'を(?:ぐっと|必死に|必死で|なんとか|何とか|じっと|懸命に|どうにか)?$', None),
              ('こらえる', None, r'きれ')],
     # 吐く つく for a sigh, a lie or abuse (ため息を吐く, 嘘を吐く, 悪態を吐く); Sudachi's はく otherwise (息を吐く: both).
+    '描く': [('かく', r'(?<![一-鿿])' + words(DRAWN) + r'(?:を|に|も)$', None)],
     '吐く': [('つく', r'(?:ため息|溜め息|溜息|嘘|ウソ|悪態)を$', None)],
     # 被る こうむる for harm or favour received (被害を被る, 恩恵を被る); Sudachi's かぶる otherwise (帽子を被る).
     '被る': [('こうむる', words(SUFFERED) + 'を$', None)],
@@ -377,6 +378,8 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # Nominated by Opus's readings of post-war library sentences (Sudachi's reading where Opus
                  # gives another one, 3+ authors, 80%+ one reading), checked on Tatoeba B1 (TRADEOFFS T45).
                  ('擦る', 'する'): 'こする', ('素', 'もと'): 'す',
+                 # A reading extra-readings.tsv adds: books' ruby is いれずみ 187 times in 2,500 books, しせい once.
+                 ('刺青', 'しせい'): 'いれずみ',
                  # 分別 alone is good sense; sorting waste is a context rule (ゴミの分別 ぶんべつ).
                  ('分別', 'ぶんべつ'): 'ふんべつ',
                  # The stage's side is a context rule (舞台の下手, 上手と下手); Sudachi's しもて elsewhere is

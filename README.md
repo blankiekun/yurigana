@@ -41,7 +41,8 @@ for word in reader.read(text, hints):
 そら over 宇宙 is the book's flavour ruby, so 宇宙 keeps its dictionary reading. With no reading
 list, JMdict's (form, reading) pairs (bundled) are the list: words JMdict reads one way are
 `only`. A frequency list with readings (`Reader(known='jiten_freq_global.zip')`,
-[Jiten's](https://jiten.moe/frequency-dictionaries), not included) replaces them.
+[Jiten's](https://jiten.moe/frequency-dictionaries), not included) replaces them; pairs Jiten's list
+lacks (描く かく, 良い いい) come from the bundled, hand-checked `extra-readings.tsv`.
 
 For one sentence, `furigana` gives it back with readings in brackets:
 
@@ -145,7 +146,7 @@ They include the regression list `eval/sanity.tsv` ([docs/evaluation.md](docs/ev
 ## Licence
 
 Free for any use, commercial or not, open or closed, as long as you give credit (keep the copyright
-notice in LICENSE and NOTICE). The code is BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2) and `jmdict-pairs.json.gz`
-(JMdict), which are CC BY-SA 4.0 (EDRDG): also usable commercially with credit, and changed copies
+notice in LICENSE and NOTICE). The code is BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2), `jmdict-pairs.json.gz`
+(JMdict) and `extra-readings.tsv` (hand-checked against JMdict), which are CC BY-SA 4.0 (EDRDG): also usable commercially with credit, and changed copies
 of those files stay CC BY-SA. Jiten's frequency list, which `known=` takes, is CC BY-SA 4.0 as well.
 The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.
