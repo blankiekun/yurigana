@@ -108,17 +108,25 @@ _HITOTOKI_BEFORE = re.compile(r'(?:(?:至福|優雅|寛ぎ|くつろぎ|憩い|�
 _HITOTOKI_AFTER = re.compile(r'(?:を|が|は|も|。|、|だ|で[しすあ]|…|」|』|$)')
 
 
-# 二十 on its own as an age: はたち (二十になる, 二十を過ぎ, 二十の時, 歳は二十前後); books' ruby before these: all はたち.
-# Not 二十を超える/二十前後/二十そこそこ without 歳は: as often counts (二十を超える敵).
-_HATACHI_AFTER = re.compile('に(?:な[らりるれっ]|もな|成)|を?(?:過ぎ|すぎ)|少し過ぎ|の(?:時|とき|頃|ころ|誕生日|春)')
-_HATACHI_BEFORE = re.compile('(?:(?:歳|年齢|年)は|齢)$')
+# 二十 on its own as an age: はたち. Shown only with an age cue (歳は/年は/齢 before it, a person + は/も before 二十になる/を過ぎ,
+# の誕生日 after it); 二十にもなって, 二十の時/頃 are はたち for word lists only; 二十になる/を過ぎ alone are as often counts
+# (合計で二十になる, 人数が二十を過ぎた), and 二十を超える/前後/そこそこ more so: にじゅう.
+_HATACHI_AGE = re.compile('(?:(?:歳|年齢|年)は|齢)$')
+_HATACHI_PERSON = re.compile('(?:私|僕|俺|彼|彼女|あたし|わたし|ぼく|おれ|兄|姉|弟|妹|娘|息子|父|母|さん|君|くん|ちゃん|様)[はも]$')
+_HATACHI_AFTER = re.compile('に(?:な[らりるれっ]|成)|を?(?:過ぎ|すぎ)|少し過ぎ')
+# what may follow 二十 after an age cue: not 代, 才, 半ば (年齢は二十代 にじゅうだい, 二十半ば にじゅう)
+_HATACHI_AGE_END = re.compile('[。、，」』）…!！?？]|$|だ|で[、。すしあ]|前後|くらい|ぐらい|ほど|ばかり|あたり|そこそこ|ちょっと'
+                              '|を(?:過ぎ|すぎ|少し|幾つか|越|超|前)|に(?:な|満|届|して)|の(?:娘|若者|青年|男|女)')
+_HATACHI_LIST = re.compile('にもな|の(?:時|とき|頃|ころ|春)')
 # 金 before a written amount: きん (金五百両, 金一万円也), not お金 (お金三千円)
 _KIN = re.compile('(?<![お御])金(?=[〇一二三四五六七八九十百千万億壱弐参拾0-9０-９])')
 
 
-def is_hatachi(before: str, after: str) -> bool:
-    """Whether a lone 二十 token (`before`/`after`: the text around it) is an age, はたち."""
-    return bool(_HATACHI_AFTER.match(after) or _HATACHI_BEFORE.search(before))
+def is_hatachi(before: str, after: str):
+    """'shown' or 'list' when a lone 二十 token (`before`/`after`: the text around it) is an age, はたち; else None."""
+    if _HATACHI_AGE.search(before) and _HATACHI_AGE_END.match(after) or after.startswith('の誕生日') or _HATACHI_PERSON.search(before) and _HATACHI_AFTER.match(after):
+        return 'shown'
+    return 'list' if _HATACHI_LIST.match(after) else None
 
 
 def is_kin(text: str, begin: int) -> bool:

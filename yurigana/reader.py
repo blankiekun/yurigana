@@ -602,8 +602,9 @@ class Reader:
             reading = context_reading(text, begin, surface, form, self.known)
             if reading:
                 return reading, 'rule', 1.0
-        if surface == '二十' and is_hatachi(text[:begin], text[begin + 2:begin + 6]):
-            return 'はたち', 'rule', 1.0
+        hatachi = surface == '二十' and is_hatachi(text[:begin], text[begin + 2:begin + 6])
+        if hatachi:
+            return ('はたち', 'rule', 1.0) if hatachi == 'shown' else ('はたち', 'dictionary', None)
         if surface == '金' and is_kin(text, begin):
             return 'きん', 'dictionary', None
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
