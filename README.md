@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.4.0.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.0.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -63,7 +63,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.4.0
+pnpm add github:blankiekun/yurigana#v0.5.0
 ```
 
 ```js
@@ -82,7 +82,7 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main 337e44b, 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana 0.5.0 (scores measured on main 337e44b; #108 changes only `carry`), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C, no term dictionaries; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
