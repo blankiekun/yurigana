@@ -338,7 +338,9 @@ _CONTEXT_RULES = {
     '人事': [('ひとごと', None, r'(?:では|じゃ)な|とは思え|のよう|みたい|ながら')],
     '気質': [('かたぎ', words(OCCUPATION, '昔', '江戸っ子') + '$', None)],
     '末期': [('まつご', None, r'の(?:水|言葉|際|願い|一言|息)')],
-    '床': [('とこ', r'(?:病の|お)$', r'に(?:就|つ|伏|臥|入|はい)|から(?:起|出|離)|の(?:間|中)|を(?:上げ|敷|延べ|離|とっ|取)')],
+    '床': [('とこ', r'(?:病の|お)$', r'に(?:就|伏|臥|入|はい)|から(?:起|出|離)|の(?:間|中)|を(?:上げ|敷|延べ|離|とっ|取)'),
+           # 床につく, but not something put on the floor (頭を床につける, 手を床について): ゆか.
+           ('とこ', r'(?<!を)$', r'につ(?!け[てたるらま])', 'and')],
     '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?'
               r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'})),
              # つらい unless food follows or it ends a verb stem (見辛い づらい) or a kanji word; 辛くも (からくも) and
@@ -444,6 +446,13 @@ _CONTEXT_RULES = {
     '初心': [('うぶ', r'(?<!の)$', r'(?:な(?!い)|だ|で(?!は)|じゃ|すぎ|過ぎ|そう|っぽ|同)', 'and')],
     '如何': [('いかん', None, r'せん|とも|に(?:かかわ|拘|関わ|よ[っらりるれ])'),
            ('いかが', r'(?:ては|れば)$', r'(?!ほど|に)', 'and'), ('いかが', None, r'(?:です|でしょ|でした|でござ|なさ|いたし|致し|か[なね？?])')],
+    # Glaring misreads in bare post-war text (Opus labels of sampled bare occurrences, T221).
+    '仇': [('かたき', r'(?:親|父|母|兄|姉|弟|妹|主君|主|仲間|友|家族|師匠|師|妻|夫|娘|息子)の$', None),
+           ('かたき', None, r'を(?:取|と[っらりるれろ]|討|う[たちつてっ]|打)|討ち')],
+    '擦れる': [('かすれる', r'声[がはも]$', None), ('かすれる', None, r'た(?:声|音|囁|小声|悲鳴|吐息)')],
+    '盛り': [('さかり', r'(?:かわいい|可愛い|やりたい|遊びたい|食べたい|育ち|働き|伸び|花の|今が)$', None)],
+    '類': [('たぐい', r'(?:の|そんな|こんな|あんな|その|この|あの|どの)$', r'(?!を見|稀|まれ|い稀|い希|がな)', 'and')],
+    '痛': [('いた', None, r'[っッ…‥]|たた|てて')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
@@ -490,6 +499,7 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # Sudachi dictionary bugs: a particle or extra kana in the reading (中宮 ちゅうぐうの).
                  ('中宮', 'ちゅうぐうの'): 'ちゅうぐう', ('河原', 'かわらの'): 'かわら', ('甲斐', 'かいの'): 'かい',
                  ('土堤', 'どてい'): 'どて',
+                 ('数百', 'すーひゃく'): 'すうひゃく',
                  # 鬼 alone is おに; glued (善鬼 ぜんき, 餓鬼) it keeps Sudachi's き (GLUED_CHECKED).
                  ('鬼', 'き'): 'おに',
                  # Nominated by Opus's readings of post-war library sentences (Sudachi's reading where Opus
@@ -507,7 +517,12 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('咽喉', 'いんこう'): 'のど', ('空地', 'くうち'): 'あきち',
                  # Post-war bare text (TRADEOFFS T103): 妃 alone きさき
                  # (glued it keeps ひ: 王妃, 第四妃), 素 alone す (素に戻る; glued そ: 元素).
-                 ('妃', 'ひ'): 'きさき', ('素', 'そ'): 'す'
+                 ('妃', 'ひ'): 'きさき', ('素', 'そ'): 'す',
+                 # Glaring in bare post-war text, not shown (Opus labels of sampled bare occurrences, T221):
+                 # 殿 after a name or title (村長殿; not after a number, DEFAULT_KEEP), 樽 and 宴 on their own (glued they keep Sudachi's).
+                 ('軽々', 'けいけい'): 'かるがる',
+                 ('高名', 'こうみょう'): 'こうめい', ('敵同士', 'かたきどうし'): 'てきどうし', ('殿', 'でん'): 'どの',
+                 ('樽', 'そん'): 'たる', ('宴', 'えん'): 'うたげ', ('身体中', 'しんたいじゅう'): 'からだじゅう'
 }
 
 
@@ -531,7 +546,8 @@ MODEL_UNSHOWN = frozenset({'開く', '空く', '止める', '注ぐ', '堪える
 # TRADEOFFS T2). Where a hand default doesn't hold, Sudachi's reading stays: (text before, text after) the word.
 # Before the kana or katakana half of a compound Sudachi splits off (擦りきれる, 擦りおろす, 擦りガラス) and
 # after a match (マッチを擦る: する, 燐寸 8 of 9 in books' ruby).
-DEFAULT_KEEP = {'擦る': (re.compile(r'(?:マッチ|燐寸|まっち|墨)を$'),
+DEFAULT_KEEP = {'殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.compile(r'(?!)')),  # 一殿, 七殿: palace halls
+                '擦る': (re.compile(r'(?:マッチ|燐寸|まっち|墨)を$'),
                        re.compile(r'(?:きれ|きら|ぬけ|ぬか|おろ|下ろ|へっ|へら|へり|へる|むけ|むい|こ[まみむめん]|込|ガラス|硝子|リンゴ|りんご)'))}
 
 
@@ -542,7 +558,7 @@ def default_kept(text: str, begin: int, end: int, form: str) -> bool:
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
-GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ'), ('妃', 'ひ'), ('素', 'そ'), ('札', 'さつ'), ('民', 'みん'), ('綿', 'めん'), ('痕', 'こん')})
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ'), ('妃', 'ひ'), ('素', 'そ'), ('札', 'さつ'), ('民', 'みん'), ('綿', 'めん'), ('痕', 'こん'), ('樽', 'そん'), ('宴', 'えん')})
 # Glued by what comes before only: 上位種, オーク種 (しゅ), but 種選び, 種入り (たね).
 GLUED_BEFORE = frozenset({('種', 'しゅ')})
 
