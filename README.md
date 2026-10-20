@@ -137,6 +137,7 @@ Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 - [docs/training.md](docs/training.md): building a reading-model table from your own library.
 - [docs/evaluation.md](docs/evaluation.md): scoring yourself, gold sets, older measurements.
 - [TRADEOFFS.md](TRADEOFFS.md): what each reading rule breaks, and the way out.
+- [HIDDEN.md](HIDDEN.md): readings no longer shown as furigana, and what would show them again.
 
 ## Tests
 

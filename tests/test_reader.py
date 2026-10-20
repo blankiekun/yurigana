@@ -268,15 +268,28 @@ class SudachiReaderTest(unittest.TestCase):
             self.assertEqual(reader.read(text)[0][2:5], ('幼ない', 'おさない', 'dictionary'), text)
         self.assertIn('幼[おさ]なく', reader.furigana('まだ幼なくて'))
 
+    def test_verbs_sudachi_takes_for_another(self):
+        # T240-T242: 降りる after rain is 降る; 弾ける ひける after an instrument, はじける elsewhere; 入れる may be はいれる
+        reader = Reader(known={('降りる', 'おりる'): 5, ('降る', 'ふる'): 5, ('降る', 'くだる'): 9, ('弾ける', 'はじける'): 5,
+                               ('弾ける', 'ひける'): 9, ('入れる', 'いれる'): 5, ('入る', 'はいる'): 5})
+        def word(text, start):
+            return next(w for w in reader.read(text) if w.start == start)[2:5]
+        self.assertEqual(word('雨は降り続けた。', 2), ('降る', 'ふる', 'rule'))
+        self.assertEqual(word('電車を降りた。', 3), ('降りる', 'おりる', 'only'))
+        self.assertEqual(word('ギターが弾けない。', 4), ('弾ける', 'ひける', 'rule'))
+        self.assertEqual(word('泡が弾けた。', 2)[1], 'はじける')
+        self.assertEqual(word('中には入れない。', 3), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
+
     def test_unlisted_sudachi_reading(self):
         # Sudachi's ひょうしつ is neither listed nor JMdict's: the list's top reading, not shown
         reader = Reader(known={('氷室', 'ひむろ'): 5, ('上辺', 'うわべ'): 5, ('国', 'くに'): 5})
         self.assertEqual(reader.read('氷室に入る。')[0][2:5], ('氷室', 'ひむろ', 'dictionary'))
         # JMdict reads it じょうへん too: the list lacks a reading, Sudachi's stays
         self.assertEqual(reader.read('三角形の上辺を測る。')[1][3], 'じょうへん')
-        # the potential of a listed verb (弾ける ひける, 弾く ひく) and another form's reading (無性 むしょう, 無償) stay
+        # another form's reading (無性 むしょう, 無償) stays
         reader = Reader(known={('弾ける', 'はじける'): 5, ('弾く', 'ひく'): 5, ('無性', 'むせい'): 5, ('無償', 'むしょう'): 5})
-        self.assertEqual(next(w for w in reader.read('ピアノが弾ける。') if w.form == '弾ける').reading, 'ひける')
         self.assertEqual(next(w for w in reader.read('無性に腹が立つ。') if w.form == '無性').reading, 'むしょう')
         # a する verb's godan form (徹す てっす, 徹する) stays
         reader = Reader(known={('徹す', 'とおす'): 5, ('徹する', 'てっする'): 5})

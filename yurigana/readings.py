@@ -101,6 +101,11 @@ _PERSON_OF = (r'(?:様|さま|さん|君|くん|殿|陛下|先生|師匠|主|王
 _NOT_EYES = (r'(?!の?(?:眼|瞳|怪物|化け物|化物|妖怪|小僧|入道)|が(?:怪しく|ギョロ|ぎょろ|ぎろ|ギロ|光|輝|開|見開)'
              r'|を(?:ギョロ|ぎょろ|ぎろ|ギロ|見開|動か|細め|開|光))')
 ALWAYS = '(?:)'  # an after-pattern that always matches: the form's one reading in bare text, shown
+# Rain and snow right before a verb (雨が, 雪はしんしんと, 大雨も): 降る ふる; 霜が降りる and 光が降りる are おりる.
+# Not after other kanji (白雪, 深雪: names that get off at a station).
+_PRECIPITATION = (r'(?:(?<![一-鿿])|(?<=[大小豪霧氷初粉吹春秋冬夜長俄驟時性]))(?<![白深小]雪)(?:雨|雪|霰|雹|霙|みぞれ|あられ)'
+                  r'(?:が|は|も|の)?(?:まだ|なお|今も|どのくらい|たくさん|沢山|激しく|強く|静かに|少し|ずっと|朝から)?'
+                  r'(?:[ぁ-んァ-ヴー]{2,6}と)?$')
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -278,6 +283,11 @@ _CONTEXT_RULES = {
     '弾く': [('ひく', r'(?<![一-鿿])' + words(PLAYED) + r'(?:を|で|も|は)$', None),
             ('はじく', r'^(?!.*' + words(PLAYED) + r').*(?:(?<!何)を|で|によって|(?<!ため)(?<!よう)に)$', None),
             ('はじく', r'^(?!.*' + words(PLAYED) + ')', r'れ(?!ば)', 'and')],
+    # 弾ける ひける (can play, 弾く's potential) after an instrument (ギターが弾けない, ピアノなんて弾けない); はじける,
+    # the list's reading, elsewhere, not shown: an extra reading (T241).
+    '弾ける': [('ひける', r'(?<![一-鿿])' + words(PLAYED) + r'(?:が|を|も|は|なんて|でも|しか|だけ)?$', None)],
+    # 降る ふる after rain or snow, also where Sudachi took the verb for 降りる (雨は降り続けた, WRONG_LEMMA, T240).
+    '降る': [('ふる', _PRECIPITATION, None)],
     # 解く ほどく for what is tied or wound (紐を解く, 髪を解く, 腕を解く); Sudachi's とく otherwise (謎を解く).
     '解く': [('ほどく', r'(?<![一-鿿])' + words(TIED) + r'(?:の(?:結び目|紐))?を$', None)],
     # 堪える こらえる for holding something back (涙を堪える, 笑うのを堪え, 堪えきれない); たえる (痛みに堪える) is the model's.
@@ -522,7 +532,10 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # 殿 after a name or title (村長殿; not after a number, DEFAULT_KEEP), 樽 and 宴 on their own (glued they keep Sudachi's).
                  ('軽々', 'けいけい'): 'かるがる',
                  ('高名', 'こうみょう'): 'こうめい', ('敵同士', 'かたきどうし'): 'てきどうし', ('殿', 'でん'): 'どの',
-                 ('樽', 'そん'): 'たる', ('宴', 'えん'): 'うたげ', ('身体中', 'しんたいじゅう'): 'からだじゅう'
+                 ('樽', 'そん'): 'たる', ('宴', 'えん'): 'うたげ', ('身体中', 'しんたいじゅう'): 'からだじゅう',
+                 # Sudachi's ひける (can play) of 弾ける is mostly はじける in bare post-war text (24 of 30, 泡が弾ける);
+                 # ひける after an instrument is a context rule (T241).
+                 ('弾ける', 'ひける'): 'はじける'
 }
 
 
@@ -549,6 +562,35 @@ MODEL_UNSHOWN = frozenset({'開く', '空く', '止める', '注ぐ', '堪える
 DEFAULT_KEEP = {'殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.compile(r'(?!)')),  # 一殿, 七殿: palace halls
                 '擦る': (re.compile(r'(?:マッチ|燐寸|まっち|墨)を$'),
                        re.compile(r'(?:きれ|きら|ぬけ|ぬか|おろ|下ろ|へっ|へら|へり|へる|むけ|むい|こ[まみむめん]|込|ガラス|硝子|リンゴ|りんご)'))}
+
+
+# Sudachi's lemma of a conjugated verb that the text right before shows is another verb: {lemma: (verb, before)}.
+# 雨は降り続けた, 雪も降ります: 降る, not 降りる (T240).
+WRONG_LEMMA = {'降りる': ('降る', re.compile(_PRECIPITATION))}
+
+
+def right_lemma(text: str, begin: int, form: str) -> str:
+    """The verb a token at `begin` with Sudachi's lemma `form` is (WRONG_LEMMA), else `form`."""
+    fix = WRONG_LEMMA.get(form)
+    if fix and fix[1].search(text[max(text.rfind('\n', 0, begin) + 1, begin - 24):begin]):
+        return fix[0]
+    return form
+
+
+# 入れる is also 入る's potential (はいれる: 部屋には入れない, 中に入れた; books' ruby はいれる 34% in a clause without
+# を): not `only` there, unless the 入れ is imperative, volitional, causative or passive, before a giving or
+# trying verb (入れてくれ, 入れておく), or after 手に, 口に… (T242).
+_CLAUSE = re.compile(r'[、。「」『』！？!?（）()\n…―─]')
+_PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見)')
+_PUT_INTO = re.compile(r'(?:手|口|耳|目|頭|視界|視野|念頭|考慮|計算|勘定|懐|射程|ポケット|鞄|カバン|袋|箱)[にへ](?:は|も)?$')
+
+
+def may_be_potential(text: str, begin: int, form: str) -> bool:
+    """Whether 入れる at `begin` may be 入る's potential はいれる (see above)."""
+    if form != '入れる' or not text.startswith('入れ', begin):
+        return False
+    clause = _CLAUSE.split(text[max(0, begin - 40):begin])[-1]
+    return 'を' not in clause and not _PUT_INTO.search(clause) and not _PUT_AFTER.match(text, begin + 2)
 
 
 def default_kept(text: str, begin: int, end: int, form: str) -> bool:
