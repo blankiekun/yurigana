@@ -30,8 +30,10 @@ tie at the top is read JMdict's first way when that is the only tied one its kan
 Phrases JMdict reads one way over 2-8 tokens with a kana token inside (歩|を|進める ほをすすめる,
 放っ|て|おく, 一|か|八|か) keep one `Word` per token, each kanji token taking its slice of the phrase's
 reading where the slice is a plain or listed reading of the token (`Reader._idioms`; `source='default'`,
-not shown; ruby, rules and counters win). Left out: phrases the list reads otherwise or two ways
-(他愛もない), the tail of a longer word (書き|甲斐|が|ある), two-token phrases ending in a particle (外|に
+not shown; ruby, rules and counters win). Left out: phrases the list reads otherwise, or two ways where
+the tokens already read one of them (他愛もない), the tail of a longer word (書き|甲斐|が|ある), a noun and case
+particle right after a modifier (大きな|音|を|上げ, 不気味な|音|を: literal おと; not after その/この, and not
+compounds or の-phrases: 大きな金ダライ, 従順な神の僕), two-token phrases ending in a particle (外|に
 isn't ほかに) and `readings.NOT_JOINED`'s phrases that books also read literally (頭を振る, 口の端).
 `yomitan.reading_ranks` adds the hand-checked pairs of `extra-readings.tsv` that Jiten's list lacks
 (描く かく, 良い いい, 刺青 いれずみ) to the forms it lists, ranked after the form's own readings: ruby

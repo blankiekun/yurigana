@@ -292,6 +292,10 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertIn(('頭', 'あたま', 'dictionary'), read('彼は頭を振った。'))
         self.assertIn(('甲斐', 'がい', 'dictionary'), read('からかい甲斐がある。'))
         self.assertIn(('歩', 'ふ', 'ruby'), read('歩を進めた。', [(0, 1, 'ふ')]))
+        # a modifier right before the noun: literal (大きな音を上げて: おと); a kana noun before a verb doesn't glue
+        self.assertIn(('音', 'おと', 'dictionary'), read('大きな音を上げて車が走った。'))
+        self.assertIn(('音', 'おと', 'dictionary'), read('不気味な音を上げた。'))
+        self.assertIn(('放る', 'ほうる', 'default'), read('そのまま放っておく。'))
 
     def test_okurigana_variant(self):
         # the list reads 幼ない only いとけない; Sudachi reads it おさない, the reading of its normalized form 幼い

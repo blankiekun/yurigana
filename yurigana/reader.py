@@ -55,6 +55,7 @@ _NOT_IDIOMS = {'八歳児', '十二神将'}
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
 _ALL_KANJI = re.compile(r'^[㐀-䶿一-鿿豈-﫿々]+$')
+_DEMONSTRATIVE = re.compile('^[こそあど](?:の|んな|ういう)$')
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
 _KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 _UNITS = re.compile('[十百千万億兆]')
@@ -515,16 +516,25 @@ class Reader:
         放っ|て|おく, 一|か|八|か): each kanji token's Word takes its slice of the phrase's reading, when the slice
         is a plain (PlainReadings, rendaku) or listed reading of the token; one Word per token, so word lists keep
         their rows. Not shown (`default`, certainty None); ruby, rules and counters win. Left out: phrases the list
-        reads otherwise or two ways, the tail of a longer word, starting in a particle or, over two tokens, ending in one (外|に isn't ほかに), NOT_JOINED's (頭を振る: あたま too)."""
+        reads otherwise (or two ways, where the tokens read one), the tail of a longer word, a noun after a modifier, starting in a particle or, over two tokens, ending in one (外|に isn't ほかに), NOT_JOINED's (頭を振る: あたま too)."""
         at = {w.start: k for k, w in enumerate(words)}
         i = 0
         while i < len(tokens):
             found = None
-            # not the tail of a longer word (書き|甲斐|が|ある: がい, not かいがある)
-            glued = i and _end(tokens[i - 1]) == tokens[i].begin and tokens[i - 1].part_of_speech()[0] in (
-                '名詞', '代名詞', '動詞', '形容詞', '形状詞', '接頭辞', '接尾辞')
+            # not the tail of a longer word (書き|甲斐|が|ある: がい, not かいがある; a kana noun before a verb doesn't
+            # glue: そのまま|放っ), nor a noun + case particle with a modifier right before it, which is meant literally
+            # (大きな|音|を|上げ: おと); not after a demonstrative (その|身|を|捩る よじる), and compounds and noun-の-noun
+            # phrases stay (大きな金ダライ かな, 従順な神の僕 しもべ)
+            prev = tokens[i - 1] if i and _end(tokens[i - 1]) == tokens[i].begin else None
+            pos, head = prev and prev.part_of_speech()[0], tokens[i].part_of_speech()[0]
+            glued = prev and (pos in ('動詞', '形容詞', '接頭辞') or pos in ('名詞', '代名詞', '形状詞', '接尾辞')
+                              and (head in ('名詞', '接尾辞') or _HEAD_SURFACE.match(prev.surface()[-1])))
+            modified = prev and head == '名詞' and (pos == '連体詞' and not _DEMONSTRATIVE.match(prev.surface())
+                                                   or prev.surface() == 'な' and pos == '助動詞')
             for n in range(min(8, len(tokens) - i), 1, -1) if not glued else ():
                 span = tokens[i:i + n]
+                if modified and span[1].surface() in ('を', 'が', 'に', 'で', 'と') and span[1].part_of_speech()[0] == '助詞':
+                    continue
                 found = self._idiom(text, span, words, at, hint_at, counted)
                 if found:
                     break
@@ -548,7 +558,7 @@ class Reader:
         form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
         readings = self._jmdict_all.get(form)
         if (not readings or len(readings) != 1 or form in NOT_JOINED and NOT_JOINED[form].match(text, end)
-                or form in self.readings and self.readings[form] != readings  # the list reads it otherwise, or two ways (他愛もない)
+                or form in self.readings and readings[0] not in self.readings[form]  # the list reads it otherwise
                 or any(s < end and e > begin for s, (e, _) in hint_at.items())
                 or any(s < end and e > begin for s, _, e, _, _ in counted)):
             return None
@@ -573,6 +583,15 @@ class Reader:
         pieces = align(0, 0)
         if pieces is None:
             return None
+        if len(self.readings.get(form, ())) > 1:
+            # the list reads it two ways (他愛もない たあい/たわい): left as is where the tokens read it one of them
+            current = []
+            for k, t in enumerate(span):
+                w = words[at[t.begin]] if t.begin in at else None
+                current.append(to_hiragana(parts[k]) if kana[k] else w and w.reading and (
+                    w.reading if k == len(span) - 1 else surface_reading(t.surface(), w.form, w.reading)) or '?')
+            if _spelling(''.join(current)) in {_spelling(r) for r in self.readings[form]}:
+                return None
         changes = []
         for k, (t, piece) in enumerate(zip(span, pieces)):
             if kana[k]:
