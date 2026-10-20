@@ -1059,3 +1059,9 @@ sentence	span	reading	alts	kind	status	note
 「入れ」と彼は短く言った。	入れ	はいれ		glaring		hand; noun 入れ only いれ (T251)
 一回部屋を出て廊下を見た。	部屋	へや		glaring		hand; voiced after 一回 (T253)
 二年Ａ組の教室に入った。	組	ぐみ		glaring		hand; くみ only after a class letter (T253)
+十中八九そうだろうと思った。	十中八九	じっちゅうはっく	じゅっちゅうはっく|じゅうちゅうはっく	glaring	xfail	hand; T262: read piecewise じゅうなかはちきゅう before; with Jiten's list one Word, without a list JMdict gives three readings, not joined
+三白眼の男がこちらを睨んだ。	三白眼	さんぱくがん		glaring		hand; T262: さんはくがん before
+四人組の強盗が捕まった。	四人組	よにんぐみ		glaring		hand; T262: よんにんぐみ before
+ついに帝国の軍門に降った。	降っ	くだる		glaring		hand; T260: ふる before
+敵の傘下に降りなさい。	降り	くだる		glaring		hand; T260: Sudachi's 降りる おりる before
+あの男は未来人だと言い張った。	未来人	みらいじん		glaring		hand; T261: Sudachi's name みきと before

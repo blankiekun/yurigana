@@ -48,6 +48,9 @@ def _spelling(reading: str) -> str:
     return _long_vowels(reading).replace('づ', 'ず').replace('ぢ', 'じ')
 
 
+# Numeral compounds _numeral_idiom leaves split: counts (八文字 はちもじ, not はちもんじ, N文字 in the code; 八歳児
+# はっさいじ, not やつご) and a list reading books don't ruby (十二神将: じゅうにしんしょう 28 of 28 in library ruby)
+_NOT_IDIOMS = {'八歳児', '十二神将'}
 _NUMERAL = re.compile(r'^[0-9０-９〇一二三四五六七八九十百千万億兆]+$')
 _MAX_COMPOUND = 4  # tokens
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
@@ -398,7 +401,8 @@ class Reader:
         reading: 三|日|月 みかづき, 身の上|話 みのうえばなし, 一|石|二鳥 いっせきにちょう. Left out:
         spans with particles or ending in kana (the list has phrases such as 彼の かの), spans with
         ruby, a number and its counter (一|枚, or any span inside one of `counted`, the counter spans,
-        which read() reads) and spans next to a number (１|日|中, 第|一, 一対|一). The Word is `only` when
+        which read() reads) and spans next to a number (１|日|中, 第|一, 一対|一), but for numeral compounds
+        (_numeral_idiom: 十|中|八九). The Word is `only` when
         JMdict has the joined form with that reading, else `dictionary` (names, list noise)."""
         if not self.single or not HAS_KANJI.search(tokens[i].surface()):
             return None
@@ -407,12 +411,15 @@ class Reader:
         for n in range(min(_MAX_COMPOUND, len(tokens) - i), 1, -1):
             span = tokens[i:i + n]
             begin, end = span[0].begin, _end(span[-1])
+            # a numeral compound the list and JMdict read one way (十|中|八九 じっちゅうはっく, 三|白眼, 四|人組);
+            # not ending in one kanji, mostly a counter (二十|年 isn't はたとせ)
+            idiom = len(span[-1].surface()) > 1 and self._numeral_idiom(span)
             if (any(_end(a) != b.begin for a, b in zip(span, span[1:]))
                     or any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
-                    or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface())
+                    or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface()) and not idiom
                     or (i + n < len(tokens) and _NUMERAL.match(tokens[i + n].surface())
                         and _end(span[-1]) == tokens[i + n].begin)  # 一対|一 isn't いっつい
-                    or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一')
+                    or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一' and not idiom)
                     or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
                     or any(start in hint_at for start in range(begin, end))
                     or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
@@ -455,6 +462,16 @@ class Reader:
             if default and (form, default) in self.known:
                 return i + n, Word(begin, end, form, default, 'default', None)
         return None
+
+    def _numeral_idiom(self, span) -> bool:
+        """Whether the span is a compound of 3+ kanji with a numeral token that the list reads one way,
+        JMdict too, and the tokens don't: 十|中|八九 じっちゅうはっく, 三|白眼 さんぱくがん, 四|人組 よにんぐみ."""
+        form = ''.join(t.surface() for t in span)
+        reading = self.only.get(form)
+        return bool(len(form) > 2 and all(map(is_kanji, form)) and reading and form in self.jmdict
+                    and not form.endswith('文字') and form not in _NOT_IDIOMS
+                    and any(_NUMERAL.match(t.surface()) for t in span)
+                    and ''.join(to_hiragana(t.reading_form()) for t in span) != reading)
 
     def _joined(self, span, form: str) -> str | None:
         """The reading of a span the list doesn't join: JMdict's one reading of a form the list lacks
