@@ -297,8 +297,8 @@ class Reader:
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
         for start, number_end, end, number, counter in counted:
-            if any(s < end and e > start for s, (e, _) in hint_at.items()) or (start in at and words[at[start]].end > end):
-                continue  # ruby over it, or a compound joined over it (三|日|月 みかづき)
+            if any(s < end and e > start for s, (e, _) in hint_at.items()):
+                continue
             word = Word(start, end, text[start:end], number + (counter or ''), 'counter', None)
             if start in at and words[at[start]].end == end:  # one token (三軒 みのき, 一回 いちかい)
                 words[at[start]] = word

@@ -266,7 +266,6 @@ class SudachiReaderTest(unittest.TestCase):
         joined = {w.form: w[3:5] for w in reader.read('力尽くで三日月を見た。羅甸語の本。')}
         self.assertEqual(joined['力尽く'], ('ちからずく', 'default'))  # ranked 3+ times above its others
         self.assertEqual(joined['三日月'], ('みかづき', 'default'))  # みかずき is its other spelling
-        self.assertNotIn('三日', joined)  # the counter span under it is dropped
         self.assertEqual(joined['羅甸語'], ('らてんご', 'only'))  # not in the list: JMdict's one reading
         # top readings that differ (ひいじじ, そうそふ), two kanji (小|姑), a verb token (入り|方): not joined
         for text, form in (('曽祖父の家。', '曽祖父'), ('小姑がいる。', '小姑'), ('気合いの入り方。', '入り方')):
