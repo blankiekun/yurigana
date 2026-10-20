@@ -95,6 +95,13 @@ ACTIVITY = frozenset({'調査', '検討', '準備', '交渉', '捜査', '審議'
 # Praise for a person: 素敵な方です, 立派な方 (方 かた).
 PRAISE = frozenset({'素敵', 'すてき', '立派', 'りっぱ', '有名', '親切', '優秀', '上品', '気さく', '偉い', 'えらい', '素晴らしい',
                     'すばらしい', '優しい', 'やさしい'})
+# Qualities only a person has, so 方 after them is one (勇敢な方, 高貴な方の, 身分の高い方): かた whatever follows.
+TRAIT = frozenset({'偉大', '高貴', '勇敢', '聡明', '賢明', '寛容', '寛大', '謙虚', '誠実', '温厚', '柔和', '高名', '奇特', '気高い',
+                   '尊い', '麗しい', '愛らしい', '魅力的', '素敵', 'すてき', 'ステキ', '立派', 'りっぱ', '親切', '上品', '気さく',
+                   '身分の高い', '徳の高い'})
+# Who 方 がた makes plural without の (あなた方, 先輩方, お嬢様方, 皆さん方).
+PLURAL_PERSON = frozenset({'あなた', '貴方', '貴女', 'あんた', 'さん', '様', 'さま', 'ちゃん', '先輩', '令嬢', '婦人', '息女',
+                           '紳士', '淑女'})
 # What a customer or visitor does, after お/ご: ご利用の方, お越しの方 (方 かた).
 CUSTOMER_ACT = frozenset({'希望', '利用', '来場', '越し', '持ち', '住まい', '参加', '申し込み', '申込み'})
 # Trades and walks of life whose temperament 気質 is, かたぎ: 職人気質, 学生気質.
