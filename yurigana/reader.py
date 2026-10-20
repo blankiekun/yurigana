@@ -8,7 +8,7 @@ import unicodedata
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
+from .counters import COUNTERS, ONE_THOUSAND, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
@@ -609,7 +609,7 @@ class Reader:
         if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
             value = number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
-            return number_reading(value, '一千' in surface), 'counter', None
+            return number_reading(value, bool(ONE_THOUSAND.search(surface))), 'counter', None
         if surface == '一' and tokens[i].part_of_speech()[1] == '数詞':
             after = text[begin + 1:begin + 4]
             for one, kana in _ONE_KANA:

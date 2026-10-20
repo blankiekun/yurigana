@@ -177,6 +177,9 @@ def _days(value, kana, kind, after_month: bool):
     return kana, 'にち'
 
 
+ONE_THOUSAND = re.compile('一千|(?<![0-9０-９])[1１]千')  # 一千万, １千万 いっせんまん (not 11千)
+
+
 def number_reading(value: int, one_thousand: bool = False) -> str:
     """A number's reading: 六百 ろっぴゃく, 三千 さんぜん (一千 いっせん with one_thousand)."""
     # shortcut: one_thousand applies to every 千 of the number (三千一千 doesn't occur)
@@ -209,7 +212,7 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         value = number_value(number)
         if value is None:
             return None
-        elements = _elements(value, '一千' in number)
+        elements = _elements(value, bool(ONE_THOUSAND.search(number)))
         kana, kind = ''.join(k for k, _ in elements), elements[-1][1]
     final = _KANA.get(kind) if isinstance(kind, int) and kind < 10 else None
     if counter == '時' and number == '一' and _HITOTOKI_BEFORE.search(before) and _HITOTOKI_AFTER.match(after):

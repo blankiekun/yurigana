@@ -233,6 +233,14 @@ class SudachiCounterTest(unittest.TestCase):
             self.assertEqual({w.certainty for w in reader.read(text) if w.form == form and w.source == 'counter'} or {None},
                              {certainty}, text)
 
+    def test_written_one_thousand(self):
+        # １千万 is いっせんまん like 一千万; 千万 stays せんまん
+        reader = Reader()
+        for text, form, expected in (('１千万円を払った。', '１千万円', 'いっせんまんえん'), ('1千万円だ。', '1千万円', 'いっせんまんえん'),
+                                     ('一千万円だ。', '一千万円', 'いっせんまんえん'), ('１千円だ。', '１千円', 'いっせんえん'),
+                                     ('1千人いる。', '1千人', 'いっせんにん'), ('千万円だ。', '千万円', 'せんまんえん')):
+            self.assertIn(expected, [w.reading for w in reader.read(text) if w.form == form], text)
+
     def test_sentences(self):
         reader = Reader()
         for text, span, expected in (('鉛筆を三本買った。', '三本', 'さんぼん'), ('犬が一匹いる。', '一匹', 'いっぴき'),
