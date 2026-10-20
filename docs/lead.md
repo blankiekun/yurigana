@@ -45,6 +45,8 @@ budget, stop and report; don't look for more work.
   A haiku smoke run checks plumbing, not behaviour.
 - **An unmeasured estimate goes in the queue, never into shipped docs.**
 - A null or negative result is a result: report it, don't tune until it turns positive.
+- **A killed item comes back with its next approach**: what the failure showed, one alternative that avoids it,
+  and that alternative's expected win, measure and kill line, so the lead can queue it or drop the line of work.
 - Report every cost a change moves, not only the one it targets (a saving in input can come back as output).
 
 ## Before starting a line of work
@@ -97,6 +99,8 @@ budget, stop and report; don't look for more work.
   if the brief says so. Never use git stash; stage paths by name.
 - Never merge PRs. Before handing back, rebase on origin/main and push.
 - If the job turns out to need a decision the brief didn't cover, stop and report it.
+- If the kill condition fires, report `next:` (one alternative that avoids the failure, with expected win, measure
+  and kill line) or `next: none` with the reason.
 - Long commands run in the foreground (timeout up to 10 min) or wait with Monitor; never background a run and stop.
 
 ## Landing PRs
