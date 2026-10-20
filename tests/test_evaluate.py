@@ -46,6 +46,26 @@ class ScoreTest(unittest.TestCase):
         sentence = {'text': '達人', 'spans': [span(1, 2, '人', 'じん')]}
         self.assertEqual(score_sentence(sentence, [(0, 2, 'たつじん', None)]), [('align', False, False, False)])
 
+    def test_unlabelled_digits_and_latin(self):
+        # gold 人 ひとり with １ unread: the digit reads as anything, nothing included; a token left unread too
+        sentence = {'text': '１人で', 'spans': [span(1, 2, '人', 'ひとり')]}
+        self.assertEqual(score_sentence(sentence, [(0, 2, 'ひとり', None)]), [('ok', True, True, False)])
+        self.assertEqual(score_sentence(sentence, [(0, 1, None, None), (1, 2, 'ひとり', None)]), [('ok', True, True, False)])
+        self.assertEqual(score_sentence(sentence, [(0, 1, 'いち', None), (1, 2, 'にん', None)]), [('ok', False, False, False)])
+        sentence = {'text': 'ＪＡ全農', 'spans': [span(2, 4, '全農', 'ぜんのう')]}
+        self.assertEqual(score_sentence(sentence, [(0, 4, 'じぇいえーぜんのう', None)]), [('ok', True, True, False)])
+
+    def test_counter_ka_between_spans(self):
+        # 一 いっ + ヶ + 月 かげつ: ヶ is silent, since 月's reading holds it; elsewhere か or が
+        sentence = {'text': '一ヶ月', 'spans': [span(0, 1, '一', 'いっ'), span(2, 3, '月', 'かげつ')]}
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'いっかげつ', None)]), [('ok', True, True, False)] * 2)
+        sentence = {'text': '津ケ原', 'spans': [span(0, 1, '津', 'つ'), span(2, 3, '原', 'はら')]}
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'つがはら', None)]), [('ok', True, True, False)] * 2)
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'つはら', None)]), [('ok', False, False, False)] * 2)
+        # other katakana between spans is compared as hiragana
+        sentence = {'text': '八ツ当', 'spans': [span(0, 1, '八', 'や'), span(2, 3, '当', 'あ')]}
+        self.assertEqual(score_sentence(sentence, [(0, 3, 'やつあ', None)]), [('ok', True, True, False)] * 2)
+
     def test_alts_small_kana_and_voicing(self):
         sentence = {'text': '明日', 'spans': [span(0, 2, '明日', 'あした', ['あす'])]}
         self.assertEqual(score_sentence(sentence, [(0, 2, 'アス', None)]), [('ok', True, True, False)])
@@ -193,6 +213,9 @@ class GoldTest(unittest.TestCase):
         self.assertEqual(s['text'], '場所は明日、行った')
         self.assertEqual([(x['b'], x['e'], x['reading']) for x in s['spans']], [(0, 2, 'ばしょ'), (3, 5, 'あした'), (6, 7, 'い')])
         self.assertIsNone(tatoeba_sentence(2, '[壊れ|こわ'))
+        # a kanji's empty slot: its reading is in its neighbour's (乳母車 うば||ぐるま), not the kanji itself
+        s = tatoeba_sentence(3, '[乳母車|うば||ぐるま]')
+        self.assertEqual(s['spans'][0]['reading'], 'うばぐるま')
 
     def test_ndl(self):
         self.assertEqual(ndl_readings('両手', 'りょーて'), ['りょうて', 'りょおて'])
@@ -209,6 +232,10 @@ class ReviewTest(unittest.TestCase):
         self.assertEqual(tokens[0], (0, 2, 'ひとけ', None))
         self.assertEqual(score_sentence(sentence, tokens), [('ok', True, True, False), ('ok', False, False, False)])
         self.assertIsNone(prediction_tokens('人気[ひとけ]の無い道[みち]', sentence['text']))
+        # 〇 belongs to the bracketed run; a kanji left unbracketed has no reading (not itself)
+        tokens = prediction_tokens('二〇一九年[にせんじゅうきゅうねん]、国[くに]と民', '二〇一九年、国と民')
+        self.assertEqual(tokens[0], (0, 5, 'にせんじゅうきゅうねん', None))
+        self.assertEqual(tokens[-1], (8, 9, None, None))
         self.assertEqual(score_sentence(sentence, None), [('align', False, False, False)] * 2)
 
     def test_alts(self):
