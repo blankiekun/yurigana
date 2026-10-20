@@ -86,6 +86,11 @@ Metrics, each with a 95% interval from a bootstrap over sentences:
 - shown precision and coverage (ours only): the readings the reader would show as furigana
   (source only, rule or model: hiragana and listed), how often they are right (display) and
   what share of items they cover.
+- by source (ours, with tags; --out has every count, the markdown the hard items): items, hard
+  items and how many are wrong (word list) per source of ours (a stretch of several tokens takes
+  its weakest: dictionary < default < only < book < counter < model < rule < ruby; `none` for
+  no source), and the context share: hard items read by ruby, rule or model, not by the list
+  or Sudachi alone.
 
 Tatoeba's gold is machine furigana made with MeCab + IPAdic, mostly never corrected: where
 IPAdic and UniDic disagree it sides with IPAdic about 4 times in 5. MeCab + IPAdic's lead
@@ -115,6 +120,9 @@ SYSTEMS = ('ours', 'sudachi-A', 'sudachi-B', 'sudachi-C', 'mecab-ipadic', 'mecab
            'yomikata')
 BOTH_STANDARD = frozenset('明日 日本 私 昨日 一昨日 明後日 一昨年 今年 何故 他'.split())
 SHOWN = ('only', 'rule', 'model')  # the sources chimimouryou shows as furigana
+# ours' sources, weakest first: a stretch of several tokens counts as its weakest one's
+SOURCES = ('dictionary', 'default', 'only', 'book', 'counter', 'model', 'rule', 'ruby')
+CONTEXT = ('ruby', 'rule', 'model')  # sources that read a hard form by its context
 MIN_GOLD = 5
 NOTES = []  # which dictionary a system ran with
 TATOEBA_NOTE = ("Tatoeba's gold is machine furigana made with MeCab + IPAdic, mostly never corrected, "
@@ -346,13 +354,34 @@ def score_sentence(sentence, tokens, misses=None, readings=None):
             result = ('none', False, False, shown)
         else:
             result = ('ok', _reads(reading, gold, False), _reads(reading, gold, True), shown)
+        source = min(sources, key=_source_rank, default=None)
         if misses is not None and not result[2]:
             misses.append((sentence.get('id', ''), text[b:e], '/'.join(gold or ()), reading or '', ','.join(sources)))
         for s in inside:
-            results[s['b']] = result, (b, e, reading)
+            results[s['b']] = result, (b, e, reading, source)
     if readings is not None:
         readings += [results[s['b']][1] for s in spans if is_item(s['surface'])]
     return [results[s['b']][0] for s in spans if is_item(s['surface'])]
+
+
+def _source_rank(source):
+    return SOURCES.index(source) if source in SOURCES else -1
+
+
+def by_source(results, readings, hard_keys, keys) -> dict:
+    """{source: {items, wrong, hard, hard wrong}} over the items (word list right) and the context share:
+    hard items read by ruby, rule or model."""
+    out = defaultdict(lambda: dict.fromkeys(('items', 'wrong', 'hard', 'hard wrong'), 0))
+    for key, r, read in zip(keys, results, readings):
+        row = out[(read[3] if read else None) or 'none']
+        row['items'] += 1
+        row['wrong'] += not r[2]
+        if key in hard_keys:
+            row['hard'] += 1
+            row['hard wrong'] += not r[2]
+    hard = sum(row['hard'] for row in out.values())
+    return {'sources': dict(sorted(out.items(), key=lambda x: _source_rank(x[0]))),
+            'context share': sum(out[x]['hard'] for x in CONTEXT if x in out) / hard if hard else None}
 
 
 def items_of(sentences):
@@ -524,6 +553,13 @@ def markdown(report: dict) -> str:
                   '| system | ' + ' | '.join(COLUMNS) + ' |', '|---|' + '---|' * len(COLUMNS)]
         for system, result in data['systems'].items():
             lines.append(f'| {system} | ' + ' | '.join(_pct(result['metrics'].get(c)) for c in COLUMNS) + ' |')
+        ours = data['systems'].get('ours', {})
+        if ours.get('sources'):
+            def cell(n, wrong):
+                return f'{n} ({wrong / n * 100:.1f}% wrong)' if n else '0'
+            lines.append('\nours by source, hard items: ' + ', '.join(
+                f"{x} {cell(c['hard'], c['hard wrong'])}" for x, c in ours['sources'].items() if c['hard'])
+                + (f"; context share {ours['context share'] * 100:.1f}%" if ours['context share'] is not None else ''))
         for system, c in data.get('compare', {}).items():
             lines.append(f"\n{system} vs {report['compare']}: {c['fixed']} fixed, {c['broken']} broken "
                          f"(McNemar p = {c['p']:.3g}), word list {c['old'] * 100:.1f} → {c['new'] * 100:.1f}"
@@ -674,6 +710,8 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
             data['systems'][system] = {'metrics': metrics(items, results, len(sentences), rounds, subsets=subsets),
                                        'seconds': round(time.time() - start, 1),
                                        'right': ''.join('1' if r[2] else '0' for r in results)}
+            if system == 'ours' and subsets:
+                data['systems'][system].update(by_source(results, read[system], subsets['hard'], data['keys']))
             print(f'{name} {system}: {time.time() - start:.0f} s', file=sys.stderr, flush=True)
         if review is not None:
             review += triage(name, sentences, {x: r['right'] for x, r in data['systems'].items()}, read, agree)

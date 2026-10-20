@@ -55,6 +55,12 @@ up by about the same amount (about +1 point on the modern books) and changes no 
 only stops charging everyone for the gold's artefacts. Hard is the column to read for a
 reading change; it is about a quarter of a book set's items, so its intervals are wider.
 
+Under the table, ours' hard items are split by the source that read them (the full counts per
+source are in `--out`), with the **context share**: hard items read by the book's ruby, a context
+rule or the reading model rather than the list or Sudachi's one context-free reading. On the
+plain DEV silver (2,996 post-war sentences) it is 8.1%; the Sudachi fallback (`dictionary`) reads
+3,449 of 4,232 hard items, 2.3% of them wrong.
+
 Left in on purpose: items where yurigana, Sudachi and Opus agree on a reading the book's ruby
 rejects. In book ruby these are nearly always real author readings, not gold errors (on
 Tatoeba they are mostly IPAdic's: there `--exclude` is the way). Names Sudachi tags 固有名詞
