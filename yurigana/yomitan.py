@@ -54,6 +54,13 @@ def dominant_readings(path: str = DOMINANT_READINGS) -> dict:
         return dict(line.split('\t')[:2] for line in f if line.strip() and not line.startswith('#'))
 
 
+def dominant_checked(path: str = DOMINANT_READINGS) -> set:
+    """Forms of dominant-readings.tsv admitted on labelled bare-text occurrences (a ninth column)."""
+    with open(path, encoding='utf-8') as f:
+        return {line.split('\t')[0] for line in f if line.count('\t') > 7 and line.rstrip('\n').split('\t')[8]
+                and not line.startswith('#')}
+
+
 def extra_readings(path: str = EXTRA_READINGS) -> set:
     """The (form, reading) pairs of extra-readings.tsv."""
     with open(path, encoding='utf-8') as f:

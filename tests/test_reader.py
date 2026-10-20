@@ -202,7 +202,7 @@ class ReaderTest(unittest.TestCase):
 
     def test_conjugated_word_takes_the_listed_reading_sudachi_says(self):
         reader = self.reader({('行く', 'いく'), ('行く', 'ゆく')})
-        self.assertEqual(reader.read('行った。')[0], Word(0, 2, '行く', 'いく', 'dictionary', None))
+        self.assertEqual(reader.read('行った。')[0], Word(0, 2, '行く', 'いく', 'only', 1.0))  # dominant-readings.tsv
         self.assertEqual(self.reader({('行く', 'ゆく'), ('行く', 'おこなう')}).read('行った。')[0][3:5], (None, 'dictionary'))
 
     def test_conjugated_word_the_list_lacks_takes_sudachis_reading(self):
@@ -210,7 +210,7 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'dictionary', 0.0))  # not listed
 
     def test_default_replaces_a_wrong_sudachi_reading(self):
-        self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'default', None))
+        self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'rule', 1.0))  # SHOWN_DEFAULTS
         hints = []
         text = aozora_text('私《わたくし》', None, hints)
         self.assertEqual(self.reader().read(text, hints)[0][3:5], ('わたくし', 'ruby'))  # ruby still wins
@@ -303,6 +303,10 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(read('ご両親は元気？')['両親'], ('りょうしん', 'only'))
         self.assertEqual(read('口を一文字に結ぶ。')['文字'][1], 'dictionary')
         self.assertEqual(read('背筋運動をした。')['背筋'][1], 'dictionary')
+        # pairs admitted on labelled bare text (T430): not after a word that can head a compound (パン好き ずき)
+        self.assertEqual(read('パンが好きだ。')['好き'], ('すき', 'only'))
+        self.assertEqual(read('私パン好きだし。')['好き'][1], 'dictionary')
+        self.assertEqual(read('ソファ代わりに使う。')['代わり'][1], 'dictionary')
         reader.dominant = {}
         self.assertEqual(read('俺は目を閉じた。')['目'][1], 'dictionary')
 
