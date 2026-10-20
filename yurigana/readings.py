@@ -146,7 +146,9 @@ _CONTEXT_RULES = {
     '間': [('ま', r'(?:いつ|何時|束|一瞬|咄嗟|瞬く|またたく|あっという|あっと言う|アッという|呼吸|呼吸分|一拍|謁見|玉座)の?$', None),
            ('あいだ', r'この$', None),
            ('ま', r'(?<!の)$', r'が(?:空|あ[いくきけ]|開|でき|持た|悪|抜け)|も(?:な[くい]|無[くい]|与え|あた|惜し)'
-            r'|を(?:置|お[いかきく])', 'and')],
+            r'|を(?:置|お[いかきく])', 'and'),
+           # Between people, not after の (玉座の間に入る is a room): 慌てて間に入る, 間に割って入る.
+           ('あいだ', r'(?<!の)$', r'に(?:割|入|はい|挟)', 'and')],
     # 後 before a number is あと (後五分で); Sudachi says ご. Not after その/この or a kanji (その後, 五年後, 購入後２日).
     # この後, あの後: あと (Sudachi: ご); その後 keeps そのご (both standard).
     '後': [('あと', r'(?<!その)(?<!この)(?<![一-鿿々0-9０-９])$', r'[0-9０-９一二三四五六七八九十百千数幾]', 'and'),
@@ -168,8 +170,9 @@ _CONTEXT_RULES = {
     # (疑問を抱く) and, as books' ruby often has it, 腕に抱く and the passive (懐に抱かれる).
     '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を$', None),
             ('だく', r'(?<!を)$', r'た[いくかけ]', 'and')],
-    # 家 け after a katakana name (ローズ家, フジバヤシ家); Sudachi says か.
-    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$', None)],
+    # 家 け after a katakana name (ローズ家, フジバヤシ家) or a noble title (侯爵家, 大公家, 新王家); Sudachi says か.
+    # After a proper noun (佐藤家, 高橋家) it is a POS rule in context_reading.
+    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$|(?:爵|大公|辺境伯|王|公方|管領|関白)$', None)],
     # 側 そば: beside (すぐ側, 彼の側にいる, 駅の側で); がわ (a side) otherwise (向こう側, 民の側につく).
     '側': [('そば', r'すぐ$', None),
            ('そば', r'[のがはも]$', r'に(?:いる|い[てたらまれよ]|居|あ[るっ]|置|寄|座|控|仕え|付き添|はべ|侍|来|行)|で(?!は)|まで', 'and')],
@@ -181,9 +184,16 @@ _CONTEXT_RULES = {
               + r'|に(?:至|いた)る|では|において')],
     # Sudachi says あす; books mostly say あした, except in formal phrases.
     '明日': [('あした', None, r'(?!の' + words(REALM, SOCIETY - {'経済', '時代', '文明', '科学', '技術', '教育', '政治'}) + '|を担|にも)')],
-    '上手': [('かみて', r'舞台の?$', None), ('うわて', r'枚$', r'に出(?:る|た|て|ら|ま)')],
+    # 上手 かみて/下手 しもて: the stage's sides, also when the other side is named next to it (上手と下手);
+    # Sudachi's しもて elsewhere is へた (HAND_DEFAULTS). 上手 is じょうず as an adjective (上手に, 上手だ, 上手。):
+    # Sudachi sometimes says かみて there; 上手の, 上手を, 上手から keep its reading (stage, shogi うわて).
+    '上手': [('かみて', r'(?:舞台|演壇)の?$|下手(?:と|から|へ)$|下手[がに].{1,10}、$', r'側|(?:と|から|へ|、)下手|[がに].{1,10}、下手[がに]'),
+             ('うわて', r'枚$', r'に出(?:る|た|て|ら|ま)'),
+             ('じょうず', r'(?<!遥かに)(?<!はるかに)(?<!数段)(?<!一段)$',
+              r'(?:に(?![出来入回立座向寄])|な(?![いく])|だ|です|でした|じゃ|ね|よ(?!り)|ー|っ|そう|すぎ|過ぎ|。|」|！|!)', 'and')],
     # 下手 しもて: the stage's or a river's lower side; へた takes no へ (下手へ退く).
-    '下手': [('しもて', r'(?:舞台|川|河)の?(?:ずっと|少し|やや|すぐ)?$', r'へ|から(?:登場|出|入|現)|向き|寄り'),
+    '下手': [('しもて', r'(?:舞台|演壇|川|河)の?(?:ずっと|少し|やや|すぐ)?$|上手(?:と|から|へ|、)$|上手[がに].{1,10}、$',
+              r'へ|から(?:登場|出|入|現)|向き|寄り|側|(?:と|から|へ)上手|[がに].{1,10}、上手[がに]'),
              ('したて', None, r'に出(?:る|た|て|ら|ま|れ)')],
     # 一足 いっそく: a pair of footwear; ひとあし (a step) otherwise.
     '一足': [('いっそく', words(FOOTWEAR) + '[をがはも]?$', 'の' + words(FOOTWEAR))],
@@ -237,6 +247,12 @@ _CONTEXT_RULES = {
            ('ほか', r'[うくぐすつぶむるたぬ]$', r'[はにも]?(?:な[いくかし]|無|あり|ある|ござ|仕方|手|道)', 'and')],
     # 人 right after a katakana word (カナダ人); after a place name, see context_reading.
     '人': [('じん', r'[ァ-ヺー]$', None)],
+    # この前, その前, あの前: まえ (the other day, before that); Sudachi says ぜん before a noun (この前ホテルで).
+    '前': [('まえ', r'(?:この|その|あの)$', None)],
+    # 露 あらわ: laid bare (感情を露にする, 首が露になる); つゆ (dew, 露ほども, 露知らず) otherwise (HAND_DEFAULTS).
+    '露': [('あらわ', None, r'に(?:し|す|さ|せ|な)|な(?![らりるれろ])'), ('つゆ', None, r'(?:知|し)ら')],
+    # 素 もと: what something is made from (鍋の素, スープの素, 魂を素にする); す (素の自分, 素で) otherwise (HAND_DEFAULTS).
+    '素': [('もと', r'(?:鍋|ナベ|スープ|カレー|かれー|シチュー|おにぎり|ふりかけ|料理|だし|出汁|味|混乱|元気)の$', None)],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
     '一日': [('ついたち', r'月(?:初め)?の?$', None)],
     # 銀杏 ぎんなん: the nut, eaten or picked (銀杏を焼く, 茶碗蒸しの銀杏); the tree いちょう (HAND_DEFAULTS).
@@ -310,7 +326,10 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # gives another one, 3+ authors, 80%+ one reading), checked on Tatoeba B1 (TRADEOFFS T45).
                  ('擦る', 'する'): 'こする', ('素', 'もと'): 'す',
                  # 分別 alone is good sense; sorting waste is a context rule (ゴミの分別 ぶんべつ).
-                 ('分別', 'ぶんべつ'): 'ふんべつ'}
+                 ('分別', 'ぶんべつ'): 'ふんべつ',
+                 # The stage's side is a context rule (舞台の下手, 上手と下手); Sudachi's しもて elsewhere is
+                 # 下手をすれば, 下手に動く (TRADEOFFS T61).
+                 ('下手', 'しもて'): 'へた'}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:
@@ -348,6 +367,12 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     speech of the token ending where the word starts, if any (人 after a place name is じん)."""
     if form == '人' and previous_pos and tuple(previous_pos[1:3]) == ('固有名詞', '地名') and (form, 'じん') in known:
         return 'じん'
+    # 家 is け after a family name (佐藤家, 伊達家) or a kanji proper noun (藤和家); Sudachi says か. Not after a
+    # given name (景家 かげいえ) or a kana one (めぐみん家, 鶴屋さん家: ち).
+    if form == '家' and previous_pos and (tuple(previous_pos[1:4]) == ('固有名詞', '人名', '姓') or tuple(
+            previous_pos[1:3]) == ('固有名詞', '一般') and re.fullmatch(r'[一-鿿々]+', text[max(0, begin - 4):begin][-2:])) \
+            and (form, 'け') in known:
+        return 'け'
     # 気味 is ぎみ as a suffix: right after a noun (風邪気味) or a verb's 連用形 (太り気味); Sudachi says きみ.
     if form == '気味' and previous_pos and (form, 'ぎみ') in known and (
             previous_pos[0] in ('名詞', '接尾辞') and previous_pos[2] != '副詞可能'
