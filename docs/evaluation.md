@@ -60,7 +60,7 @@ rejects. In book ruby these are nearly always real author readings, not gold err
 Tatoeba they are mostly IPAdic's: there `--exclude` is the way). Names Sudachi tags 固有名詞
 stay in too (the `proper` tag, for breakdowns): they are shown as furigana like any word.
 
-The tags use Sudachi-C (SudachiDict-full) for the word over a span. The second environment
+The tags use Sudachi-C (SudachiDict-core, or `YURIGANA_SUDACHI_DICT`) for the word over a span. The second environment
 (GiNZA, yomikata) has a SudachiPy that can't read that dictionary, so its own tags would fall
 back to the lemma or surface (a note in the report says so). `--tags REPORT.json` takes every
 set's tags from an earlier report instead (same sets, same item keys, or it stops naming the

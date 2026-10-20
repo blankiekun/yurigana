@@ -11,9 +11,11 @@ requires-python = ">=3.10"
 license = "BSD-3-Clause AND CC-BY-SA-4.0"
 license-files = ["LICENSE", "NOTICE"]
 # The dictionary is pinned: readings (and the numbers in README.md) depend on its version.
-dependencies = ["SudachiPy>=0.7,<0.8", "SudachiDict-full==20260723.1"]
+dependencies = ["SudachiPy>=0.7,<0.8", "SudachiDict-core==20260723.1"]
 
 [project.optional-dependencies]
+# The full dictionary, read with YURIGANA_SUDACHI_DICT=full (same readings on the README sets, 120 MB more)
+full = ["SudachiDict-full==20260723.1"]
 # Baselines for python -m yurigana.evaluate (UniDic full: pip install unidic && python -m unidic download)
 # ginza and yomikata conflict with SudachiPy 0.7 / need torch 1.13: a second environment (yurigana/evaluate.py)
 eval = ["fugashi", "ipadic", "unidic-lite", "pykakasi"]

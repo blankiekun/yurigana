@@ -15,7 +15,10 @@ their readings and the reader its "Known" furigana style.
 pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.2.0.tar.gz"
 ```
 
-That installs SudachiPy and SudachiDict-full too (pinned: readings depend on its version). Then:
+That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
+SudachiDict-full, install `yurigana[full]` and set `YURIGANA_SUDACHI_DICT=full` (or pass
+`Reader(tokenizer=SudachiTokenizer('full'))`): it reads the sets below the same, within 0.1 point,
+and takes about 120 MB more disk and 100-240 MB more memory. Then:
 
 ```python
 from yurigana import Reader, aozora_text
@@ -73,7 +76,8 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main, 2026-10-19. Sudachi is SudachiDict-full, mode C; MeCab runs with
+reads right). yurigana main, 2026-10-19, measured with SudachiDict-full (yurigana's and Sudachi's
+rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
 | | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
