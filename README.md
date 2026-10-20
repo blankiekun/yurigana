@@ -49,6 +49,11 @@ have (none is bundled) for words the list and JMdict both lack: coined compounds
 doesn't know, ruby over them. Those readings are `source='terms'` and never shown
 ([how it works](docs/how-it-works.md#term-dictionaries-you-supply)).
 
+Many processes, little memory: `reader.save('reader.ygp')` writes the tables a Reader built from its lists
+and dictionaries to one file, and `Reader.load('reader.ygp')` opens it through mmap in no time, so processes
+share its pages. With Jiten's list and JMnedict: 16 MB private memory per process instead of about 565 MB
+(the 78 MB file and Sudachi's dictionary are shared), the same readings, reading about 13% slower.
+
 For one sentence, `furigana` gives it back with readings in brackets:
 
 ```python
