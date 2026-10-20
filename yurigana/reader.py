@@ -6,6 +6,7 @@ import os
 import re
 import unicodedata
 from collections import defaultdict
+from collections.abc import Mapping
 
 from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
@@ -274,6 +275,49 @@ class Reader(Compounds):
             for form, readings in name_readings(path).items():
                 merged[form] = merged.get(form, set()) | readings
         self.names = {form: next(iter(r)) for form, r in merged.items() if len(r) == 1}
+        self._finish(tables, tokenizer)
+
+    # Reader.save's tables: name -> (encode, decode) of the values; pair tables are keyed `form \t reading`.
+    _LISTS = ('readings', 'jmdict', '_jmdict_all', 'terms')
+    _STRINGS = ('single', 'only', 'one_x', 'jmdict_one', 'ranked', 'names')
+
+    def save(self, path: str) -> None:
+        """Write the tables built from the lists and dictionaries to one file for Reader.load: a worker that
+        loads it parses nothing and shares the file's pages with other processes (yurigana/packed.py)."""
+        from . import packed
+        if not isinstance(self.known, (dict, set, frozenset)):
+            raise TypeError('Reader.save needs `known` as a set or dict')
+        ranked = isinstance(self.known, Mapping)
+        tables = {'known': {f'{f}\t{r}': str(v) if ranked else '' for (f, r), v in
+                            (self.known.items() if ranked else ((pair, '') for pair in self.known))}}
+        tables |= {name: {k: ' '.join(v) for k, v in getattr(self, name).items()} for name in self._LISTS}
+        tables |= {name: dict(getattr(self, name)) for name in self._STRINGS}
+        tables['tails'] = {f'{f}\t{r}': f'{v} {u}' for (f, r), (v, u) in self._tail_counts().items()}
+        tables['kanji_index'] = {r: ''.join(sorted(kanji)) for r, kanji in self._kanji_by_reading().items()}
+        packed.write(path, tables, {'ranked': ranked, 'plain': self.plain is not None, 'source': _source_hash()})
+
+    @classmethod
+    def load(cls, path: str, tables=(), tokenizer=None) -> 'Reader':
+        """A Reader from Reader.save's file; `tables` and `tokenizer` as in Reader()."""
+        from .packed import Decoded, Packed, PairMap, PairSet
+        pack = Packed(path)
+        if pack.meta.get('source') != _source_hash():
+            raise ValueError(f'{path} was saved by another version of yurigana: build the Reader and save it again')
+        self = cls.__new__(cls)
+        self.known = PairMap(pack.table('known')) if pack.meta['ranked'] else PairSet(pack.table('known'))
+        for name in cls._LISTS:
+            setattr(self, name, Decoded(pack.table(name), _split))
+        for name in cls._STRINGS:
+            setattr(self, name, pack.table(name))
+        self._tails = PairMap(pack.table('tails'), _counts)
+        self._kanji_index = Decoded(pack.table('kanji_index'), set)
+        self.plain = PlainReadings() if pack.meta['plain'] else None
+        self._plain_check = self.plain or PlainReadings()
+        self._term_pairs = _TermPairs(self.terms)
+        self._finish(tables, tokenizer)
+        return self
+
+    def _finish(self, tables, tokenizer):
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.dominant = dominant_readings()
         self.dominant_checked = dominant_checked()
@@ -572,9 +616,9 @@ class Reader(Compounds):
         if name and sudachi and form in self.jmdict and sudachi not in self.readings[form] + self.jmdict[form]:
             if only in self.jmdict[form]:
                 return only, 'only', 1.0
-            ranks = self.known if isinstance(self.known, dict) else {}
+            ranks = self.known if isinstance(self.known, Mapping) else {}
             return min(self.jmdict[form], key=lambda r: ranks.get((form, r), math.inf)), 'dictionary', None
-        if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, dict) else None):
+        if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, Mapping) else None):
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
         if only and may_be_potential(text, begin, form):
             only = None  # 部屋には入れない: はいれる (入る) or いれる
@@ -660,7 +704,7 @@ class Reader(Compounds):
                 or 'ー' in sudachi  # a loanword's (麦酒 びーる): JMdict spells those in katakana
                 or set(form) & self._kanji_by_reading().get(sudachi, set())):
             return None
-        ranks = self.known if isinstance(self.known, dict) else {}
+        ranks = self.known if isinstance(self.known, Mapping) else {}
         return preferred({r: ranks.get((form, r), 0) for r in listed}, own)[0]
 
     def _kanji_by_reading(self) -> dict:
@@ -717,6 +761,25 @@ class Reader(Compounds):
 
 
 _KANJI_RUN = re.compile(r'[㐀-䶿一-鿿豈-﫿々〆ヶ]+')
+
+
+def _source_hash() -> str:
+    """The package's code and data, which Reader.save's tables are derived from."""
+    import hashlib
+    here, digest = os.path.dirname(os.path.abspath(__file__)), hashlib.sha256()
+    for name in sorted(os.listdir(here)):
+        if name.endswith(('.py', '.tsv', '.json', '.gz')):
+            with open(os.path.join(here, name), 'rb') as f:
+                digest.update(name.encode() + b'\0' + f.read())
+    return digest.hexdigest()
+
+
+def _split(value: str) -> list:
+    return value.split(' ')
+
+
+def _counts(value: str) -> tuple:
+    return tuple(map(int, value.split(' ')))
 
 
 def split_reading(surface: str, reading: str) -> list:
