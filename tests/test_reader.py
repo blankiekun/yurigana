@@ -313,6 +313,10 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertIn('解[げ]せない', reader.furigana('どうにも解せない。'))
         self.assertEqual(reader.read('意味を解せない。')[1][2:5], ('解する', 'かいする', 'only'))
         self.assertEqual(reader.read('騎士は主に忠誠を誓った。', [(3, 5, 'おもに')])[1][2:5], ('主に', 'おもに', 'ruby'))
+        # T370: お供します is お + 供 とも + する; 供する without お is きょうする
+        reader = Reader(known={('供', 'とも'): 5, ('供する', 'きょうする'): 5})
+        self.assertIn('供[とも]します', reader.furigana('私もお供します。'))
+        self.assertEqual(reader.read('食事を供した。')[1][2:5], ('供する', 'きょうする', 'only'))
 
     def test_lemmas_sudachi_takes_for_another_word(self):
         # T280: 宿する is 宿す (やどす), 欲す is 欲する (the list's ほりす is noise), 欲し before が is 欲しい

@@ -13,7 +13,7 @@ from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFOR
 from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, SPICE, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
                    HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
                    OPEN_HOURS, PEOPLE, PERSON, PLAYED, PLURAL_PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
-                   STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TRAIT, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
+                   STREET, SUFFERED, HONOUR, SUPERIOR, TERM, THINGS, TIED, TRAIT, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -115,6 +115,10 @@ _PRECIPITATION_AFTER = r'(?:続|つづ|始め|はじめ|しき|頻|ゆ|つけ|�
 _SURRENDER = r'(?:軍門|傘下|麾下|配下|旗下|幕下)に$'
 # A taste or food near 辛い (T294); 味 but not in 意味, 興味, 趣味, 気味, 正味, 地味, 味わう.
 _TASTE = words(DISH - {'味'}, SPICE) + r'|(?<![意興趣気正地])味(?!わ)|からし(?![てた])'
+# Tools held by a handle, え (柄 after them is not a sword's つか).
+_HANDLED = (r'(?:ハンマー|槌|鎚|杖|スパナ|鉈|棒|モップ|ほうき|ホウキ|箒|鍬|鋤|斧|槍|鎌|傘|パラソル|包丁|スコップ|シャベル|刷毛|筆|ブラシ|旗|'
+            r'柄杓|ひしゃく|おたま|ポール|トンファー|ステッキ|メイス|バット|熊手|鞭|ムチ|ハルバード|薙刀|なぎなた|戟|矛|鉾|ピッケル|'
+            r'つるはし|ツルハシ|フライパン|鍋|錫杖|ハンドル|レバー|団扇|うちわ|扇|ポンプ|鋸|のこぎり)')
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -177,11 +181,21 @@ _CONTEXT_RULES = {
     # 角 つの on an animal or a monster (角が生えた, 鬼の角); かど (a corner) otherwise.
     '角': [('つの', r'(?:(?:鬼|牛|山羊|ヤギ|羊|ヒツジ|鹿|シカ|竜|龍|ドラゴン|獣|魔獣|悪魔|一角獣|ユニコーン|サイ|犀|カブトムシ|水牛)の'
                    r'|一本の|二本の|一対の|頭の|額の|頭に|額に|額から|頭から|捩れた|ねじれた)$', r'(?!を曲が|を折れ|を左|を右)', 'and'),
-           ('つの', None, r'[がを]?(?:生え|生や|はえ|はや|一本|二本)')],
+           ('つの', r'(?:牙|尻尾|しっぽ|翼|蹄|ひづめ|鬣|たてがみ|鱗)[とや]$',
+            r'[がを]?(?:生え|生や|はえ|はや|一本|二本)|の生え|が(?:伸び|折れ)|を伸ば|[とや](?:牙|尻尾|しっぽ|翼|蹄|ひづめ|鬣)')],
     # 柄: a sword's つか, a tool's or spear's え; がら (a pattern, one's nature) otherwise.
     '柄': [('つか', r'(?:剣|刀|太刀|短剣|短刀|小刀|脇差|大剣|長剣|聖剣|魔剣|刀剣|小太刀|サーベル|レイピア|木刀|竹刀)の$', None),
            ('え', r'(?:斧|槍|鎌|箒|ほうき|ホウキ|ハンマー|鎚|槌|モップ|柄杓|傘|包丁|スコップ|シャベル|鍬|鋤|モーニングスター|'
-                 r'ハルバード|メイス|フライパン|鍋)の$', None)],
+                 r'ハルバード|メイス|フライパン|鍋)の$', None),
+           # gripped, not a tool's (柄を握る, 柄に手をかける: ruby つか 652 of 712) (T373)
+           ('つか', r'^(?!.*' + _HANDLED + ')', r'を(?:握|掴|摑|つか|にぎ)|に(?:手を|指を|添え|手が)|から手', 'and')],
+    # 面 つら in どの面下げて, 面を貸せ, 間抜けな面をして; おもて in 面を上げる, 面に出す (T373).
+    '面': [('つら', r'(?<![ぁ-ゖ])どの$', r'を?(?:下げ|さげ)', 'and'), ('つら', r'(?:みたいな|みてえな|ような|そうな|げな)$', r'を[しす]', 'and'),
+           ('つら', None, r'を?貸[しせさ]'), ('おもて', None, r'を(?:上げ|あげ|挙げ|伏せ|ふせ)|に(?:出|表|あらわ|現)')],
+    # 値 ね: a price (値が張る, 値がつく, 値をつり上げる); Sudachi's あたい otherwise (T373).
+    '値': [('ね', r'(?<![一-鿿])$', r'[がはも]?(?:張|は[るらりっれ])|[がも]?(?:つく|つい|付[くいけ])|を(?:つけ|付け|つり|吊り)|[がは](?:上が|下が|あが|さが|吊|つり)', 'and')],  # not 補正値が上がる
+    # 弦 つる of a bow (弓の弦, 弦に矢を番える); げん (an instrument's) otherwise (T373).
+    '弦': [('つる', r'(?:弓|ボウ|弩)', r'に(?:番|つが|矢)')],
     '業': [('わざ', r'(?:至難の|なせる|成せる|為せる|神の)$', None)],  # 至難の業
     '艶': [('つや', None, r'(?:っぽ|の|が|を|も|は|と|、|。|消|出し|々)')],  # not 艶やか あで
     # 直に: じか with touching, seeing or meeting (直に触れる); じき (soon) is left to Sudachi.
@@ -209,6 +223,7 @@ _CONTEXT_RULES = {
             + r'|[おご]' + words(CUSTOMER_ACT) + r')の$', r'(?![がへに])', 'and'),
            ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし)', 'and'),  # ドイツの方ですか; not …したのはルークの方だった (ほう)
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
+           ('かた', None, r'(?:たち|達)'),  # 騎士の方たち: people (T373)
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)'),
            # Plural after a person (あなた方, 先輩方, お嬢様方); not 母/父 (お母さん方の祖母: かた), nor an address (山田さん方で).
            ('がた', words(PLURAL_PERSON) + r'(?<![母父]さん)(?<![母父]さま)(?<![母父]様)(?<!お偉い)$',
@@ -266,7 +281,7 @@ _CONTEXT_RULES = {
           ('あるじ', r'(?<![一-鿿々のが])$', r'の(?:命|元|もと|ため|為|傍|側|身|意|仰せ|好み|期待|役|顔|帰り)|に(?:仕え|忠誠|従)|を(?:守|失|裏切|迎え)', 'and')],
     # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 抱きたい); Sudachi's いだく for feelings
     # (疑問を抱く) and, as books' ruby often has it, 腕に抱く and the passive (懐に抱かれる).
-    '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を$', None),
+    '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を(?:[ぁ-ゑァ-ヶー]{2,6}と?|[一-鿿][ぁ-ゑ]{1,3})?$', None),
             ('だく', r'(?<!を)$', r'た[いくかけ]', 'and'), ('だく', None, r'て(?:寝|眠)')],
     # 家 け after a katakana name (ローズ家, フジバヤシ家) or a noble title (侯爵家, 大公家, 新王家); Sudachi says か.
     # After a proper noun (佐藤家, 高橋家) it is a POS rule in context_reading.
@@ -311,7 +326,17 @@ _CONTEXT_RULES = {
             ('かく', None, r'(?:[いか]れ)?(?:た|ている|てある|ていた)' + words(DRAWN) + '(?!画)')],  # 描いた絵, 描かれた漫画
     '吐く': [('つく', r'(?:ため息|溜め息|溜息|嘘|ウソ|悪態)を$', None)],
     # 被る こうむる for harm or favour received (被害を被る, 恩恵を被る); Sudachi's かぶる otherwise (帽子を被る).
-    '被る': [('こうむる', words(SUFFERED) + 'を$', None)],
+    # Also ごめん被る and 被った被害 (T371); Sudachi's こうむる for a bare 被る is a hand default to かぶる (HAND_DEFAULTS).
+    '被る': [('こうむる', words(SUFFERED) + '[をはも]$', None), ('こうむる', r'(?:ごめん|御免)を?$', r'た?(?:被害|損害|損失|打撃)')],
+    # 開ける ひらける: a view or a way opens (視界が開けた, 道が開ける, 開けた場所に出た); あける otherwise (T372).
+    '開ける': [('ひらける', r'(?:視界|視野|眺望|展望|景色|眺め|前途|未来|道|運|運命|活路|人生|世界|森|林|空|天|目の前)[がは]'
+                         r'(?:[ぁ-ゑ]{2,5}と?|[一-鿿][ぁ-ゑ]{1,3}|一気に|急に|一挙に|一面に|大きく)?$', r'(?!られ|させ)', 'and'),  # not 抜け道が開けられる
+             ('ひらける', r'^[^を]*$', r'た(?:場所|空間|草原|草地|高台|荒野|平原|平地|空き?地|台地|通り|一角)', 'and')],
+    # 脅かす おどかす: startling someone for fun (脅かさないで, ちょっと脅かしてやろう); おびやかす (threaten) otherwise (T372).
+    '脅かす': [('おどかす', r'(?:ちょっと|冗談で|軽く)$', r'(?:ないで|なよ|すぎ|過ぎ|てやろ|てやる|やがっ|役|ちゃ)')],
+    # 汚す けがす: honour or purity (家名を汚す); 汚れなき けがれ. よごす, よごれ otherwise (T372).
+    '汚す': [('けがす', r'(?<![一-鿿])' + words(HONOUR) + r'[をもは]$', None)],
+    '汚れ': [('けがれ', None, r'な[きく]')],
     # 来るべき is きたる before a noun (来るべき時); くる as a predicate (来るべきではなかった).
     '来る': [('くる', None, r'べき(?:では|じゃ|でな|だった|だろ|でしょ|です|だ[。、よなね！？」])')],
     '今日': [('こんにち', None, 'の' + words(REALM - {'国'}, SOCIETY - {'未来', '地球'}, ISSUE - {'急務', '懸案'})
@@ -498,6 +523,9 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('近々', 'ちかじか'): 'ちかぢか',
                  # Bare post-war text, not shown: a minority reads them as Sudachi does (T200).
                  ('呆ける', 'ぼける'): 'ほうける', ('艶やか', 'あでやか'): 'つややか', ('正しく', 'まさしく'): 'ただしく',
+                 # Sudachi reads a bare 被る こうむる by its neighbours (帽子を被る ok, 罪を被る not): かぶる unless a cue
+                 # reads こうむる (_CONTEXT_RULES; books' ruby where Sudachi says こうむる: かぶる 192, こうむる 22) (T371).
+                 ('被る', 'こうむる'): 'かぶる',
                  # A word Sudachi has as a name only (T170, T261)
                  ('未来人', 'みきと'): 'みらいじん',
                  # Fantasy's ground dragon: books' ruby ちりゅう (T277), Sudachi and the list じりゅう.
@@ -652,6 +680,10 @@ SPLIT_TOKENS = {'話し': [(r'お$', r'(?:て|た|ま[すせしっ]|ちゃ|と[�
                          (r'の$', None, None, '主に', 'おもに', False)],  # 声の主に: ぬし or あるじ
                 '解せ': [(r'(?<!を)$', r'(?:ない|なかっ|ぬ|ん|ず)', None, '解す', 'げす', True)],
                 '平伏し': [(None, None, None, '平伏', 'へいふく', False)]}
+# お供します, お供した, お供しよう: お + 供 とも + する, not 供する きょうする (書類を供する, 食事が供された); Sudachi joins
+# お供 only before させ, できる, いたす (T370).
+SPLIT_TOKENS.update({surface: [(r'(?<!御)お$', None, 1, '供', 'とも', True)]
+                     for surface in ('供し', '供する', '供すれ', '供しよ', '供しよう', '供しよっ', '供しろ', '供せよ', '供さ', '供せ')})
 SPLIT_TOKENS = {surface: [(before and re.compile(before), after and re.compile(after), *rest) for before, after, *rest in entries]
                 for surface, entries in SPLIT_TOKENS.items()}
 
