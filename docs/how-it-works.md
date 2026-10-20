@@ -30,7 +30,10 @@ tie at the top is read JMdict's first way when that is the only tied one its kan
 Phrases JMdict reads one way over 2-8 tokens with a kana token inside (歩|を|進める ほをすすめる,
 放っ|て|おく, 一|か|八|か) keep one `Word` per token, each kanji token taking its slice of the phrase's
 reading where the slice is a plain or listed reading of the token (`Reader._idioms`; `source='default'`,
-not shown; ruby, rules and counters win). Left out: phrases the list reads otherwise, or two ways where
+not shown; ruby, rules and counters win). The 1,452 phrases whose slices training-author ruby agrees with
+97%+ of 10+ times are shown (`yurigana/shown-idioms.tsv`, built by `tools/shown_idioms.py`; source `rule`,
+also for slices the tokens already read that way; a word already shown keeps its source: 気|に|なる,
+目|の|前, 首|を|傾げる; TRADEOFFS T435). Left out: phrases the list reads otherwise, or two ways where
 the tokens already read one of them (他愛もない), the tail of a longer word (書き|甲斐|が|ある), a noun and case
 particle right after a modifier (大きな|音|を|上げ, 不気味な|音|を: literal おと; not after その/この, and not
 compounds or の-phrases: 大きな金ダライ, 従順な神の僕), two-token phrases ending in a particle (外|に
@@ -249,7 +252,7 @@ about 20 s and under 100 MB to load.
 | `ruby`, `book`, `rule`, `only` | 1.0 (`only` also for a dominant reading, below) |
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `terms` | None (Term dictionaries you supply) |
-| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
+| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` and the slices of `shown-idioms.tsv` phrases are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 A form the list reads several ways is still `only` where Sudachi's reading (or the listed one a conjugated

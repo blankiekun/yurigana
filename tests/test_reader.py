@@ -304,7 +304,7 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(read('口を一文字に結ぶ。')['文字'][1], 'dictionary')
         self.assertEqual(read('背筋運動をした。')['背筋'][1], 'dictionary')
         reader.dominant = {}
-        self.assertEqual(read('俺は目を閉じた。')['目'][1], 'dictionary')
+        self.assertEqual(read('俺の目は青い。')['目'][1], 'dictionary')
 
     def test_phrases_jmdict_reads_one_way(self):
         # T360: each kanji token of a phrase JMdict reads one way takes its slice of that reading, not shown;
@@ -312,7 +312,10 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader()
         read = lambda text, hints=(): [(w.form, w.reading, w.source) for w in reader.read(text, hints)]
         self.assertIn(('歩', 'ほ', 'default'), read('彼は歩を進めた。'))
-        self.assertIn(('異', 'い', 'default'), read('異を唱える者'))
+        # T435: phrases in shown-idioms.tsv are shown (`rule`); a word already shown keeps its source
+        self.assertIn(('異', 'い', 'rule'), read('異を唱える者'))
+        self.assertIn(('首', 'くび', 'rule'), read('彼は首を傾げた。'))
+        self.assertIn(('目', 'め', 'only'), read('俺は目を閉じた。'))
         self.assertIn(('持す', 'じす', 'default'), read('満を持して登場した。'))
         self.assertIn(('頭', 'あたま', 'dictionary'), read('彼は頭を振った。'))
         self.assertIn(('甲斐', 'がい', 'dictionary'), read('からかい甲斐がある。'))
