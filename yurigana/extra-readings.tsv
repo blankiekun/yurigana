@@ -4,7 +4,10 @@
 # usual reading stays the usual one; Reader takes them from a book's ruby and from context rules, and a
 # form with one is never `only` (its own reading isn't sure). Evidence: ruby over the form in a 200-book sample of
 # training-author post-war library books (occurrences/authors), Sudachi's reading of bare occurrences
-# there, JMdict. No creative ruby (娘 こ, 他人 ひと, 理由 わけ), names, rendaku or pre-war readings.
+# there, JMdict. No creative ruby (娘 こ, 他人 ひと, 理由 わけ), names, rendaku or pre-war readings, but for 川
+# がわ (Sudachi splits it off a river's name: 利根|川). The rows from 川 on are JMdict readings of forms the list
+# reads one way, checked in 14,000 training-author books: ruby occurrences/authors, and of 30 bare occurrences
+# read `only` before (fewer when rarer), how many the list's reading gets wrong.
 # CC BY-SA 4.0 (checked against JMdict, EDRDG): see NOTICE.
 良い	いい	ruby 426/23 authors; both standard in bare text (plain DEV: Opus よい 4, いい 3), Sudachi's よい stays
 描く	かく	ruby 910 かく / 999 えがく in 2,500 books; JMdict; かく after 絵/漫画/イラスト… (rule)
@@ -33,3 +36,25 @@
 三つ目	みっつめ	the ordinal (三つ目の角): about 45 of 52 bare 三つ目 in 300 books (the rest eyes); ruby over it almost never (counted, not read)
 四つ目	よっつめ	the ordinal: 8 of 8 bare 四つ目 in 300 books
 お札	おふだ	ruby over お札 in training-author books (shrine charms: お札を貼る, 神社のお札); JMdict
+川	がわ	ruby 156/71; bare 6 of 30 wrong (rivers: 多摩川, 木曽川)
+刀	とう	ruby 164/50; bare 6 of 30 wrong (曲刀, 直刀, 一刀流)
+粉	こ	ruby 120/84 (身を粉に, 小麦粉); bare 2 of 30 wrong
+行き	ゆき	ruby 11/7; bare: most are destinations (宇都宮行き), ゆき and いき both standard
+手数	てかず	ruby 58/32; bare 18 of 30 are moves in a fight (手数で勝る); お手数 てすう
+言	こと	ruby 69/34; bare 7 of 30 wrong (二言三言, 片言)
+鬼	き	ruby 166/76; bare 6 of 30 wrong (復讐鬼, 巨鬼)
+乳	ち	ruby 47/16; bare 5 of 30 wrong (乳姉妹, 乳飲料)
+宝物	ほうもつ	ruby 88/53; bare 6 of 30 wrong (宝物庫, 寺の宝物)
+尽く	ずく	ruby 51/34; bare 3 of 6 wrong (至れり尽くせり: the verb)
+碑	ひ	ruby 49/22; bare 5 of 6 wrong (記念の碑 ひ)
+崖下	がけした	ruby 144/86; bare 6 of 6 wrong (the list has がいか only)
+世帯	しょたい	ruby 11/5; bare 3 of 12 wrong (世帯を持つ)
+井	せい	ruby 3/3; bare 4 of 6 wrong (油井, 井戸 split)
+鋒	ほこ	ruby 19/15; bare 3 of 4 wrong
+倦む	うむ	ruby 340/196; bare 3 of 4 wrong (倦むことを知らない)
+箕	き	ruby 3/3; bare 3 of 4 wrong (箕帚)
+雪洞	せつどう	ruby 8/6; bare 1 of 3 wrong (雪洞を掘る)
+蒼竜	そうりゅう	ruby 6/4; JMdict; the list has そうりょう only
+蒼龍	そうりゅう	ruby 8/4; JMdict; the list has そうりょう only
+蛟竜	こうりゅう	ruby 7/5; JMdict; the list has こうりょう only
+蛟龍	こうりゅう	ruby 8/3; JMdict; the list has こうりょう only
