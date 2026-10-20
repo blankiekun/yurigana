@@ -27,12 +27,13 @@ reading wins:
    (人《ひと》気《け》 gives ひとけ); ruby over the kanji stem of an inflected word, with the
    lemma's okurigana added (行《い》った is 行く read いく); ruby set in large kana, as older
    books do (いつしよ gives いっしょ).
-2. **A context rule** (`context_reading`): about 55 forms whose reading depends on the
+2. **A context rule** (`context_reading`): about 65 forms whose reading depends on the
    words around them (人気, 今日, 明日, 上手, 市場, 金, 方, 間, 何, 今, 外, 気に入る いる, 尼君 ぎみ, カナダ人 じん,
    表に出る おもて, 館の主 あるじ, 赤ん坊を抱く だく, ローズ家 け, 佐藤家 け (after Sudachi's surname tag), 侯爵家 け,
    すぐ側 そば, この後 あと, この前 まえ, その場に留まる とどまる, 感情を露にする あらわ, 鍋の素 もと, 間に割って入る あいだ,
    上手に じょうず, 上手と下手 かみて/しもて, あのお方 かた, 教えてくださった方 かた, 、後に知る のち, しかる後 のち,
-   表世界 おもて, 主の命令 あるじ, 陛下の下へ もと, 上の階 かい, いい画だ え …), in
+   表世界 おもて, 主の命令 あるじ, 陛下の下へ もと, 上の階 かい, いい画だ え, 目を擦る こする,
+   攻撃を弾く はじく, 紐を解く ほどく, 涙を堪える こらえる, 被害を被る こうむる, ため息を吐く つく, 辛くなる つらい …), in
    `readings._CONTEXT_RULES`.
    人気がない is にんき as often as ひとけ, so it is ひとけ only with a cue (人気がない場所,
    周囲に人気がない); この店は人気がない stays にんき. 何 is なに before a counter kanji that
@@ -205,7 +206,8 @@ The word lists the rules look for are shared, named classes in `yurigana/cues.py
 (ほんの/最初の: 十分 as minutes, 一行 いちぎょう), `SOCIETY`, `ISSUE` and `ACTIVITY` (今日 こんにち, 明日, 目下 もっか),
 `PRAISE` and `CUSTOMER_ACT` (方 かた), `OCCUPATION` (気質 かたぎ), `COUNTER` (何 なん), `DISH` (辛い からい),
 `PRODUCE` (市場 いちば), `VESSEL` (縁 ふち), `OPEN_HOURS` (開く あく),
-`TRAFFIC` (空く すく), `HALTED` (止める とめる), `HUGGED` (抱く だく), `SERVANT` (主 あるじ).
+`TRAFFIC` (空く すく), `HALTED` (止める とめる), `HUGGED` (抱く だく), `SERVANT` (主 あるじ), `PLAYED` (弾く ひく),
+`TIED` (解く ほどく), `SUFFERED` (被る こうむる).
 A class is a frozenset of plain words; `cues.words(...)` turns classes (and single words) into a
 regex alternation for a rule:
 
