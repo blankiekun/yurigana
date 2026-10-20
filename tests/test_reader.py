@@ -241,6 +241,13 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('先', 'さき'), ('先', 'せん')})
         self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
 
+    def test_okurigana_variant(self):
+        # the list reads 幼ない only いとけない; Sudachi reads it おさない, the reading of its normalized form 幼い
+        reader = Reader(known={('幼ない', 'いとけない'), ('幼い', 'おさない'), ('幼い', 'いとけない')})
+        for text in ('まだ幼なくて', '幼ない子供だった。'):
+            self.assertEqual(reader.read(text)[0][2:5], ('幼ない', 'おさない', 'dictionary'), text)
+        self.assertIn('幼[おさ]なく', reader.furigana('まだ幼なくて'))
+
     def test_defaults(self):
         hints = []
         text = aozora_text('夜の公園は人気がなく、静かだった。｜宇宙《そら》を見る。\n学校へ行《い》った。', None, hints)
