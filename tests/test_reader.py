@@ -77,6 +77,7 @@ class ReaderTest(unittest.TestCase):
         text = aozora_text('宇宙《うちゅう》の人気のない廊下。\n人家がない。\n人家。', None, hints)
         reader = self.reader()
         reader.known = reader.known | {('人家', 'ひとけ'), ('人家', 'にんき')}  # the toy model's readings
+        reader.jmdict = {**reader.jmdict, '人家': ['じんか', 'にんき']}  # the toy tokenizer's reading isn't JMdict's
         words = reader.read(text, hints)
         self.assertEqual(words[0], Word(0, 2, '宇宙', 'うちゅう', 'ruby', 1.0))
         self.assertEqual(words[1][3:5], ('ひとけ', 'rule'))
@@ -266,6 +267,25 @@ class SudachiReaderTest(unittest.TestCase):
         for text in ('まだ幼なくて', '幼ない子供だった。'):
             self.assertEqual(reader.read(text)[0][2:5], ('幼ない', 'おさない', 'dictionary'), text)
         self.assertIn('幼[おさ]なく', reader.furigana('まだ幼なくて'))
+
+    def test_unlisted_sudachi_reading(self):
+        # Sudachi's ひょうしつ is neither listed nor JMdict's: the list's top reading, not shown
+        reader = Reader(known={('氷室', 'ひむろ'): 5, ('上辺', 'うわべ'): 5, ('国', 'くに'): 5})
+        self.assertEqual(reader.read('氷室に入る。')[0][2:5], ('氷室', 'ひむろ', 'dictionary'))
+        # JMdict reads it じょうへん too: the list lacks a reading, Sudachi's stays
+        self.assertEqual(reader.read('三角形の上辺を測る。')[1][3], 'じょうへん')
+        # the potential of a listed verb (弾ける ひける, 弾く ひく) and another form's reading (無性 むしょう, 無償) stay
+        reader = Reader(known={('弾ける', 'はじける'): 5, ('弾く', 'ひく'): 5, ('無性', 'むせい'): 5, ('無償', 'むしょう'): 5})
+        self.assertEqual(next(w for w in reader.read('ピアノが弾ける。') if w.form == '弾ける').reading, 'ひける')
+        self.assertEqual(next(w for w in reader.read('無性に腹が立つ。') if w.form == '無性').reading, 'むしょう')
+        # a する verb's godan form (徹す てっす, 徹する) stays
+        reader = Reader(known={('徹す', 'とおす'): 5, ('徹する', 'てっする'): 5})
+        self.assertEqual(next(w for w in reader.read('眼光紙背に徹す。') if w.form == '徹す').reading, 'てっす')
+        reader = Reader(known={('買う', 'かう'): 5})  # Kansai 買うて is こうて
+        self.assertEqual(next(w for w in reader.read('パン買うてくるわ。') if w.form == '買う').reading, 'こう')
+        reader = Reader(known={('国', 'くに'): 5})
+        # one-character forms keep Sudachi's (国 after a name is こく)
+        self.assertNotEqual(next(w for w in reader.read('バシュルク国は広い。') if w.form == '国').reading, 'くに')
 
     def test_defaults(self):
         hints = []
