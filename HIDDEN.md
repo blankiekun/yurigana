@@ -37,7 +37,6 @@ to "Shown again".
 | 蛟龍 | こうりょう (was `only`) | こうりゅう, こうりょう | `extra-readings.tsv`: never `only` (T151) | ruby 6-8 each; the list has りょう only | T230 (#84) | a rule for the reading the list lacks |
 | 殿 | でん (was `dictionary`, not shown) | どの after a name or title (村長殿); でん after a number (一殿) | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 8 fixed; ruby where it fires 956/17, 97% | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 軽々 | けいけい (was `dictionary`, not shown) | かるがる | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 6 fixed; bare 41 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
-| 高名 | こうみょう (was `dictionary`, not shown) | こうめい | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 6 fixed; bare 29 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 樽 | そん (was `dictionary`, not shown) | たる on its own | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 3 fixed; bare 17 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 宴 | えん (was `dictionary`, not shown) | うたげ on its own | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 5 fixed; bare 89 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 身体中 | しんたいじゅう (was `only`) | からだじゅう | `readings.HAND_DEFAULTS`: the default's reading, source `default` | bare 35 /208 books; extra-readings.tsv からだじゅう | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
@@ -60,7 +59,6 @@ to "Shown again".
 | 強 | きょう (was `only`, wrong there) before a small ェ/ぇ | つえ (強ェ) | `Reader._adjectives`: Sudachi's 強え, which the list lacks: `dictionary` | bare: 4, all right after; ruby 23 of 24 つえ (one つぇ) | T281 | list readings for the slang form |
 | 弱 | じゃく (was `only`, wrong there) before a small ェ/ぇ | よえ (弱ぇ) | `Reader._adjectives`: Sudachi's 弱え: `dictionary` | bare: 3, all right after; ruby 9 of 9 | T281 | list readings for the slang form |
 | 臭 | しゅう (was `only`, wrong there) before a small ェ/ぇ | くせ (面倒臭ぇ) | `Reader._adjectives`: Sudachi's 臭え: `dictionary` | bare: 2, all right after; ruby 8 of 8 | T281 | list readings for the slang form |
-| 宿す | しゅくする (was `only` as Sudachi's 宿する, wrong) | やどす (瞳に宿し) | `WRONG_LEMMA` 宿する → 宿す, whose listed しゅくす is a hand default to やどす: `default` | bare: 7, all やどす | T280 | `only` for 宿す (the list's しゅくす is rare and old) |
 | 何時頃, 何時ごろ | いつごろ (was `only`) | いつごろ or なんじごろ (時刻は何時頃: なんじごろ) | `extra-readings.tsv` なんじごろ: not `only`, Sudachi's いつごろ, `dictionary` | bare: 25 in 300 training-author books, about half なんじごろ by hand; ruby いつごろ 2, なんどきごろ 1 | T292 | a なんじごろ rule after 今/午前/午後/夜/時刻は, いつごろ where the text asks for a date |
 | 何 | なに (was `rule`, wrong there) before 玉, 作, 針, か国 | なん (何作目, 何か国語) | `readings._CONTEXT_RULES['何']`: the なに rule doesn't fire, Sudachi's なん, `dictionary` | bare: 1 in 300 books; ruby lines 11, all なん by hand | T291 | なん as a shown rule before counters |
 | 行く方, 行く行く | ゆくかた, ゆくゆく (was `only`, wrong there) before a particle or !/、 | いく + ほう, いく + いく | `readings.NOT_JOINED`: read as their tokens, 行く Sudachi's いく, `dictionary` | bare: 9 in 300 books, all いく by hand; ruby 行=い 1 of 1 | T290 | 行く いく as a rule before 方が/行く |
@@ -72,3 +70,5 @@ to "Shown again".
 |---|---|---|---|
 | 数百 | すうひゃく | `readings.SHOWN_DEFAULTS` (source `rule`): bare 183 in 300 training-author books, 12 of 12 sampled すうひゃく | T320 |
 | 敵同士 | てきどうし | `readings.SHOWN_DEFAULTS` (source `rule`): ruby 3 of 3, bare 24 in 300 books, 6 of 6 sampled right | T320 |
+| 高名 | こうめい | `readings.SHOWN_DEFAULTS` (source `rule`): ruby 1 of 1, bare 43 in 300 books, 12 of 12 sampled right | T320 |
+| 宿す | やどす | `readings.SHOWN_DEFAULTS` (source `rule`, conjugated too): ruby 3 of 3, bare 14 in 300 books, 12 of 12 sampled right | T320 |
