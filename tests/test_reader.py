@@ -1,5 +1,9 @@
 """Tests for yurigana.Reader with a toy tokenizer (and Sudachi when installed)."""
+import json
+import os
+import tempfile
 import unittest
+import zipfile
 
 from yurigana import Reader, Word, aozora_text
 from yurigana.reader import PlainReadings, rendaku
@@ -268,6 +272,27 @@ class SudachiReaderTest(unittest.TestCase):
         # nor a noun with older okurigana (先き): its surface is the lemma
         reader = Reader(known={('先', 'さき'), ('先', 'せん')})
         self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
+
+    def test_term_dictionary(self):
+        # a made-up Yomitan term dictionary: words the list and JMdict lack (source 'terms', never shown)
+        path = os.path.join(tempfile.mkdtemp(), 'terms.zip')
+        rows = [['女剣豪', 'おんなけんごう'], ['女騎士団', 'おんなきしだん'], ['鬩霆', 'げきてい'], ['剣豪', 'つるぎ']]
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr('index.json', json.dumps({'title': 'test', 'format': 3}))
+            archive.writestr('term_bank_1.json', json.dumps([row + ['', '', 0, [], 0, ''] for row in rows], ensure_ascii=False))
+        known = {('剣豪', 'けんごう'), ('女', 'おんな'), ('女', 'じょ'), ('騎士', 'きし')}
+        reader = Reader(known=known, terms=path)
+        self.assertNotIn('剣豪', reader.terms)  # listed
+        # a compound Sudachi splits (女|剣豪 じょけんごう): one Word with the dictionary's reading
+        self.assertIn(('女剣豪', 'おんなけんごう', 'terms', None), [w[2:] for w in reader.read('女剣豪が来た。')])
+        # one the tokens already read that way stays split (word lists keep their rows)
+        self.assertNotIn('女騎士団', [w.form for w in reader.read('女騎士団が来た。')])
+        # a word Sudachi has no reading for, and ruby over it the dictionary gives (other ruby isn't taken)
+        self.assertIn(('鬩霆', 'げきてい', 'terms', None), [w[2:] for w in reader.read('彼は鬩霆した。')])
+        self.assertIn(('鬩霆', 'げきてい', 'terms', None), [w[2:] for w in reader.read('彼は鬩霆した。', [(2, 4, 'げきてい')])])
+        self.assertEqual(reader.read('彼は鬩霆した。', [(2, 4, 'かみなり')])[1].reading, 'げきてい')
+        # without dictionaries, nothing changes
+        self.assertNotIn('terms', [w.source for w in Reader(known=known).read('女剣豪が鬩霆した。')])
 
     def test_dominant_readings(self):
         # dominant-readings.tsv: a form the list reads several ways is shown where Sudachi reads it the dominant way

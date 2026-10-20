@@ -1,8 +1,10 @@
 """Readings from a rank-based Yomitan frequency dictionary (e.g. Jiten's list,
-jiten.moe/frequency-dictionaries): the `known` set of (form, reading) pairs."""
+jiten.moe/frequency-dictionaries): the `known` set of (form, reading) pairs; and from Yomitan term
+dictionaries you supply (term_readings)."""
 import json
 import math
 import os
+import re
 import zipfile
 
 # Jiten's list is one 55 MB bank; anything far bigger is likely a deflate bomb.
@@ -82,3 +84,53 @@ def preferred(ranks: dict, order=()) -> tuple:
     tied = [r for r, rank in ranks.items() if rank == top]
     best = tied[0] if len(tied) == 1 else next((r for r in order if r in tied), None)
     return best, min((rank for rank in ranks.values() if rank != top), default=math.inf)
+
+
+_KANJI = '㐀-䶿一-鿿豈-﫿々〆ヶ'
+_TERM = re.compile(f'^[{_KANJI}ぁ-ゖァ-ヺー]+$')
+_HAS_KANJI = re.compile('[㐀-䶿一-鿿豈-﫿]')
+_READING = re.compile('^[ぁ-ゖァ-ヺー]+$')
+
+
+def _hiragana(text: str) -> str:
+    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヶ' else c for c in text)
+
+
+def _aligned(term: str, reading: str) -> bool:
+    """Whether `reading` fits `term`: its kana as written (either script) and 1 to 5 hiragana per kanji
+    (an entry whose reading spells something else, or puts katakana under kanji, is noise)."""
+    pattern = ''
+    for run in re.findall(f'[{_KANJI}]+|[^{_KANJI}]', term):
+        if _HAS_KANJI.match(run) or run[0] in '々〆ヶ':
+            pattern += '[ぁ-ゖー]{1,%d}' % (5 * len(run))
+        elif run == 'ー':
+            pattern += '[ーぁあいうえおっ]'
+        else:
+            h = _hiragana(run)
+            pattern += '[' + h + chr(ord(h) + 0x60) + ']' if 'ぁ' <= h <= 'ゖ' else re.escape(run)
+    return bool(re.fullmatch(pattern, reading))
+
+
+def term_readings(path: str) -> dict:
+    """{term: its readings in hiragana, in the dictionary's order} from a Yomitan term dictionary
+    (term_bank_*.json: [term, reading, ...] rows), for terms with kanji. Cleaned for user-made
+    dictionaries: a term or reading with anything but kanji and kana (qualifiers in brackets, Latin,
+    digits, spaces), a reading with または/もしくは/あるいは in it (two readings in one), or one that doesn't fit
+    the term (_aligned), is left out."""
+    out = {}
+    with zipfile.ZipFile(path) as archive:
+        _read(archive, 'index.json')  # not a Yomitan dictionary without one
+        for name in archive.namelist():
+            if not os.path.basename(name).startswith('term_bank_'):
+                continue
+            for row in json.loads(_read(archive, name)):
+                term, reading = row[0], row[1] or row[0]
+                if (not isinstance(term, str) or not isinstance(reading, str) or not _TERM.match(term)
+                        or not _HAS_KANJI.search(term) or not _READING.match(reading)
+                        or re.search('または|もしくは|あるいは', reading) and reading not in ('または', 'もしくは', 'あるいは')
+                        or not _aligned(term, reading)):
+                    continue
+                readings = out.setdefault(term, [])
+                if _hiragana(reading) not in readings:
+                    readings.append(_hiragana(reading))
+    return out

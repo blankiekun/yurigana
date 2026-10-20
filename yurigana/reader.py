@@ -12,7 +12,7 @@ from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
-from .yomitan import dominant_readings, extra_readings, preferred
+from .yomitan import dominant_readings, extra_readings, preferred, term_readings
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
@@ -72,7 +72,8 @@ class Word(NamedTuple):
     form: str  # dictionary form (行った: 行く)
     reading: str | None  # hiragana, of the dictionary form; None when nothing gives one
     source: str  # 'ruby', 'rule', 'model', 'only' (the list has one reading), 'default', 'dictionary' (Sudachi),
-    # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`)
+    # 'book' (a name's ruby earlier in the book, see Reader.read's `carry`), 'terms' (a term dictionary you
+    # supplied, Reader's `terms`, for a word the list and JMdict lack)
     # or 'counter' (a number + counter span, 三本, over the tokens' own Words, and the counter in it)
     certainty: float | None  # see docs/how-it-works.md; None when unknown
 
@@ -215,6 +216,15 @@ class PlainReadings:
         return match(0, 0)
 
 
+class _TermPairs:
+    """(form, reading) pairs of Reader.terms, as a `known` for ruby_reading."""
+    def __init__(self, terms):
+        self.terms = terms
+
+    def __contains__(self, item):
+        return item[1] in self.terms.get(item[0], ())
+
+
 class Reader:
     """Readings of kanji words in context. The first that gives one wins: the book's ruby
     (`hints`), a context rule, the reading model, then Sudachi's dictionary reading.
@@ -224,9 +234,13 @@ class Reader:
         jmdict-pairs.json.gz), and ruby may also be a plain reading of its kanji (PlainReadings).
     tables: reading-model tables built from your own library, tried before the public one;
         missing files are skipped.
-    tokenizer: anything with tokens(text) like SudachiTokenizer (the default)."""
+    tokenizer: anything with tokens(text) like SudachiTokenizer (the default).
+    terms: paths of Yomitan term dictionaries you supply (a str is one), for words of 2+ characters the
+        list and JMdict both lack: ruby over one, a reading where Sudachi has none, and compounds
+        Sudachi splits, where Sudachi has no reading or reads the compound otherwise (source 'terms', never
+        shown). Earlier dictionaries' readings come first."""
 
-    def __init__(self, known=None, tables=(), tokenizer=None):
+    def __init__(self, known=None, tables=(), tokenizer=None, terms=()):
         if isinstance(known, str):
             from .yomitan import reading_ranks
             known = reading_ranks(known)
@@ -290,6 +304,18 @@ class Reader:
                         self.ranked[form] = first
         self._jmdict_all = jmdict
         self._plain_check = self.plain or PlainReadings()
+        # Term dictionaries' readings of forms the list and JMdict lack, those the kanji spell (PlainReadings) or
+        # that have a kanji it doesn't know: not gikun (a user-made dictionary's flavour reading,
+        # a loanword over kanji)
+        self.terms = {}
+        for path in [terms] if isinstance(terms, str) else terms:
+            for form, readings in term_readings(path).items():
+                if len(form) > 1 and form not in self.readings and form not in jmdict:
+                    unknown = any(is_kanji(c) and c not in self._plain_check.readings for c in form)
+                    kept = [r for r in readings if r not in self.terms.get(form, ()) and (unknown or (form, r) in self._plain_check)]
+                    if kept:
+                        self.terms[form] = self.terms.get(form, []) + kept
+        self._term_pairs = _TermPairs(self.terms)
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.dominant = dominant_readings()
         self.ateji = ateji_readings()
@@ -474,6 +500,11 @@ class Reader:
             joined = not reading and self._joined(span, form)
             if joined:
                 reading = joined
+            term = not reading and len(form) > 2 and span[-1].surface() == span[-1].dictionary_form() and not any(
+                t.part_of_speech()[0] in ('動詞', '形容詞') or _NUMERAL.match(t.surface()) for t in span) and self._term_reading(
+                form, _long_vowels(''.join(to_hiragana(t.reading_form()) for t in span)))
+            if term:
+                reading = term
             if reading and self._particle_inserted(span, reading):
                 reading = None  # お腹|空く is おなか|すく, not おなかがすく: が isn't in the text
             if reading:
@@ -482,6 +513,8 @@ class Reader:
                     return i + n, Word(begin, end, form, rule, 'rule', 1.0)
                 if joined:
                     return i + n, Word(begin, end, form, reading, 'only' if form in self.jmdict_one else 'default', None)
+                if term:
+                    return i + n, Word(begin, end, form, reading, 'terms', None)
                 # a joined form JMdict lacks is mostly a name or noise (利根川 さねがわ): not shown; over a number
                 # the tokens can't spell (三日後 みひりあ), noise: not taken (names split into words, 沙|倉 さくら, stay)
                 if form not in self.jmdict and any(t.part_of_speech()[1] == '数詞' for t in span) and not _spelled(span, reading):
@@ -635,6 +668,14 @@ class Reader:
             return None
         return reading
 
+    def _term_reading(self, form, sudachi) -> str | None:
+        """The term dictionaries' reading of a form the list and JMdict lack (Reader.terms), where it isn't
+        Sudachi's: their one reading, or the first when Sudachi has none (a word it doesn't know)."""
+        readings = self.terms.get(form)
+        if not readings or sudachi and _spelling(sudachi) in map(_spelling, readings):
+            return None
+        return readings[0] if len(readings) == 1 or not (sudachi and _KANA_READING.match(sudachi)) else None
+
     def _particle_inserted(self, span, reading: str) -> bool:
         """The reading is the tokens' readings with a particle the text doesn't write between two
         of them (お腹|空く: おなか が すく; JMdict lists such phrases: お腹空く おなかがすく). Not a
@@ -656,7 +697,7 @@ class Reader:
             return reading, source, certainty
         if reading and not _KANA_READING.match(reading):
             return None, source, None
-        if reading and (form, reading) not in self.known:
+        if reading and (form, reading) not in self.known and (form, reading) not in self._term_pairs:
             certainty = 0.0
         return reading, source, certainty
 
@@ -714,6 +755,9 @@ class Reader:
                                or self.plain and ruby_reading(hint_at, begin, surface, form, self.plain))
         if reading:
             return reading, 'ruby', 1.0
+        reading = hint_at and form in self.terms and ruby_reading(hint_at, begin, surface, form, self._term_pairs)
+        if reading:
+            return reading, 'terms', None
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (_CONTEXT_RULES)
@@ -797,6 +841,9 @@ class Reader:
                 return self._dominant(text, tokens[i], form, reading)
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
+            term = not (reading and _KANA_READING.match(reading)) and self._term_reading(form, None)
+            if term and surface_reading(surface, form, term, ''):  # Sudachi has none (嘲笑っ): the term dictionaries'
+                return term, 'terms', None
             if reading:
                 return reading, 'dictionary', None
         default, listed = DEFAULT_READINGS.get((form, sudachi)), True
@@ -812,6 +859,9 @@ class Reader:
         reading = self._unlisted_sudachi(tokens[i], form, sudachi)
         if reading:
             return reading, 'dictionary', None
+        reading = surface == form and not (sudachi and _KANA_READING.match(sudachi)) and self._term_reading(form, None)
+        if reading:
+            return reading, 'terms', None
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]

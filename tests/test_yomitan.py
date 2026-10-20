@@ -7,7 +7,7 @@ import zipfile
 
 import math
 
-from yurigana.yomitan import extra_readings, preferred, reading_ranks, with_extra_readings
+from yurigana.yomitan import extra_readings, preferred, reading_ranks, term_readings, with_extra_readings
 
 
 class YomitanTest(unittest.TestCase):
@@ -24,6 +24,21 @@ class YomitanTest(unittest.TestCase):
             archive.writestr('index.json', json.dumps({'frequencyMode': 'occurrence-based'}))
         with self.assertRaises(ValueError):
             reading_ranks(path)
+
+    def test_term_readings(self):
+        # a made-up term dictionary with the noise of user-made ones (qualifiers, Latin, two readings in one,
+        # readings that don't fit the term, katakana under kanji)
+        path = os.path.join(tempfile.mkdtemp(), 'terms.zip')
+        rows = [['星喰竜', 'ほしくいりゅう'], ['星喰竜', 'ホシクイリュウ'], ['星喰竜', 'せいしょくりゅう'],
+                ['月読ガールズ', 'つくよみがーるず'], ['月読ガールズ', 'つガールズくよみがーるず'],
+                ['星喰竜(ゲーム)', 'ほしくいりゅう'], ['Ｘ星', 'えっくすぼし'], ['星喰', 'ほしくいまたはせいしょく'],
+                ['又は', 'または'], ['竜', 'りゅうのことをさすことばでありとてもながいよみ'], ['竜', 'ドラゴン'],
+                ['ほしくい', 'ほしくい'], ['夜空', '']]
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr('index.json', json.dumps({'title': 'test', 'format': 3}))
+            archive.writestr('term_bank_1.json', json.dumps([row + ['', '', 0, [], 0, ''] for row in rows], ensure_ascii=False))
+        self.assertEqual(term_readings(path), {'星喰竜': ['ほしくいりゅう', 'せいしょくりゅう'], '月読ガールズ': ['つくよみがーるず'],
+                                               '又は': ['または']})
 
     def test_extra_readings_rank_after_the_terms_own(self):
         ranks = {('描く', 'えがく'): 949, ('良い', 'よい'): 131, ('良い', 'えい'): 857}
