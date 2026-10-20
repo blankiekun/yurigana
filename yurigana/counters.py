@@ -88,9 +88,16 @@ _BU_BEFORE = re.compile(r'(?:[割寸両]|[〇一二三四五六七八九十0-9�
 _BU_AFTER = re.compile(r'と?[〇一二三四五六七八九十0-9０-９]+分|[咲目]|通り|どおり')
 # 十分 on its own (no number before it) is じゅうぶん, "enough", unless a cue says minutes (三時十分,
 # あと十分, 十分後, 十分ほど); readings._CONTEXT_RULES uses them too, where Sudachi keeps 十分 one token.
-TEN_MINUTES_BEFORE = '(?:' + words(DURATION_BEFORE) + r'|[0-9０-９〇一二三四五六七八九十何]時)$'
-TEN_MINUTES_AFTER = ('(?:' + words(DURATION_AFTER) + r'|前(?!後|進)|間(?!に合|にあ|違|ちが)|あまり(?!に|の)'
-                     r'|[0-9０-９〇一二三四五六七八九]+秒|で(?:着|終|戻|帰|出|始|済|行|来))')
+# Also a stretch of time going by (十分もしないうちに, 十分が過ぎ, 十分だけ待って, 十分休憩), a trip's length
+# (歩いて十分, 車で十分) and a time next to it (二時間十分, 五分か十分か).
+TEN_MINUTES_BEFORE = ('(?:' + words(DURATION_BEFORE) + r'|[0-9０-９〇零一二三四五六七八九十何]時|時間と?'
+                      r'|(?:歩いて|徒歩|車で|バスで|電車で|自転車で|タクシーで|待つこと|歩くこと|走ること|かれこれ|開始)'
+                      r'|[0-9０-９〇一二三四五六七八九十]分(?:か|や|と)、?)$')
+TEN_MINUTES_AFTER = ('(?:' + words(DURATION_AFTER) + r'|前(?!後|進)|まえ|間(?!に合|にあ|違|ちが)|あまり(?!に|の)'
+                     r'|[0-9０-９〇一二三四五六七八九]+秒|で(?:着|終|戻|帰|出|始|済|行|来)'
+                     r'|も(?:しな|せず|な[いく]|経|た[たっつ]|かか|掛|すれ|すると|続|走|歩|待|早|遅|過)'
+                     r'|[はが](?:経|過|た[たっつ]|かか|掛)|だけ(?!ど|れど)|ちょっと|頃|ごろ|休憩|の(?:間|休憩|遅|距離|道)'
+                     r'|か(?:[二三四五]十|そこら)|から[二三四五]?十|以上は?(?:かか|掛|歩|走|経|待)|も横)')
 _TEN_MINUTES = (re.compile(TEN_MINUTES_BEFORE), re.compile(TEN_MINUTES_AFTER))
 
 
@@ -198,6 +205,8 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         elements = _elements(value, '一千' in number)
         kana, kind = ''.join(k for k, _ in elements), elements[-1][1]
     final = _KANA.get(kind) if isinstance(kind, int) and kind < 10 else None
+    if counter == '日' and number == '一' and re.match(r'の長(?![さいくけかめ所男女子期官])', after):
+        return 'いち', 'じつ'  # 一日の長 (a slight edge): いちじつ
     if counter == '日' and sudachi in ('にち', 'か') or counter == '日間' and sudachi in ('にちかん', 'かかん'):
         tail = 'かん' if counter == '日間' else ''
         if value is None:
@@ -217,8 +226,8 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
     if counter == '分' and number == '十' and not NUMERAL.search(before[-1:]) \
             and not (_TEN_MINUTES[0].search(before) or _TEN_MINUTES[1].match(after)):
         return 'じゅう', 'ぶん'  # 十分 "enough", where Sudachi split it (十分には)
-    # a fraction (三分の一), unless の goes on with something else (徒歩１０分のところ: ふん; 十分の理解 is じゅうぶん)
-    if counter == '分' and sudachi == 'ぶん' and (number == '十' or after[:1] != 'の' or NUMERAL.match(after[1:2])):
+    # a fraction (三分の一), unless の goes on with something else (徒歩１０分のところ: ふん; 十分の理解 never gets here)
+    if counter == '分' and sudachi == 'ぶん' and (after[:1] != 'の' or NUMERAL.match(after[1:2])):
         return kana, 'ぶん'
     if counter == '人' and value in (1, 2):
         return ('ひとり', 'ふたり')[value - 1], None

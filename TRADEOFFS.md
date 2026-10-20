@@ -18,25 +18,22 @@ rule. **Needs work**: the way out says what would fix it.
 | T1 | 何 defaults to なに/なん by the next word; なんか read なにか | #1 | ~3 (何重 なにじゅう). Needs work | なんか/なにか is often the transcriber's choice |
 | T2 | Conjugated words take Sudachi's surface reading when it fits the list, Sudachi's lemma included (行ったり来たり 行う, 通ってる 通る); not `only` where two listed verbs share the っ-form (T152); hand defaults apply (擦った こする) | #4, #75 | shown ~0; word list ~10 lemma errors on dev (the rest are T154's choices). Needs work | the lemma from context (たり来, に通う) |
 | T3 | Compounds are joined only when the list (or JMdict, T90) reads them one way; phrases with particles or ending in kana never are | #9 | small, unmeasured (身体中 しんたいじゅう for からだじゅう). Needs work | a cleaner list; JMdict priority tags (T91) |
-| T5 | 下 もと only after listed nouns (`cues.ABSTRACT`, `SUPERIOR`) and a person + の下へ/に + going or serving (T82) | #10, #62 | ~0.3 (自分の下で). Needs work | more nouns from modern text; a POS cue (監視の下に) was tried in #46 and failed |
+| T5 | 下 もと only after listed nouns (`cues.ABSTRACT`, `SUPERIOR`) and a person (pronoun, name, さん, 人/者, 仲間) + の下へ/に/で + going, serving, staying or coming near (T82) | #10, #62, #76 | ~0.1 (彼の下で, 使節団の下に戻る). Needs work | more nouns from modern text; a POS cue (監視の下に) was tried in #46 and failed |
 | T6 | 白髪 defaults to しらが | #10 | <0.1 (はくはつ in narration). Accept | a literary cue |
 | T8 | 日本 defaults to にほん (owner-approved) | #11 | ~0.5, both standard. Accept | names keep にっぽん |
 | T9 | 一歩 reads いっぽ | #15 | ~0. Accept | – |
 | T11 | 下手 しもて only with stage/river cues (T61); へた elsewhere | #15 | ~0. Accept | – |
 | T12 | 方 かた only by person cues (担当の方, お方, この方は, after an honorific verb, `cues.PERSON`) | #16, #58 | ~4 (付き合う方が早い かた). Needs work | 方 after an attributive verb or adjective (早い方 ほう, 優しい方 かた) needs a context model |
 | T13 | 後 うしろ and 中 うち have no rule; 後 のち only with clause cues (T55) | #16 | ~1. Needs work | a context model |
-| T14 | Defaults fire on a token Sudachi split off a compound or name (委託金 かね) | #17 | ~0.2. Needs work | a split-token guard |
 | T17 | Left out of #17: 鬼 おに, 気味 ぎみ | #17 | ~0.05 (おされ気味 きみ). Accept | 気味 after a passive stem |
 | T18 | A number + counter token is read as a counter even in a name (三間) | #18 | ~0. Accept | the book's ruby wins |
 | T21 | A counter span Word overlaps its own tokens (三本 over 三 + 本) | #3 | none (word lists skip it) | – |
-| T22 | A bare 十分 with no minutes cue reads じゅうぶん | #22 | ~0.7 (十分待ち). Needs work | more minute cues (`counters.TEN_MINUTES_*`) |
-| T23 | 分 ぶ (a tenth) only with cues: 五分五分, after 割/寸/両, before 咲き/目/通り | #15 | ~0.1. Accept | another N分 nearby, no time words |
+| T23 | 分 ぶ (a tenth) only with cues: 五分五分, after 割/寸/両, before 咲き/目/通り; the odds (分が悪い, 私に分がある) since #76 | #15, #76 | ~0.1. Accept | another N分 nearby, no time words |
 | T24 | A split compound's second part is voiced when the list's compounds voice that tail ≥ 4 in 5 (小屋 ごや) | #21 | unmeasured (B1 8 broken). Needs work | per-pair evidence; non-noun tails |
 | T25 | A Sudachi reading one voicing from a 3+-character word's only listed reading takes the listed one (投票所 しょ) | #21 | 0. Accept | – (both standard) |
 | T26 | 一 + one token joins when the list's top reading starts with ひと/いっ (一思い, 一重 ひとえ) | #24 | ~0. Accept | per-form cues; UniDic word origin for unlisted 一冬 |
-| T27 | 一日 is いちにち; ついたち only after a month cue | #24, #55 | <0.2. Accept | more date cues |
 | T28 | 一時 has no rule (いちじ / いっとき / ひととき) | #24 | ~0.3. Needs work | a context model |
-| T30 | 金 defaults to かね when no きん cue fires | #28 | ~0.5 (金の卵). Needs work | the split-token guard (T14); more metal cues |
+| T30 | 金 defaults to かね when no きん cue fires (cues: metals, colours and things made of gold: 金の瞳/斧/縁取り, 白と金) | #28, #76 | ~0.1 (金の豆, 金 as an element). Needs work | more things made of gold |
 | T31 | 外 is a rule form (ほか), so its model no longer answers | #28 | ~0. Accept | retrain 外 on what no rule reads |
 | T33 | A conjugated word the list lacks takes Sudachi's surface reading (泳げ およげる) | #23 | none shown; rare in word lists. Accept | per-form lemma checks (往っ さる) |
 | T34 | default-readings.tsv: pre-war NDL nominates, modern text decides (身体 からだ, 時 とき, 実 み, 下 した; 咽喉, 空地 by hand, T83) | #25 | ~0. Accept | modern evidence per pair to admit more |
@@ -51,7 +48,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T44 | The public table was trained on the NDL test authors' ruby and pruned on Tatoeba half b | #47 | none (evaluation leakage) | the shared-model rebuild |
 | T45 | Hand defaults 擦る こする (conjugated forms too: T153), 素 す (from Opus's readings of post-war text) | #49 | ~0.3 (背中を擦った さする: T70), not shown. Needs work | a context rule for 素 もと (origin) |
 | T47 | 抱く だく only after a held thing or person + を, or before たい with no を; いだく elsewhere | #50, #63 | ~0.7 in word lists, not shown (Sudachi's). Accept: no passive cue reaches 90% in books' ruby (Xに抱かれ だく 162 / いだく 75; 腕に 16/16) | – |
-| T48 | By cue: 側 そば, 表 おもて (T81), 主 あるじ (T82), 間 ま, 家 け (T60), この後 あと, 留まる とどまる | #50 | ~0.3 (部屋の主, Xの側について). Needs work | side-of cues (味方の側 がわ) |
+| T48 | By cue: 側 そば, 表 おもて (T81), 主 あるじ (T82), 間 ま, 家 け (T60), この後 あと, 留まる とどまる | #50 | ~0.3 before, mostly 部屋の主; 側 ~0.02 (Xの側である がわ: 2 in 300 post-war books, while 公園の側である is そば). Needs work | 主 cues |
 | T49 | With no reading list, JMdict's pairs are the list | #51 | none with a list (chimimouryou always has one). Accept | – |
 | T50 | 分別 alone is ふんべつ; ぶんべつ after ゴミ/資源… or before する/収集… | #55 | ~0. Accept | more sorting cues |
 | T55 | 後 のち: 後に at a clause start, 後の時代/世, しかる後, これから後 | #58 | ~0. Accept | a context model (T13) |
@@ -83,9 +80,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T101 | 素振り すぶり only with a practice cue (木刀, 百回, の稽古); そぶり elsewhere | #68 | small (すぶり with no cue) | more cues |
 | T102 | 期 ご only in この期に及んで | #68 | none seen | – |
 | T103 | Left out of T100: 理, 強者, 半身, 元, 首, 開ける, and forms under 90% (御方, 転生, 妃…) | #68 | their misreads stay | fixed-phrase rules; more sentences |
-| T120 | Xつ (3, 4, 6, 8) is a count (四つ よっつ) unless a one-kanji noun or 裂 follows (四つ辻 よつ) | #67 | <0.1 (三つ門, ages in period text) | JMdict's Xつ compounds |
-| T121 | Xつ目 joins as eyes (三つ目 みつめ), so the ordinal (三つ目の角 みっつめ) is wrong | #67 | ~0.2. Needs work | ordinal cues (の + place, 駅, 角) |
-| T122 | 十 alone stays じゅう, so a count or age (十も年下 とお) is missed | #67 | <0.1 | age cues |
+| T122 | 十 alone stays じゅう unless an age or count cue (十も年下, 九つか十の, 歳も十に: とお, #76) | #67, #76 | ~0.01. Accept | |
 | T130 | `extra-readings.tsv`: 25 hand-checked pairs Jiten's list lacks (良い いい, 描く かく, 刺青 いれずみ) join `known` after the form's own readings | #69 | ~0. Accept | pairs a combined list brings in leave the file |
 | T131 | 描く かく after a picture (`cues.DRAWN`) + を/に/も or before one (描いた絵, ruby 35/37); えがく elsewhere, not shown (T151) | #69, #75 | ~2-3 in word lists (パステルで描く, 描かせていただく), never shown. Accept: drawings take either reading (T154); instruments are かく 7 / えがく 8 in ruby | – |
 | T132 | 刺青 defaults to いれずみ | #69 | ~0 (titles: 『刺青』 しせい) | – |
@@ -132,3 +127,8 @@ majority support from post-war text.
 | R20 | A name JMdict lacks kept the list's reading as `only` (麻里 あさざと, 隆治 たかじ; was T42) | #73 (T140) |
 | R21 | Jiten's noisy surname readings (佐藤 さとあ, 加藤 かとお; was part of T133) | measured in #73: Sudachi's reading wins when the list's differs, and agreeing noise is no longer shown (T140) |
 | R25 | 被る こうむる after 汚名/損 (was T74) | #75 (汚名, 損 left out of `cues.SUFFERED`: ruby かぶる 32 of 42, 4 of 13; the rule is 99% right) |
+| R35 | A bare 十分 with no minutes cue read じゅうぶん (十分もしないうちに, 歩いて十分, 二時間十分) (was T22) | #76 (`counters.TEN_MINUTES_*`: time going by, trips, times) |
+| R36 | Xつ目 joined as eyes (三つ目の角 みつめ) (was T121) | #76 (ordinal みっつめ/よっつめ unless eyes: 三つ目が光る, 三つ目小僧) |
+| R37 | 一日 いちにち where ついたち or いちじつ is meant (was T27) | #24, #55, #76 (一日の長 いちじつ; dates after a month: 0 left in 300 books) |
+| R38 | Xつ (3, 4, 6, 8) read as a compound before a one-kanji noun (三つ門) (was T120) | #67 (1 miss in 300 post-war books: ~0) |
+| R39 | Defaults fired on a token Sudachi split off a compound (委託金 かね, 上位種 たね) (was T14) | #76 (金 after a kanji noun or prefix: きん; 種 glued to what precedes keeps しゅ, `GLUED_BEFORE`; ~0.02 left: 米占領軍, 食卵) |

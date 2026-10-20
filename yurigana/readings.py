@@ -95,8 +95,11 @@ _VERB_AFTER_NANI = (r'(?:着[てたなられるろよせまさ]|話(?:し(?!か(
 _NOT_BETTER = (r'(?!が(?:いい|良|よ[いかくけろ]|まし|好|楽|早|上|得|便利|大き|小さ|多|少|ずっと|はるか|むしろ|まだ|断然|よほど|余程|よっぽど)'
                r'|より|と(?:比|くら))')
 # A person before 下 もと (陛下の下へ, 俺の下に来い, ルークの下に): titles, pronouns, a katakana name.
-_PERSON_OF = (r'(?:様|さま|さん|君|くん|殿|陛下|先生|師匠|主|王|父|母|俺|僕|私|わたし|儂|わし|自分|彼|彼女|あなた|貴方|貴女|お前|[ァ-ヺー]{2,})'
+_PERSON_OF = (r'(?:様|さま|さん|君|くん|殿|陛下|先生|師匠|主|王|父|母|俺|僕|私|わたし|儂|わし|自分|彼|彼女|あなた|貴方|貴女|お前|[ァ-ヺー]{2,}'
+              r'|人|者|医者|女性|男性|二人|三人|仲間)'
               r'(?:たち|達)?の$')
+_NOT_EYES = (r'(?!の?(?:眼|瞳|怪物|化け物|化物|妖怪|小僧|入道)|が(?:怪しく|ギョロ|ぎょろ|ぎろ|ギロ|光|輝|開|見開)'
+             r'|を(?:ギョロ|ぎょろ|ぎろ|ギロ|見開|動か|細め|開|光))')
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -121,7 +124,8 @@ _CONTEXT_RULES = {
     # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
     '下': [('もと', words(ABSTRACT, SUPERIOR) + 'の$', None),
           # A person + の下へ/に and a verb of going or serving (陛下の下へ向かう, 俺の下に来い): もと.
-          ('もと', _PERSON_OF, r'[へに]と?(?:戻|帰|来|き[たて]|く[るれ]|向か|駆け|馳せ|走|届|行|い[っくかきこ]|赴|参|集|身を寄せ|仕え|嫁|弟子入|預け|送|連れ|やって|訪|通|引き取)'
+          ('もと', _PERSON_OF, r'[へに][はもの]?と?(?:戻|帰|来|き[たて]|く[るれ]|向か|駆け|馳せ|走|届|行|い[っくかきこ]|赴|参|集|身を寄せ|仕え|嫁|弟子入|預け|送|連れ|やって|訪|通|引き取'
+           r'|近づ|近寄|案内|つ[いく]|い[るろ]のが)'
            r'|で(?:働|修行|学|仕え|育)', 'and'),
           ('した', r'の$', r'で', 'and')],
     # 音: ね for instruments and insects (琴の音, 虫の音) and ぐうの音; Sudachi's おと otherwise.
@@ -284,8 +288,19 @@ _CONTEXT_RULES = {
     '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
     '一寸': [('いっすん', None, r'先|法師|の虫|刻み')],
-    '金': [('きん', r'(?:純|銀と|十八)$', 'の' + words(JEWELRY, '延べ棒', '装飾', '粉', '糸', '髪', '仮面', '像', '鎖', 'ボタン', '刺繍')
-            + r'|色|メダル|貨|銀|と銀|箔|髪|属|の?(?:くさり|モール)|のよう|の(?:値段|価格|相場)|を(?:塗|ぬ|着せ|きせ|かぶせ|掘|採)'
+    # 分 alone as the odds (分が悪い, 分の悪い勝負, 私に分がある): ぶ.
+    '分': [('ぶ', None, r'(?:が|の)(?:悪|わる)'), ('ぶ', r'[^のがはも]に$', r'が(?:あ|な[いく])', 'and')],
+    # 十 alone as an age or a native count (十も年下, 十を過ぎたばかりの少女, 九つか十の子供): とお.
+    '十': [('とお', r'(?:[一二三四五六七八九]つか|(?:歳|年齢)[もは])$', r'(?![一-鿿々ァ-ヺ0-9０-９…‥・])', 'and'),
+           ('とお', None, r'(?:も(?:年|歳)[上下]|も(?:違|ちが)|かそこら|にも(?:手が届|満た)|(?:を|と少し)過ぎ'
+                          r'|に(?:なる|なった)(?:か|子|娘|息子|頃|とき|時))')],
+    # Xつ目 is the ordinal (三つ目の角 みっつめ) unless eyes are meant (三つ目が光る, 三つ目の怪物, 三つ目小僧: みつめ).
+    **{form: [(reading, None, _NOT_EYES)] for form, reading in (('三つ目', 'みっつめ'), ('四つ目', 'よっつめ'))},
+    '金': [('きん', r'(?:純|十八|(?:[白黒赤青緑紫茶]|銀)(?:と|地に))$', 'の' + words(JEWELRY, '延べ棒', '装飾', '粉', '糸', '髪', '仮面', '像', '鎖', 'ボタン', '刺繍',
+                                                                 '刺繡', '瞳', '眼', '巻き毛', '縁', '斧', '矢', '砂', '漆', '簪', 'かんざし', '酒盃', '杯', '盃',
+                                                                 '紋', '模様', '線', '横線', '羽', '装甲', '鎧', 'ポット', '皿', '卵', '聖堂', '鈴', '扇', '竪琴',
+                                                                 '壺', 'まり', '毬', '林檎', 'リンゴ', '鯱', 'シャチホコ', '爪楊枝', '杖', '針', '光', '輝き')
+            + r'|の目(?!当|的|処|安|に余)|色|メダル|貨|銀|と銀|箔|髪|属|の?(?:くさり|モール)|のよう|の(?:値段|価格|相場)|を(?:塗|ぬ|着せ|きせ|かぶせ|掘|採)'
             r'|に(?:等し|輝)|より(?:重|軽|高)|.{0,8}?' + _METAL),
            ('きん', _METAL + r'.{0,8}$', None),
            ('かね', None, r'を(?:貸|借|払|稼|返|出|使|積|ため|貯|盗|渡|持)|が(?:な[いく]|無|足り|か[かけ]|要|い[るり]|あ[るれっ])'
@@ -308,7 +323,7 @@ _CONTEXT_RULES = {
     # 素 もと: what something is made from (鍋の素, スープの素, 魂を素にする); す (素の自分, 素で) otherwise (HAND_DEFAULTS).
     '素': [('もと', r'(?:鍋|ナベ|スープ|カレー|かれー|シチュー|おにぎり|ふりかけ|料理|だし|出汁|味|混乱|元気)の$', None)],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
-    '一日': [('ついたち', r'月(?:初め)?の?$', None)],
+    '一日': [('ついたち', r'月(?:初め)?の?$', None), ('いちじつ', None, r'の長(?![さいくけかめ所男女子期官])')],
     # 銀杏 ぎんなん: the nut, eaten or picked (銀杏を焼く, 茶碗蒸しの銀杏); the tree いちょう (HAND_DEFAULTS).
     '銀杏': [('ぎんなん', r'(?:茶碗蒸し|焼き|炒り|煎り)(?:の|に|と|には)?$',
              r'の実|を(?:拾|焼|炒|煎|食|剥|む[いきく])|.{0,8}?(?:食べ|焼い|焼く|炒|煎|茶碗蒸し|美味|おいし)')],
@@ -425,14 +440,17 @@ def default_kept(text: str, begin: int, end: int, form: str) -> bool:
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
-GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き')})
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ')})
+# Glued by what comes before only: 上位種, オーク種 (しゅ), but 種選び, 種入り (たね).
+GLUED_BEFORE = frozenset({('種', 'しゅ')})
 
 
-def glued(text: str, begin: int, end: int) -> bool:
+def glued(text: str, begin: int, end: int, after_too: bool = True) -> bool:
     """Whether a one-character word text[begin:end] is an affix Sudachi split off: a kanji or digit
     right before or after it, or a katakana word before it (郵便局側, 今学期, 3位, ダウンロード時),
-    where default-readings.tsv's readings (側 そば, 今 いま, 位 くらい, 時 とき) don't hold."""
-    before, after = text[max(begin - 1, 0):begin], text[end:end + 1]
+    where default-readings.tsv's readings (側 そば, 今 いま, 位 くらい, 時 とき) don't hold.
+    after_too=False: only what comes before counts."""
+    before, after = text[max(begin - 1, 0):begin], text[end:end + 1] if after_too else ''
     return end - begin == 1 and (any(is_kanji(c) or c.isdigit() for c in before + after) or bool(re.match('[ァ-ヺー]', before)))
 
 
@@ -453,6 +471,13 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
             previous_pos[1:3]) == ('固有名詞', '一般') and re.fullmatch(r'[一-鿿々]+', text[max(0, begin - 4):begin][-2:])) \
             and (form, 'け') in known:
         return 'け'
+    # 金 as a suffix Sudachi split off a kanji noun or prefix (委託金, 援助金, 大金): きん, whatever follows
+    # (委託金を払う); not after adverbs and pronouns (結構金を使った, 俺金ねえよ: かね).
+    if form == '金' and previous_pos and (form, 'きん') in known and (
+            previous_pos[0] == '接頭辞' and is_kanji(text[begin - 1:begin])
+            or previous_pos[:2] == ('名詞', '普通名詞') and previous_pos[2] in ('一般', 'サ変可能', '形状詞可能')
+            and all(is_kanji(c) for c in text[max(0, begin - 2):begin]) and begin >= 2):
+        return 'きん'
     # 気味 is ぎみ as a suffix: right after a noun (風邪気味) or a verb's 連用形 (太り気味); Sudachi says きみ.
     if form == '気味' and previous_pos and (form, 'ぎみ') in known and (
             previous_pos[0] in ('名詞', '接尾辞') and previous_pos[2] != '副詞可能'
