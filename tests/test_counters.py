@@ -119,6 +119,13 @@ class CounterReadingTest(unittest.TestCase):
         self.assertEqual(reading('二三', '年', 'ねん', 'ここ'), ('にさん', 'ねん'))
         self.assertEqual(reading('二三', '日', 'にち', '平成'), ('にじゅうさん', 'にち'))
 
+    def test_hitotoki(self):
+        self.assertEqual(reading('一', '時', 'じ', '至福の', 'だった'), ('ひととき', None))
+        self.assertEqual(reading('一', '時', 'じ', '夢のような', 'を過ご'), ('ひととき', None))
+        self.assertEqual(reading('一', '時', 'じ', '夜の', 'を回っ'), ('いち', 'じ'))  # a clock time
+        self.assertEqual(reading('一', '時', 'じ', '至福の', '半'), ('いち', 'じ'))
+        self.assertEqual(reading('一', '時', 'じ', '王女様の', 'を'), ('いち', 'じ'))
+
     def test_hitoma(self):
         # 一間 is one room next to a room or lodging word, else a length (いっけん)
         self.assertEqual(reading('一', '間', 'けん', '六畳'), ('ひと', 'ま'))

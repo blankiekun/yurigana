@@ -101,6 +101,13 @@ TEN_MINUTES_AFTER = ('(?:' + words(DURATION_AFTER) + r'|前(?!後|進)|まえ|�
 _TEN_MINUTES = (re.compile(TEN_MINUTES_BEFORE), re.compile(TEN_MINUTES_AFTER))
 
 
+# 一時 ひととき: a pleasant while (至福の一時, 夢のような一時, 先輩との一時), as a noun before a particle or the
+# sentence's end; books' ruby 46 of 47 (the other いっとき). Times of day are left out (夜の一時, 午後の一時: clocks).
+_HITOTOKI_BEFORE = re.compile(r'(?:(?:至福|優雅|寛ぎ|くつろぎ|憩い|癒し|癒やし|安らぎ|団欒|楽しい|穏やか|和やか|平和|幸せ|幸福|静か'
+                              r'|有意義|有益|優しい|贅沢|素敵|大切|貴重|甘い)な?の?|(?:よう|様|みたい)な|(?:放課後|昼休み|食後|日暮れ前|休日|週末)の|との)$')
+_HITOTOKI_AFTER = re.compile(r'(?:を|が|は|も|。|、|だ|で[しすあ]|…|」|』|$)')
+
+
 def is_year(number: str, before: str) -> bool:
     """Whether two consecutive kanji digits are an era's year (昭和二三年: 23), not "two or three"."""
     return bool(_PAIR.fullmatch(number) and _ERA.search(before))
@@ -205,6 +212,8 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
         elements = _elements(value, '一千' in number)
         kana, kind = ''.join(k for k, _ in elements), elements[-1][1]
     final = _KANA.get(kind) if isinstance(kind, int) and kind < 10 else None
+    if counter == '時' and number == '一' and _HITOTOKI_BEFORE.search(before) and _HITOTOKI_AFTER.match(after):
+        return 'ひととき', None  # 至福の一時, 優雅な一時を過ごす (not 夜の一時を回る: a clock time)
     if counter == '日' and number == '一' and re.match(r'の長(?![さいくけかめ所男女子期官])', after):
         return 'いち', 'じつ'  # 一日の長 (a slight edge): いちじつ
     if counter == '日' and sudachi in ('にち', 'か') or counter == '日間' and sudachi in ('にちかん', 'かかん'):
