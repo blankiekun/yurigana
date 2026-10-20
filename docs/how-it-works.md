@@ -2,6 +2,21 @@
 
 The steps, in order, and the rules behind them. Trade-offs of each rule are in [TRADEOFFS.md](../TRADEOFFS.md).
 
+## Where the code is
+
+| module | what it does |
+|---|---|
+| `reader.py` | `Reader`: the lists it loads, and the reading of one token (`_reading`, in the order below) |
+| `compounds.py` | words over several tokens: compounds Sudachi splits, numeral idioms, phrases (`Reader._idioms`) |
+| `readings.py` | the functions that apply the tables: ruby, context rules, conjugation, okurigana |
+| `rules.py` | the per-word tables: `CONTEXT_RULES`, `HAND_DEFAULTS`, `SHOWN_DEFAULTS`, `MODEL_FIX`, `SPLIT_TOKENS`, `NOT_JOINED` … |
+| `cues.py` | word classes the rules share (places, people, food …) |
+| `counters.py` | numbers and counters (三本 さんぼん, 二十歳 はたち) |
+| `reading_model.py` | the reading model's tables at read time |
+| `yomitan.py` | frequency lists and term dictionaries, `extra-readings.tsv`, `dominant-readings.tsv` |
+| `kana.py`, `tokens.py`, `text.py` | kana helpers; Sudachi tokens and `Word`; book text with its ruby |
+| `evaluate.py`, `reading_context.py`, `fetch_*.py` | scoring, mining and training tables, test sets (not used by `Reader`) |
+
 ## The order of readings
 
 With a reading list, 2-4 adjacent tokens whose joined form the list gives one reading
