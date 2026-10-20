@@ -12,7 +12,7 @@ from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, SHOWN_IDIOMS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
-from .yomitan import dominant_readings, extra_readings, preferred, term_readings
+from .yomitan import dominant_checked, dominant_readings, extra_readings, preferred, term_readings
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
@@ -129,6 +129,13 @@ _VOICED_TAILS = frozenset(tuple(pair.split(':')) for pair in (
     '揃い:そろい 返し:かえし 通り:とおり 顔:かお 切れ:きれ 机:つくえ 帰り:かえり 皿:さら 開き:ひらき 処:ところ 走り:はしり '
     '座り:すわり 疲れ:つかれ 替わり:かわり 心:こころ 稽古:けいこ').split())
 _ACTION_COUNT = re.compile(r'^[0-9０-９〇一二三四五六七八九十百何数]+[回歩度]$')
+
+
+def _compound_head(pos) -> bool:
+    """Whether a token with part of speech `pos` can be the first part of a compound whose next token voices
+    (パン|好き, いつも|通り, 泣き|顔): a noun, pronoun, adverb, prefix, verb stem or adjective stem."""
+    return pos[0] in ('名詞', '代名詞', '副詞', '接頭辞') or pos[0] == '動詞' and pos[5].startswith('連用形') \
+        or pos[0] == '形容詞' and pos[5].startswith('語幹')
 
 
 def _one_voicing_apart(a: str, b: str) -> bool:
@@ -318,6 +325,7 @@ class Reader:
         self._term_pairs = _TermPairs(self.terms)
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.dominant = dominant_readings()
+        self.dominant_checked = dominant_checked()
         self.ateji = ateji_readings()
         self._ateji_re = re.compile('|'.join(sorted(map(re.escape, self.ateji), key=len, reverse=True)))
         if tokenizer is None:
@@ -845,7 +853,7 @@ class Reader:
             if default and (form, default) in self.known and not default_kept(text, begin, begin + len(surface), form):
                 return default, 'default', None
             if reading:
-                return self._dominant(text, tokens[i], form, reading)
+                return self._dominant(text, tokens[i], form, reading, previous=previous)
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
             term = not (reading and _KANA_READING.match(reading)) and self._term_reading(form, None)
@@ -872,19 +880,22 @@ class Reader:
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]
-            return self._dominant(text, tokens[i], form, sudachi, round(priors[entry[0].index(sudachi)] / sum(priors), 3))
-        return self._dominant(text, tokens[i], form, sudachi)
+            return self._dominant(text, tokens[i], form, sudachi, round(priors[entry[0].index(sudachi)] / sum(priors), 3), previous)
+        return self._dominant(text, tokens[i], form, sudachi, previous=previous)
 
-    def _dominant(self, text, token, form, reading, certainty=None):
+    def _dominant(self, text, token, form, reading, certainty=None, previous=None):
         """Sudachi's reading (or the listed one it conjugates from) as `dictionary`, or as `only` where
         dominant-readings.tsv gives it as the form's reading in bare post-war text and the token stands alone:
         not glued to a kanji, digit or katakana word (日 in 二日酔い, 族 in ドラゴン族; a longer token with a kanji or digit
         next to it, part of a compound Sudachi split: 一|文字 もんじ, 背筋|運動 はいきん), not a name, and a surface the
-        reading spells (not the classical 若かり)."""
+        reading spells (not the classical 若かり). Pairs admitted on bare-text evidence (dominant_checked) are also
+        not shown right after a noun, adverb, prefix or verb stem, where they may be a compound's voiced tail
+        (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
         begin, end = token.begin, token.begin + len(token.surface())
         if (self.dominant.get(form) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
                 or end - begin > 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
-                or not surface_reading(token.surface(), form, reading, text[end:end + 3])):
+                or not surface_reading(token.surface(), form, reading, text[end:end + 3])
+                or form in self.dominant_checked and previous and _compound_head(previous.part_of_speech())):
             return reading, 'dictionary', certainty
         return reading, 'only', 1.0
 

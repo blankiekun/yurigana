@@ -12,7 +12,8 @@ it would give Sudachi's reading as 'dictionary' with the guards of Reader._domin
 its form's most firing reading is it, it fires MIN_FIRES+ times on ruby'd occurrences of each half and is
 the ruby's reading SHARE+ of them in each, and JMdict gives the form that reading. Book ruby favours
 unusual readings (authors ruby the unexpected one), so ruby precision understates bare-text precision.
-Columns: ruby fires and right per half, bare (unruby'd) occurrences firing and all bare occurrences.
+Columns: ruby fires and right per half, bare (unruby'd) occurrences firing and all bare occurrences, and for
+pairs admitted below SHARE on labelled bare text (BARE_CHECKED) those labels.
 """
 import argparse
 import gzip
@@ -38,16 +39,33 @@ MIN_FIRES, SHARE = 10, 0.97  # per half
 # flavour (男 お, 時間 とき, 本気 まじ, 少女 おとめ, 答え いらえ, 連中 れんじゅう, 両親 ふたおや, 将来 さき, 日々 にちにち,
 # 底 てい, 親 しん, 客 きやく, 自然 じねん, 父 てて, 背筋 はいきん before 運動)
 CHECKED = set('男 時間 本気 少女 答え 連中 両親 将来 日々 底 親 客 自然 父 背筋'.split())
+# Admitted at SHARE_BARE (ruby understates the default reading: authors ruby the unusual one) when Opus-labelled bare
+# firing occurrences of held-back books (split 1, 40 per form) are all right ('?' lines, two readings plausible, left
+# out): {form: 'right/labelled'}, written as the ninth column. 120 forms labelled (T430); the rest of the 0.90 tier
+# is rare and mostly literary.
+# Reader doesn't show them right after a noun, adverb, prefix or verb stem (voiced compound tails: パン好き ずき).
+SHARE_BARE = 0.90
+BARE_CHECKED = dict(x.split(':') for x in '''
+気:40/40 顔:40/40 入る:40/40 心:40/40 先:40/40 来る:40/40 行く:38/38 好き:40/40 外:40/40 子:39/39 前:40/40 逆:40/40 道:40/40
+人:39/39 水:40/40 怒る:38/38 代わり:40/40 色:40/40 火:40/40 我:40/40 一方:40/40 仲間:40/40 裏:40/40 一言:40/40 支える:40/40 時:40/40
+事:40/40 酒:40/40 骨:40/40 夏:40/40 下手:40/40 頰:39/39 神:40/40 着替える:40/40 愛:40/40 緑:40/40 己:40/40 表面:40/40 妻:40/40
+町:40/40 波:40/40 頬:40/40 顎:39/39 人数:40/40 城:40/40 輪:40/40 王:40/40 所:40/40 初め:40/40 誘い:38/38 袋:40/40 毛:40/40
+停止:40/40 草:40/40 共通:40/40 温かい:39/39 親しい:40/40 宿す:39/39 呪い:40/40 埋まる:39/39 勝ち:40/40 地下:40/40 破れる:40/40 夜中:40/40
+数:40/40 静寂:40/40 泡:40/40 羽:40/40 忠実:40/40 橋:40/40 黄色:40/40 造り:40/40 幾度:40/40 無礼:40/40 青春:40/40 翌朝:40/40 振り:40/40
+支え:40/40 瓶:39/39 無人:40/40 執着:40/40 境:40/40 束ねる:40/40 荷:40/40 愛想:40/40 大金:40/40 暖かい:40/40 音色:40/40 殻:40/40
+中指:40/40 汁:40/40 毎年:39/39 鈴:40/40 旅人:40/40 鈍い:40/40 兄さん:40/40 比:40/40 半日:40/40 職:40/40 家系:40/40 多々:40/40 新:38/38
+功:40/40 各国:40/40 型:40/40 何処:40/40
+'''.split())
 DROPPED = {'洗濯機': 'せんたっき 5 of 8', '他': 'た (その他, 他に) 3 of 43'}
 _UNVOICED = str.maketrans('がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ', 'かきくけこさしすせそたちつてとはひふへほはひふへほ')
 
 
 class _Probe(Reader):
     """Reader whose _dominant marks every reading that would be shown if it were the form's dominant one."""
-    def _dominant(self, text, token, form, reading, certainty=None):
-        found = super()._dominant(text, token, form, reading, certainty)
+    def _dominant(self, text, token, form, reading, certainty=None, previous=None):
+        found = super()._dominant(text, token, form, reading, certainty, previous)
         self.dominant[form] = reading
-        shown = super()._dominant(text, token, form, reading, certainty)[1] == 'only'
+        shown = super()._dominant(text, token, form, reading, certainty, previous)[1] == 'only'
         del self.dominant[form]
         return found[0], 'candidate' if shown else found[1], found[2]
 
@@ -59,6 +77,7 @@ def _init(known):
     global _reader
     _reader = _Probe(known=known)
     _reader.dominant = {}
+    _reader.dominant_checked = set(BARE_CHECKED)  # the voicing guard they get in Reader
 
 
 def _read(row):
@@ -132,7 +151,10 @@ def main():
         line = (-seen[form, False] * share, form, key, *counts[0], *counts[1], bare_fires[form, key], min(seen[form, False], CAP_BARE))
         if form not in extra and form not in DROPPED and key in jmdict.get(form, ()) and all(
                 n >= MIN_FIRES and (r >= SHARE * n or form in CHECKED) for n, r in zip(*counts)):
-            lines.append(line)
+            lines.append(line + (BARE_CHECKED.get(form, ''),))  # measured with the guard: keep it
+        elif form not in extra and form not in DROPPED and key in jmdict.get(form, ()) and form in BARE_CHECKED and all(
+                n >= MIN_FIRES and r >= SHARE_BARE * n for n, r in zip(*counts)):
+            lines.append(line + (BARE_CHECKED[form],))
         else:
             rejected.append(line)
     if args.rejected:
@@ -140,11 +162,11 @@ def main():
             for _, *line in sorted(rejected):
                 out.write('\t'.join(map(str, line)) + '\n')
     with open(args.out, 'w', encoding='utf-8') as out:
-        out.write('# form\treading\truby fires a\truby fires b\tright a\tright b\tbare firing\tbare read\n'
+        out.write('# form\treading\truby fires a\truby fires b\tright a\tright b\tbare firing\tbare read\tbare labelled right\n'
                   '# Built by tools/dominant_readings.py (see there) from training-author post-war book ruby; '
                   'ordered by bare occurrences shown.\n')
         for _, *line in sorted(lines):
-            out.write('\t'.join(map(str, line)) + '\n')
+            out.write('\t'.join(map(str, line)).rstrip('\t') + '\n')
     print(len(lines), 'pairs', file=sys.stderr)
 
 

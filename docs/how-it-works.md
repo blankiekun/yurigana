@@ -256,11 +256,15 @@ about 20 s and under 100 MB to load.
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 A form the list reads several ways is still `only` where Sudachi's reading (or the listed one a conjugated
-word comes from) is the form's reading in `dominant-readings.tsv`: about 1,200 forms such as 俺 おれ, 声 こえ, 目 め,
+word comes from) is the form's reading in `dominant-readings.tsv`: about 1,300 forms such as 俺 おれ, 声 こえ, 目 め,
 彼 かれ, 言葉 ことば, 言う いう, 二人 ふたり, 本当 ほんとう, whose other listed readings are rare, literary or list
 noise. `tools/dominant_readings.py` picks them from training-author post-war book ruby: where the reader would
 give that reading as `dictionary`, the ruby agrees 97%+ of 10+ times in each half of the books (a few forms
-below that were checked by hand on bare text). Ties in the list (言う いう = ゆう) are decided by that ruby, not by
+below that were checked by hand on bare text). Book ruby favours unusual readings, so about 100 frequent forms
+(気 き, 顔 かお, 心 こころ, 行く いく, 来る くる, 入る はいる, 好き すき, 人 ひと) are admitted at 90%+ when 40 Opus-labelled
+bare occurrences of held-back books are all right (`BARE_CHECKED`, the table's ninth column); those aren't shown right
+after a noun, adverb, prefix or verb stem, where they may be a compound's voiced tail (パン好き ずき, ソファ代わり がわり;
+TRADEOFFS T430). Ties in the list (言う いう = ゆう) are decided by that ruby, not by
 rank. Not for forms with a reading from `extra-readings.tsv` (良い いい, 夜 よ), names, a one-kanji token glued
 to a kanji, digit or katakana word (`readings.glued`), or a longer token with a kanji or digit beside it
 (一|文字 いちもんじ, 背筋|運動 はいきん: a compound Sudachi split). TRADEOFFS T300.
