@@ -108,6 +108,8 @@ ALWAYS = '(?:)'  # an after-pattern that always matches: the form's one reading 
 _PRECIPITATION = (r'(?:(?<![一-鿿])|(?<=[大小豪霧氷初粉吹春秋冬夜長俄驟時性]))(?<![白深小]雪)(?:雨|雪|霰|雹|霙|みぞれ|あられ)'
                   r'(?:が|は|も|の)?(?:まだ|なお|今も|どのくらい|たくさん|沢山|激しく|強く|静かに|少し|ずっと|朝から)?'
                   r'(?:[ぁ-んァ-ヴー]{2,6}と)?$')
+# Surrender (軍門に降る, 傘下に降った): 降る くだる, also where Sudachi took the verb for 降りる (T260).
+_SURRENDER = r'(?:軍門|傘下|麾下|配下|旗下|幕下)に$'
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -289,7 +291,7 @@ _CONTEXT_RULES = {
     # the list's reading, elsewhere, not shown: an extra reading (T241).
     '弾ける': [('ひける', r'(?<![一-鿿])' + words(PLAYED) + r'(?:が|を|も|は|なんて|でも|しか|だけ)?$', None)],
     # 降る ふる after rain or snow, also where Sudachi took the verb for 降りる (雨は降り続けた, WRONG_LEMMA, T240).
-    '降る': [('ふる', _PRECIPITATION, None)],
+    '降る': [('ふる', _PRECIPITATION, None), ('くだる', _SURRENDER, None)],
     # 解く ほどく for what is tied or wound (紐を解く, 髪を解く, 腕を解く); Sudachi's とく otherwise (謎を解く).
     '解く': [('ほどく', r'(?<![一-鿿])' + words(TIED) + r'(?:の(?:結び目|紐))?を$', None)],
     # 堪える こらえる for holding something back (涙を堪える, 笑うのを堪え, 堪えきれない); たえる (痛みに堪える) is the model's.
@@ -487,6 +489,8 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('近々', 'ちかじか'): 'ちかぢか',
                  # Bare post-war text, not shown: a minority reads them as Sudachi does (T200).
                  ('呆ける', 'ぼける'): 'ほうける', ('艶やか', 'あでやか'): 'つややか', ('正しく', 'まさしく'): 'ただしく',
+                 # A word Sudachi has as a name only (T170, T261)
+                 ('未来人', 'みきと'): 'みらいじん',
                  # Batch 2: (fixed - broken) >= 2 and 90%+ right on Tatoeba (half a + B1), not losing on
                  # NDL's held-out authors. 或いは is the one exception: Tatoeba never leaves it to Sudachi,
                  # and あるいわ only misspells あるいは (NDL +11/-0).
@@ -592,8 +596,8 @@ DEFAULT_KEEP = {'殿': (re.compile(r'[一二三四五六七八九十〇]$'), re.
 
 
 # Sudachi's lemma of a conjugated verb that the text right before shows is another verb: {lemma: (verb, before)}.
-# 雨は降り続けた, 雪も降ります: 降る, not 降りる (T240).
-WRONG_LEMMA = {'降りる': ('降る', re.compile(_PRECIPITATION))}
+# 雨は降り続けた, 雪も降ります, 軍門に降りなさい: 降る, not 降りる (T240, T260).
+WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'))}
 
 
 def right_lemma(text: str, begin: int, form: str) -> str:
