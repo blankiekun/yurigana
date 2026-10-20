@@ -91,6 +91,8 @@ rule. **Needs work**: the way out says what would fix it.
 | T153 | Conjugated 擦る takes the こする default (T45) | #75 | ruby: right 197 → 1,840 of 2,538 changed (さする 背中を, 腕を; 擦りつける すり), not shown. Accept | – |
 | T154 | Verbs with two standard readings keep Sudachi's or the model's choice, not shown: 良い よい/いい, 描く for drawings, ドアが開く, 行き交う ゆき/いき, 擦れる こすれる/すれる, 抱かれる, 瞑る, 注ぐ for drinks | – | ~25 on dev (word lists only). Accept: no cue reaches 90% in books' ruby (ドアが あく 44%, 酒を つぐ 70%, 茶を つぐ 70%) | – |
 | T160 | 方 がた right after a person (あなた方, 先輩方, お嬢様方, `cues.PLURAL_PERSON`); not after 母/父さん (お母さん方, the mother's side) nor in an address (山田さん方で) | #72 | ~0: those two keep Sudachi's かた. Accept | – |
+| T161 | Lone 札 民 綿 痕 default to ふだ たみ わた あと (`HAND_DEFAULTS`, `GLUED_CHECKED`); 札/お札 さつ near money (財布, 万, 紙幣, にせ札, 札だけ抜き取る), お札 おふだ near a shrine or a charm (神社, 祠, 貼る, 納める), 綿 めん for cloth (綿のシャツ, 麻や綿) | #78 | ~1 (libruby held-out 札: 130 of 137 changes right; misses are money without a cue: 札を握ったまま). Needs work | money without a cue word needs a context model |
+| T162 | Lone kun nouns by cue: 社 やしろ (小さな社, 社の境内), 角 つの (鬼の角, 角が生え), 柄 つか/え (剣の柄, 箒の柄), 業 わざ (至難の業, なせる業), 艶 つや, 直に じか (+ 触れる/見る/会う…), 要 かなめ (防衛の要), 真に受ける ま, 紅 べに (紅を引く), 香 か (梅の香), 氏より育ち うじ, 際 きわ (崖の際) | #78 | ~0.5 (libruby held-out: 3,528 of 3,600 changes right, 角 128/128, 柄 1,396/1,464). Accept | 艶 えん in 艶に笑う, 香 こう after 香草 |
 
 ### Period-justified
 
