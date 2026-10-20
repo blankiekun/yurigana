@@ -278,6 +278,11 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('弾ける', 'はじける'): 5, ('弾く', 'ひく'): 5, ('無性', 'むせい'): 5, ('無償', 'むしょう'): 5})
         self.assertEqual(next(w for w in reader.read('ピアノが弾ける。') if w.form == '弾ける').reading, 'ひける')
         self.assertEqual(next(w for w in reader.read('無性に腹が立つ。') if w.form == '無性').reading, 'むしょう')
+        # a する verb's godan form (徹す てっす, 徹する) stays
+        reader = Reader(known={('徹す', 'とおす'): 5, ('徹する', 'てっする'): 5})
+        self.assertEqual(next(w for w in reader.read('眼光紙背に徹す。') if w.form == '徹す').reading, 'てっす')
+        reader = Reader(known={('買う', 'かう'): 5})  # Kansai 買うて is こうて
+        self.assertEqual(next(w for w in reader.read('パン買うてくるわ。') if w.form == '買う').reading, 'こう')
         reader = Reader(known={('国', 'くに'): 5})
         # one-character forms keep Sudachi's (国 after a name is こく)
         self.assertNotEqual(next(w for w in reader.read('バシュルク国は広い。') if w.form == '国').reading, 'くに')

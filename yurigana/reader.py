@@ -103,6 +103,8 @@ def _one_voicing_apart(a: str, b: str) -> bool:
     return len(a) == len(b) and len(diff) == 1 and diff[0][0].translate(_UNVOICED) == diff[0][1].translate(_UNVOICED)
 
 
+# Sudachi picks between two entries by context (秋桜 コスモス/アキザクラ); the list has only one
+_KEEP_SUDACHI = frozenset({'秋桜'})
 _E_TO_U = dict(zip('えけげせてねべめれ', 'うくぐすつぬぶむる'))
 
 
@@ -560,6 +562,9 @@ class Reader:
                 or any(_spelling(r) == _spelling(sudachi) or _one_voicing_apart(sudachi, r)
                        and sudachi.translate(_UNVOICED) == sudachi for r in listed)
                 or _potential_of(form, sudachi, self.known)  # 弾ける ひける, can play (弾く ひく)
+                or form[-1:] == sudachi[-1:] == 'す' and (form[:-1] + 'する', sudachi[:-1] + 'する') in self.known  # 徹す てっす
+                or form in _KEEP_SUDACHI
+                or form[-1:] == 'う' and sudachi[-2:-1] in 'おこごそぞとどのぼもよろ'  # 買うて こう: Kansai u-onbin
                 or 'ー' in sudachi  # a loanword's (麦酒 びーる): JMdict spells those in katakana
                 or set(form) & self._kanji_by_reading().get(sudachi, set())):
             return None
