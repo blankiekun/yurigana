@@ -22,7 +22,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install .
+        run: pip install . ruff==0.17.1
+      - name: Lint
+        run: ruff check .
       - name: Unit tests
         run: python -m unittest -v
       - name: The installed package reads with no setup

@@ -1,4 +1,4 @@
-"""Named word classes the context rules (readings._CONTEXT_RULES) share as cues.
+"""Named word classes the context rules (rules.CONTEXT_RULES) share as cues.
 
 A class is a frozenset of plain words. A rule turns classes into a regex alternation with
 `words` (words(INSTRUMENT, INSECT) + 'の$': after 琴の, 虫の), so one list feeds every rule

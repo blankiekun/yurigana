@@ -13,7 +13,7 @@ import json
 import math
 import os
 
-from .readings import _CONTEXT_RULES
+from .rules import CONTEXT_RULES
 
 # The committed table, trained on Aozora Bunko and Tatoeba, plus forms learnt from generated sentences (docs/training.md).
 PUBLIC_TABLE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reading-model-public.json.gz')
@@ -25,7 +25,7 @@ CONTENT_POS = ('名詞', '動詞', '形容詞', '形状詞', '副詞', '代名�
 # and only if it lists the form in "ruleForms": trained and kept on the occurrences no rule reads
 # (reading_context.train). Other tables' entries for them are dropped (tables learnt from ruby
 # lean to the rare reading).
-RULE_FORMS = frozenset(_CONTEXT_RULES)
+RULE_FORMS = frozenset(CONTEXT_RULES)
 
 
 def token_window(tokens, i: int, line_start: int, line_end: int) -> list:

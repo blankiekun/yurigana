@@ -35,7 +35,7 @@ sys.path.insert(0, ROOT)
 from tests.test_sanity import COLUMNS, outcome  # noqa: E402
 from yurigana import Reader, __version__, aozora_text, ruby_reading  # noqa: E402
 from yurigana.fetch_tatoeba import half_of, to_aozora  # noqa: E402
-from yurigana.readings import HAS_KANJI  # noqa: E402
+from yurigana.kana import HAS_KANJI, to_hiragana  # noqa: E402
 from yurigana.reader import _Any  # noqa: E402
 from yurigana.tokens import SudachiTokenizer  # noqa: E402
 
@@ -227,7 +227,7 @@ def priority_readings(path: str) -> dict:
             if r.find('re_pri') is None or r.find('re_nokanji') is not None:
                 continue
             restr = {x.text for x in r.iter('re_restr')}
-            reading = ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヶ' else c for c in r.findtext('reb'))
+            reading = to_hiragana(r.findtext('reb'))
             for form in forms:
                 if not restr or form in restr:
                     found[form].add(reading)

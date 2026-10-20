@@ -28,3 +28,7 @@ packages = ["yurigana"]
 
 [tool.setuptools.package-data]
 yurigana = ["*.json", "*.json.gz", "*.tsv", "*.txt.gz"]
+
+[tool.ruff.lint]
+# pyflakes only: unused and undefined names; the code's own style (long lines, aligned tables) stays
+select = ["F"]

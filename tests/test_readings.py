@@ -1,8 +1,8 @@
 """Tests for yurigana.readings: ruby and context rules."""
 import unittest
 
-from yurigana.readings import (DEFAULT_READINGS, conjugated_reading, context_reading, glued, ruby_reading, surface_reading,
-                               unlisted_reading)
+from yurigana.readings import conjugated_reading, context_reading, glued, ruby_reading, surface_reading, unlisted_reading
+from yurigana.rules import DEFAULT_READINGS
 
 
 class RubyReadingTest(unittest.TestCase):

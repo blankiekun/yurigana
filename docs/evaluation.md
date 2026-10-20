@@ -31,6 +31,53 @@ fixes). Gold is never changed automatically: a reading found acceptable on revie
 waiver file, `--alts waivers.tsv` (`set, id, surface, reading` per line), which adds it to that
 span's accepted readings without editing the set.
 
+## The README table
+
+The sets and footnotes of the [README's table](../README.md#how-it-compares).
+
+Clean word list accuracy (%): the share of kanji words whose reading is right, with Jiten's
+list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
+readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
+more ways, where tokenisers actually differ (about 60% of a book's words every one of them
+reads right). yurigana 0.5.0 (scores measured on main 337e44b; #108 changes only `carry`), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C, no term dictionaries; MeCab runs with
+IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
+
+- **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
+  light novels by authors the tables never saw. The books are a private library, so this set
+  isn't published.
+- **Older books**: 300 sentences of NDL's huriganacorpus-aozora (human ruby, mostly pre-war
+  Aozora Bunko texts), authors held out; 2,306 clean words.
+- ¹ **Tatoeba B2**: 27,000 sentences. Its gold is MeCab + IPAdic machine furigana, so
+  MeCab + IPAdic's score there is inflated, and yurigana's is saturated: most of its remaining
+  misses are IPAdic's readings, not errors. Clean only; 32 transcription errors found on review are left
+  out (`--exclude`).
+- ² Slightly favours yurigana: the public table was trained on Aozora texts that include the NDL
+  test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
+  is rebuilt without them); #96's rules were picked from 12 of B2's disagreements (#97-#99 only report it).
+- ³ One blind annotation run per set.
+- ⁵ **Joyo-Kanji-Yomi** (JKYB-Parakeet revision, 13,536 sentences, MIT; Sarashina2.2-TTS, arXiv
+  2606.25369): three native-checked sentences per reading of every Jōyō kanji, scored with its own
+  toolkit (`jkyb-eval g2p`, the target kanji's reading). Every reading counts the same, so rare and
+  literary readings (社 やしろ, 政 まつりごと) weigh far more than in real books: it measures coverage
+  of the Jōyō table, not what a reader meets. MeCab here is unidic-lite (the paper's full UniDic:
+  96.66; its Sudachi 97.32 matches ours).
+- ⁶ The dictionary-constrained CRF over a character DeBERTa (about 100M parameters, trained on GPUs
+  on 2.3M LLM-annotated sentences) of Hu, Zhan and Lin (arXiv 2609.19805): their published number,
+  not run here (no code or model released). For scale, frontier LLMs score 99.4-99.85 in the paper.
+- ⁴ Kanji words read wrong in a typical book: the median of 20 post-war library books has about
+  19,000 kanji words (114,000 characters), times each system's error rate on plain sentences of
+  held-out authors (1,000 sentences, 4,832 kanji words), scored against Claude Opus reading them
+  blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
+  favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
+  and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
+  furigana yurigana marks as sure (about 14,900 a book), about 33 are wrong (0.2%). The Tatoeba and
+  plain-sentence golds were rebuilt and reviewed on 2026-10-19 (accepted readings in `--alts`), which
+  moved every system's numbers here, not only yurigana's.
+- The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
+  about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
+  from pykakasi; the ranking doesn't change without those items.
+
 ## Clean and hard
 
 With `--known`, every item gets tags from the gold and the list alone (`--classes FILE` writes

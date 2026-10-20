@@ -7,7 +7,7 @@ import re
 import zipfile
 from xml.etree import ElementTree
 
-from .readings import is_kanji
+from .kana import is_kanji
 
 KATAKANA_READING = re.compile(r'^[ァ-ヺー・]+$')
 

@@ -1,6 +1,6 @@
 """Builds yurigana/default-readings.tsv: Sudachi readings that human readings replace, given
 instead when nothing else gives one (source 'default', next to the hand-picked
-readings.HAND_DEFAULTS): 身体 しんたい → からだ, 時 じ → とき, 実 じつ → み, 下 もと → した.
+rules.HAND_DEFAULTS): 身体 しんたい → からだ, 時 じ → とき, 実 じつ → み, 下 もと → した.
 
   python tools/default_readings.py aozora_dataset.zip jpn_transcriptions.tsv.bz2 JMdict_e.gz --known LIST
 
@@ -45,7 +45,7 @@ _reader = None
 
 def jmdict(path) -> dict:
     """form -> hiragana readings (not ik/ok/rk/sk; re_restr and re_nokanji applied)."""
-    from yurigana.readings import to_hiragana
+    from yurigana.kana import to_hiragana
     xml = re.sub(rb'<re_inf>&(\w+);', rb'<re_inf>\1', gzip.open(path).read())
     found = defaultdict(set)
     for _, entry in ElementTree.iterparse(io.BytesIO(xml)):
@@ -82,7 +82,6 @@ def ndl(archive, lines):
 def tatoeba_modern(path):
     """Tatoeba's reviewed sentences of half a and B1 (half b without evaluate.py's B2 IDs)."""
     from yurigana.evaluate import B2_IDS, tatoeba_sentence
-    from yurigana.fetch_tatoeba import half_of
     with gzip.open(B2_IDS, 'rt') as f:
         b2 = {int(line) for line in f if line.strip()}
     for line in bz2.open(path).read().decode('utf-8').splitlines():
@@ -97,7 +96,7 @@ def tatoeba_modern(path):
 def _init(known):
     global _reader
     import yurigana.reader as reader
-    from yurigana.readings import HAND_DEFAULTS
+    from yurigana.rules import HAND_DEFAULTS
     reader.DEFAULT_READINGS = HAND_DEFAULTS  # the table being built is not used to build it
     _reader = reader.Reader(known=known)
 
@@ -105,7 +104,8 @@ def _init(known):
 def _pairs(sentence):
     """((form, Sudachi's reading), gold readings) per word read with Sudachi's reading."""
     from yurigana.evaluate import _gold_readings
-    from yurigana.readings import glued, to_hiragana
+    from yurigana.kana import to_hiragana
+    from yurigana.readings import glued
     text, spans = sentence['text'], sentence['spans']
     spans_at = {s['b']: s for s in spans}
     tokens = {t.begin: t for t in _reader.tokenizer.tokens(text)}
