@@ -10,7 +10,7 @@ import os
 import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
-from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
+from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, SPICE, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
                    HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
                    OPEN_HOURS, PEOPLE, PERSON, PLAYED, PLURAL_PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
                    STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TRAIT, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
@@ -106,10 +106,15 @@ ALWAYS = '(?:)'  # an after-pattern that always matches: the form's one reading 
 # Rain and snow right before a verb (雨が, 雪はしんしんと, 大雨も): 降る ふる; 霜が降りる and 光が降りる are おりる.
 # Not after other kanji (白雪, 深雪: names that get off at a station).
 _PRECIPITATION = (r'(?:(?<![一-鿿])|(?<=[大小豪霧氷初粉吹春秋冬夜長俄驟時性]))(?<![白深小]雪)(?:雨|雪|霰|雹|霙|みぞれ|あられ)'
-                  r'(?:が|は|も|の)?(?:まだ|なお|今も|どのくらい|たくさん|沢山|激しく|強く|静かに|少し|ずっと|朝から)?'
+                  r'(?:が|は|も|の)?(?:まだ|なお|今も|どのくらい|たくさん|沢山|激しく|強く|静かに|少し|ずっと|朝から|よく|一日中|一晩中'
+                  r'|[一二三四五六七八九十数何]+(?:日|時間|週間|ヶ?月|か月)(?:間)?(?:も)?)?'
                   r'(?:[ぁ-んァ-ヴー]{2,6}と)?$')
+# 降り続く雨, 降りしきる雪, 降り始めの雨: 降る ふる before rain or snow (T293).
+_PRECIPITATION_AFTER = r'(?:続|つづ|始め|はじめ|しき|頻|ゆ|つけ|注|そそ)[ぁ-ん]{0,3}?(?:雨|雪|霰|雹|霙|みぞれ|あられ)'
 # Surrender (軍門に降る, 傘下に降った): 降る くだる, also where Sudachi took the verb for 降りる (T260).
 _SURRENDER = r'(?:軍門|傘下|麾下|配下|旗下|幕下)に$'
+# A taste or food near 辛い (T294); 味 but not in 意味, 興味, 趣味, 気味, 正味, 地味, 味わう.
+_TASTE = words(DISH - {'味'}, SPICE) + r'|(?<![意興趣気正地])味(?!わ)|からし(?![てた])'
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
@@ -295,7 +300,7 @@ _CONTEXT_RULES = {
     # the list's reading, elsewhere, not shown: an extra reading (T241).
     '弾ける': [('ひける', r'(?<![一-鿿])' + words(PLAYED) + r'(?:が|を|も|は|なんて|でも|しか|だけ)?$', None)],
     # 降る ふる after rain or snow, also where Sudachi took the verb for 降りる (雨は降り続けた, WRONG_LEMMA, T240).
-    '降る': [('ふる', _PRECIPITATION, None), ('くだる', _SURRENDER, None)],
+    '降る': [('ふる', _PRECIPITATION, _PRECIPITATION_AFTER), ('くだる', _SURRENDER, None)],
     # 解く ほどく for what is tied or wound (紐を解く, 髪を解く, 腕を解く); Sudachi's とく otherwise (謎を解く).
     '解く': [('ほどく', r'(?<![一-鿿])' + words(TIED) + r'(?:の(?:結び目|紐))?を$', None)],
     # 堪える こらえる for holding something back (涙を堪える, 笑うのを堪え, 堪えきれない); たえる (痛みに堪える) is the model's.
@@ -336,12 +341,12 @@ _CONTEXT_RULES = {
     '方々': [('ほうぼう', None, r'を?(?:探|捜|歩|回|駆け|走り|尋ね|旅)|から(?:集ま|聞こえ|寄せ)|に(?:散|手を)')],
     '目下': [('もっか', None, r'のところ|の' + words(ISSUE, '最大') + '|、|' + words(ACTIVITY)),
              ('めした', None, r'の(?:者|人)')],
-    # なん before だ/です/で/の/と/て and counters (何年, 何冊): Sudachi's; なに before か, する, verbs and ？.
+    # なん before だ/です/で/の/と/て and counters (何年, 何冊, 何か国, 何作目: T291): Sudachi's; なに before か, する, verbs and ？.
     '何': [('なん', r'やら$', r'やら', 'and'),  # 雪かきやら何やら
           ('なに', r'何から$', None),  # 何から何まで
-          ('なに', None, r'[をがもかし]|より|す|それ|これ|あれ|[？?！!、」]'
+          ('なに', None, r'(?![かカヶケヵ箇]国|[玉針]|作(?![っらりるれろ]))(?:[をがもかし]|より|す|それ|これ|あれ|[？?！!、」]'
              r'|や(?:ら|かや|[っりるれろ])|' + _VERB_AFTER_NANI + r'|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
-             r'|(?!' + words(COUNTER) + r')[一-鿿]')],
+             r'|(?!' + words(COUNTER) + r')[一-鿿])')],
     '色紙': [('しきし', r'(?:サイン|寄せ書きの?)$', r'に(?:サイン|寄せ書き|書)|を(?:飾|贈)'),
              ('いろがみ', r'折り?$', r'.{0,6}?(?:折[っらりる]|鶴|切り抜)')],
     '寒気': [('かんき', r'(?:強い|上空の|大陸からの|冬型の|北からの)$', r'団|が(?:南下|流れ込|入)|の(?:影響|流れ込|南下)'),
@@ -359,13 +364,13 @@ _CONTEXT_RULES = {
     '床': [('とこ', r'(?:病の|お)$', r'に(?:就|伏|臥|入|はい)|から(?:起|出|離)|の(?:間|中)|を(?:上げ|敷|延べ|離|とっ|取)'),
            # 床につく, but not something put on the floor (頭を床につける, 手を床について): ゆか.
            ('とこ', r'(?<!を)$', r'につ(?!け[てたるらま])', 'and')],
-    '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?'
-              r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'})),
-             # つらい unless food follows or it ends a verb stem (見辛い づらい) or a kanji word; 辛くも (からくも) and
-             # 辛いもの go to the model.
-             ('つらい', r'(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねい])(?<![一-鿿]し)$',
+    '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?(?:ほど|より|くらい|ぐらい)?'
+              r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'}, '食べ物', '食物', 'ソーセージ', '鍋')),
+             # つらい unless food or a taste is near (辛い食べ物, 甘くて辛い, 舌が痺れるほど辛い: T294) or it ends a verb stem
+             # (見辛い づらい) or a kanji word; 辛くも (からくも) and 辛いもの go to the model.
+             ('つらい', r'^(?!.*(?:' + _TASTE + r')).*(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねい])(?<![一-鿿]し)$',
               r'(?!も|物|の好き|方が|の(?:が|は|も)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
-              r'|すぎ|過ぎ|[？?]|ない(?:もの|物|の)|.{0,6}?(?:食べ|食う|料理|' + words(DISH) + '))', 'and')],
+              r'|すぎ|過ぎ|[？?]|ない(?:もの|物|の)|.*?(?:料理|' + _TASTE + '))', 'and')],
     '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
     '一寸': [('いっすん', None, r'先|法師|の虫|刻み')],
@@ -579,6 +584,7 @@ PRONOUNS_RA = {'あいつ', 'こいつ', 'そいつ', 'アイツ', 'コイツ', 
                'お主', 'てめえ', 'てめぇ', 'てめー', 'テメエ', 'テメー', '手前', '諸君', '僕', 'ぼく', 'ボク', '私', 'わたし', 'ワタシ', '我',
                'われ', 'ワレ', '彼', '彼奴', '其方', 'そなた', 'あんた', 'アンタ', 'あなた', '貴方', 'わし', 'ワシ', '儂', 'あたし', 'アタシ',
                'あっし', 'おいら', 'オイラ', '君', 'きみ', '自分', '貴兄', '貴下', '我々', '奴', 'やつ', 'ヤツ', 'それ', 'これ', 'あれ', '子供', '子ども', '小僧', '娘'}
+_JITSU_VERB = r'(?:言|い[うえわっいお]|云|申|あげ|挙げ|上げ|もって|以て|見出|見いだ)'  # 実を言うと, 実を挙げる: じつ
 _OWN_FAMILY = r'の(?:お?[父母]|親|両親|子|娘|息子|兄|姉|弟|妹|家族|祖父|祖母|孫|叔父|叔母|伯父|伯母|パパ|ママ)'
 # 何時 before か, しか, だって, でも, になく, 、 or a verb (何時か必ず, 何時帰った; not 今何時か, 何時起き): いつ;
 # the model's なんじ is right in bare text elsewhere (何時に起きる, 今何時だ, 何時ぐらい), though authors ruby 何時 mostly where it is いつ.
@@ -595,7 +601,11 @@ MODEL_FIX = {('何時', 'なんじ'): [(r'(?:今|いま)[、は]?$', None, 'な�
              # Xを地で行く (理想を地でいく): true to form, じ (T275).
              ('地', 'ち'): [(r'を$', r'で(?:い[くかきけこっ]|行(?![わなう])|ゆ[くかきけこ])', 'じ', True)],
              # 実の父, 実の娘: one's own family, じつ; み for fruit (実のなる木) (T275).
-             ('実', 'み'): [(None, _OWN_FAMILY, 'じつ', True)], ('実', 'まこと'): [(None, _OWN_FAMILY, 'じつ', True)]}
+             # 実を齧る, 実をつける, 実がなる: fruit, み; 実を言うと, 実を申せば: じつ (T295).
+             ('実', 'み'): [(None, _OWN_FAMILY, 'じつ', True), (None, 'を' + _JITSU_VERB, 'じつ', True)],
+             ('実', 'まこと'): [(None, _OWN_FAMILY, 'じつ', True)],
+             ('実', 'じつ'): [(r'名(?:を捨て[て、]?|より|と|か)$|を選ぶか$|[ァ-ヺー]$', None, 'じつ', True),  # 名より実を取る
+                         (r'(?:この|あの)$', r'(?!に)', 'み', True), (None, r'を(?!' + _JITSU_VERB + r')|が(?!な[いくかけ]|あ|伴|上が)', 'み', True)]}
 MODEL_FIX = {key: [(before and re.compile(before), after and re.compile(after), reading, shown)
                    for before, after, reading, shown in fixes] for key, fixes in MODEL_FIX.items()}
 
@@ -615,7 +625,7 @@ DEFAULT_KEEP = {'実': (re.compile(r'(?!)'), re.compile(_OWN_FAMILY)),  # 実の
 # modern word is another (T280): 宿する (瞳に宿した: 宿す, read やどす, HAND_DEFAULTS), 欲す (the list's ほりす;
 # 欲した ほっした: 欲する), and 欲する before が (欲しがる: 欲しい).
 _ALWAYS = re.compile('')
-WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'), None),
+WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'), re.compile(_PRECIPITATION_AFTER)),
                '宿する': ('宿す', _ALWAYS, None), '欲す': ('欲する', _ALWAYS, None),
                '欲する': ('欲しい', None, re.compile('が[らりるれろっ]'))}
 
@@ -634,6 +644,10 @@ SPLIT_TOKENS = {'話し': [(r'お$', r'(?:て|た|ま[すせしっ]|ちゃ|と[�
                 '平伏し': [(None, None, None, '平伏', 'へいふく', False)]}
 SPLIT_TOKENS = {surface: [(before and re.compile(before), after and re.compile(after), *rest) for before, after, *rest in entries]
                 for surface, entries in SPLIT_TOKENS.items()}
+
+# Joined forms the list reads one way that are a phrase of their tokens where the text after matches: 行く方が, 行く行く！
+# (いく + ほう, いく + いく; not ゆくかた, ゆくゆく as in 行く方知れず, 行く行くは) (T290).
+NOT_JOINED = {'行く方': re.compile(r'(?!知|し[れらりるろ])'), '行く行く': re.compile(r'(?!は)')}
 
 
 def split_token(text: str, begin: int, surface: str):

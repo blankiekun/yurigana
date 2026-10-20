@@ -115,6 +115,10 @@ COUNTER = (frozenset('年冊日番時匹台杯分周段箱点画便号名回人�
 
 # Food: spicy dishes (カレーが辛い: からい), fresh produce sold at a market (魚の市場: いちば).
 DISH = frozenset({'カレー', '料理', 'スープ', 'ラーメン', '唐辛子', 'わさび', 'キムチ', '味', '味付け', 'ソース'})
+# Words near 辛い that make it a taste (からい) rather than hardship (つらい): seasonings, hot food, the mouth (T294).
+SPICE = frozenset({'食べ', '食う', '食物', '食べ物', '舌', '口の中', 'スパイス', '香辛料', '胡椒', 'コショウ', '山椒', 'ワサビ', '辛子',
+                   'カラシ', 'ラー油', 'タバスコ', 'マスタード', 'ペッパー', 'サルサ', '麺', '鍋', '甘く', '甘い', '甘さ', '甘口',
+                   '中辛', '激辛', '辛口', 'ソーセージ', 'タレ', '好物', 'あつあつ', '担々', '味見', 'ピリ', 'ヒリヒリ'})
 PRODUCE = frozenset({'魚', '青物', '野菜', '果物'})
 # Things with a rim (縁 ふち): カップの縁, 皿の縁.
 VESSEL = frozenset({'カップ', 'グラス', 'コップ', '茶碗', '皿', '鍋', '器'})

@@ -63,6 +63,10 @@ to "Shown again".
 | 弱 | じゃく (was `only`, wrong there) before a small ェ/ぇ | よえ (弱ぇ) | `Reader._adjectives`: Sudachi's 弱え: `dictionary` | bare: 3, all right after; ruby 9 of 9 | T281 | list readings for the slang form |
 | 臭 | しゅう (was `only`, wrong there) before a small ェ/ぇ | くせ (面倒臭ぇ) | `Reader._adjectives`: Sudachi's 臭え: `dictionary` | bare: 2, all right after; ruby 8 of 8 | T281 | list readings for the slang form |
 | 宿す | しゅくする (was `only` as Sudachi's 宿する, wrong) | やどす (瞳に宿し) | `WRONG_LEMMA` 宿する → 宿す, whose listed しゅくす is a hand default to やどす: `default` | bare: 7, all やどす | T280 | `only` for 宿す (the list's しゅくす is rare and old) |
+| 何時頃, 何時ごろ | いつごろ (was `only`) | いつごろ or なんじごろ (時刻は何時頃: なんじごろ) | `extra-readings.tsv` なんじごろ: not `only`, Sudachi's いつごろ, `dictionary` | bare: 25 in 300 training-author books, about half なんじごろ by hand; ruby いつごろ 2, なんどきごろ 1 | T292 | a なんじごろ rule after 今/午前/午後/夜/時刻は, いつごろ where the text asks for a date |
+| 何 | なに (was `rule`, wrong there) before 玉, 作, 針, か国 | なん (何作目, 何か国語) | `readings._CONTEXT_RULES['何']`: the なに rule doesn't fire, Sudachi's なん, `dictionary` | bare: 1 in 300 books; ruby lines 11, all なん by hand | T291 | なん as a shown rule before counters |
+| 行く方, 行く行く | ゆくかた, ゆくゆく (was `only`, wrong there) before a particle or !/、 | いく + ほう, いく + いく | `readings.NOT_JOINED`: read as their tokens, 行く Sudachi's いく, `dictionary` | bare: 9 in 300 books, all いく by hand; ruby 行=い 1 of 1 | T290 | 行く いく as a rule before 方が/行く |
+| 辛い | つらい (was `rule`) with a taste or food word within 12 characters | からい mostly (甘くて辛くて, それに辛い！); つらい in 食べられない日も辛かった | `readings._CONTEXT_RULES['辛い']`, `_TASTE`: the model's reading kept, `dictionary` (`MODEL_UNSHOWN`) | bare: 13 changes in 300 books, ~4 wrong つらい no longer shown, ~3 right つらい hidden; ruby where つらい fires 97 → 98% | T294 | からい cues for 辛さ/辛そう of food |
 
 ## Shown again
 
