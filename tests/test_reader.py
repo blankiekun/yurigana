@@ -276,6 +276,14 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['行く'][3:5], ('いく', 'ruby'))
         self.assertEqual(text[words['公園'].start:words['公園'].end], '公園')
 
+    def test_post_war_rules_are_shown(self):
+        # read by a context rule, not HAND_DEFAULTS, so chimimouryou shows them (evaluate.SHOWN)
+        reader = Reader()
+        for text, form, reading in (('異世界に転生した。', '転生', 'てんせい'), ('とてもお優しい御方です。', '御方', 'おかた')):
+            word = next(w for w in reader.read(text) if w.form == form)
+            self.assertEqual(word[3:5], (reading, 'rule'), text)
+        self.assertEqual(next(w for w in reader.read('輪廻転生を信じる。') if w.form == '転生').reading, 'てんしょう')
+
     def test_compounds_the_list_doesnt_give_one_reading(self):
         known = {('力尽く', 'ちからずく'): 9000, ('力尽く', 'ちからづく'): 9000, ('力', 'ちから'): 300,
                  ('三日月', 'みかづき'): 17920, ('三日月', 'みかずき'): 17920, ('三日月', 'みかげ'): 144990,
