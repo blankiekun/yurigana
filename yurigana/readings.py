@@ -12,8 +12,8 @@ import re
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
 from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, EDGE, FEW, FOOTWEAR, GROUNDS,
                    HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
-                   OPEN_HOURS, PEOPLE, PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
-                   STREET, SUPERIOR, TERM, THINGS, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
+                   OPEN_HOURS, PEOPLE, PERSON, PLAYED, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
+                   STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -94,10 +94,16 @@ _VERB_AFTER_NANI = (r'(?:着[てたなられるろよせまさ]|話(?:し(?!か(
 # Not a comparison after 方 (来た方がいい: ほう).
 _NOT_BETTER = (r'(?!が(?:いい|良|よ[いかくけろ]|まし|好|楽|早|上|得|便利|大き|小さ|多|少|ずっと|はるか|むしろ|まだ|断然|よほど|余程|よっぽど)'
                r'|より|と(?:比|くら))')
+# A person before 下 もと (陛下の下へ, 俺の下に来い, ルークの下に): titles, pronouns, a katakana name.
+_PERSON_OF = (r'(?:様|さま|さん|君|くん|殿|陛下|先生|師匠|主|王|父|母|俺|僕|私|わたし|儂|わし|自分|彼|彼女|あなた|貴方|貴女|お前|[ァ-ヺー]{2,})'
+              r'(?:たち|達)?の$')
 _CONTEXT_RULES = {
     # 都: Tokyo's government (都の職員, 都が発表した), not the capital of a story (都 みやこ, HAND_DEFAULTS).
     '都': [('と', None, r'の?(?:職員|施設|予算|条例|担当|調査|方針|幹部|議会|知事|当局|教育委員会|福祉|保健|水道|交通局|税|事業|補助|管理|所有)'
             r'|が(?:発表|公表|決め|要請|実施|定め|設置|管理)')],
+    # 画 え (a picture, a shot: いい画だ, 画になる, 画を描く) after a particle or an inflected word; Sudachi says が.
+    # Not glued (肖像画, デザイン画: Sudachi's が) or as a credit (画・…, 画：…).
+    '画': [('え', r'(?:[のないたるうをがはもにで]|一葉の)$', r'(?:[をがはもにでのとだ](?![・：:])|みたい|よう|です|。|」)', 'and')],
     '人気': [('にんき', None, r'の(?:な|無)(?:い|かった)(?:奴|やつ|者|人|キャラ|作品|商品|子(?!供|ども)|アイドル|作家|店)'),
              ('ひとけ', None, r'の(?:な[いくかけ]|無[いくかけ])|[がのはも]?(?:少な|絶え|途絶え)|も(?:な[いくかけ]|無)'),
              ('ひとけ', None, r'[がは](?:な|無)(?:い|く|かった)?(?:' + words(STREET, ROOM - {'室'}, '場所', '所', 'ところ', '道', '時', 'とき')
@@ -111,9 +117,12 @@ _CONTEXT_RULES = {
     '期': [('ご', r'この$', r'に(?:及|およ)', 'and')],
     # 素振り is そぶり (a table entry); すぶり, a practice swing, with a bat or sword or as a drill (素振り百回, 素振りする).
     '素振り': [('すぶり', r'(?:木刀|竹刀|バット|ラケット|ゴルフクラブ)[^。」！？]*$', None),
-              ('すぶり', None, r'を?[0-9０-９一二三四五六七八九十百千]+[回本]|の(?:稽古|練習)|(?:し|する|すれ|させ)')],
+              ('すぶり', None, r'を?[0-9０-９一二三四五六七八九十百千]+[回本]|の(?:稽古|練習)|(?:し(?!か)|する|すれ|させ)')],
     # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
     '下': [('もと', words(ABSTRACT, SUPERIOR) + 'の$', None),
+          # A person + の下へ/に and a verb of going or serving (陛下の下へ向かう, 俺の下に来い): もと.
+          ('もと', _PERSON_OF, r'[へに]と?(?:戻|帰|来|き[たて]|く[るれ]|向か|駆け|馳せ|走|届|行|い[っくかきこ]|赴|参|集|身を寄せ|仕え|嫁|弟子入|預け|送|連れ|やって|訪|通|引き取)'
+           r'|で(?:働|修行|学|仕え|育)', 'and'),
           ('した', r'の$', r'で', 'and')],
     # 音: ね for instruments and insects (琴の音, 虫の音) and ぐうの音; Sudachi's おと otherwise.
     '音': [('ね', '(?:' + words(INSTRUMENT, INSECT, 'ぐう', 'グウ') + r'|(?<![霧汽警])笛)の$', None)],
@@ -166,25 +175,57 @@ _CONTEXT_RULES = {
     # 表 おもて: the outside or the front (表に出る, 表に出さない, コインの表, 表の顔); ひょう (a table) otherwise.
     '表': [('おもて', r'(?:裏[とものか]|コインの|硬貨の)$',
             r'に(?:は|も)?(?:出|で[たてるな]|立|現)|へ(?:出|と)|を出歩|で(?:遊|待|絡)|[とか]裏|が(?:出|ない)|だって|立って|沙汰|向き'
-            r'|の(?:顔|世界|社会|舞台|仕事|理由|看板|門|通り|玄関)')],
+            r'|の(?:顔|世界|社会|舞台|仕事|理由|看板|門|通り|玄関)'),
+           # 表 starting a phrase (after punctuation or a particle other than の: not 順位表, 組み合わせ表, 四列の表) is
+           # おもて in fiction (表世界, 表で待つ, 表に返す) unless it is a table: 表を作る, 表にまとめる, 表のように, 表や図, 表1.
+           ('おもて', r'(?:^|[、。「『（　！？!?…―─」]|[をがはもにでへとや])$',
+            r'(?!を(?:作|つく|書|か[いきく]|描|見[てる]|参照|まとめ|埋め|確認|用い|使|示|完成|配|貼|横|縦)|が(?:書|か[いかきく]|描)|、|など|に(?:まとめ|示|記入|書|整理|し[てた]|す[るれ]|あ[るりっ])'
+            r'|の(?:よう|とお|通り|項目|数|読|中|上|下|左|右|内容|見方|作|縦|横|行|列|欄|形)|や|と(?:グラフ|図)|[0-9０-９１-９]|中|内|参照|計算|示|は(?:次|以下))', 'and')],
     # 主: あるじ for the master of a house or of servants (館の主, 我が主, 奴隷と主); Sudachi's ぬし otherwise
     # (声の主, 部屋の主). 主として is left alone: books' ruby there is mostly あるじ (主として認める), not しゅ.
     '主': [('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, SERVANT,
-                                    '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None)],
+                                    '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None),
+          # A master one serves: 主の命令, 主に仕える, 主を守る (not after の: 声の主の顔). 主様 is also ぬしさま.
+          ('あるじ', r'(?<![一-鿿々のが])$', r'の(?:命|元|もと|ため|為|傍|側|身|意|仰せ|好み|期待|役|顔|帰り)|に(?:仕え|忠誠|従)|を(?:守|失|裏切|迎え)', 'and')],
     # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 抱きたい); Sudachi's いだく for feelings
     # (疑問を抱く) and, as books' ruby often has it, 腕に抱く and the passive (懐に抱かれる).
     '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を$', None),
-            ('だく', r'(?<!を)$', r'た[いくかけ]', 'and')],
+            ('だく', r'(?<!を)$', r'た[いくかけ]', 'and'), ('だく', None, r'て(?:寝|眠)')],
     # 家 け after a katakana name (ローズ家, フジバヤシ家) or a noble title (侯爵家, 大公家, 新王家); Sudachi says か.
     # After a proper noun (佐藤家, 高橋家) it is a POS rule in context_reading.
-    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$|(?:爵|大公|辺境伯|王|公方|管領|関白)$', None)],
+    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$|(?:爵|大公|辺境伯|王|公方|管領|関白|貴族|領主)$', None)],
     # 側 そば: beside (すぐ側, 彼の側にいる, 駅の側で); がわ (a side) otherwise (向こう側, 民の側につく).
     '側': [('そば', r'すぐ$', None),
+           ('そば', r'を$', r'に(?:置|おい|お[かきくけ])', 'and'),  # 護衛を側に置く
            ('そば', r'[のがはも]$', r'に(?:いる|い[てたらまれよ]|居|あ[るっ]|置|寄|座|控|仕え|付き添|はべ|侍|来|行)|で(?!は)|まで', 'and')],
+    # 階 かい after 上の/下の/同じ/この (上の階へ): Sudachi's きざはし is the steps of a palace or shrine.
+    '階': [('かい', r'(?:[上下]の|同じ|[こそあど]の|別の|各|次の|隣の|真[上下]の)$', None)],
     # 傍 alone (not 傍ら) is そば before a particle: 彼の傍にいる, 窓の傍で; Sudachi says かたわら.
     '傍': [('そば', None, r'(?:に|で|まで|から|へ|を)')],
     # 留まる とどまる after に (その場に留まる, だけに留まる), but 目に留まる, 枝に留まる: とまる.
     '留まる': [('とどまる', r'(?<![目眼耳枝肩木々線])に$', None)],
+    # 擦る こする: eyes rubbed (目を擦る), ごしごし, a cheek rubbed against (頬を擦りつける). Sudachi's する stays for
+    # compounds it splits (擦り切れる, 擦りむく, 擦りガラス) and マッチ; さする (stroking a back or an arm) has no cue.
+    '擦る': [('こする', '(?:(?<![一-鿿])(?:目|眼|瞼|まぶた|目元|目尻|目蓋|鼻|鼻の下|まなこ|両目|片目)を'
+                       r'(?:手|指|袖|拳|手の甲|両手)?で?(?:ごしごし|ゴシゴシ|こしこし|しきりに|何度も|軽く|強く)?'
+                       r'|(?:ごしごし|ゴシゴシ|こしこし)と?)$', None),
+            ('こする', r'(?:頬|頰|顔)を$', r'(?:つけ|付け)', 'and')],
+    # 弾く ひく for an instrument (ピアノを弾く); はじく for what bounces off or is flicked (攻撃を弾く, 指で弾く,
+    # 弾かれたように) when no instrument is near. Otherwise the model.
+    '弾く': [('ひく', r'(?<![一-鿿])' + words(PLAYED) + r'(?:を|で|も|は)$', None),
+            ('はじく', r'^(?!.*' + words(PLAYED) + r').*(?:(?<!何)を|で|によって|(?<!ため)(?<!よう)に)$', None),
+            ('はじく', r'^(?!.*' + words(PLAYED) + ')', r'れ(?!ば)', 'and')],
+    # 解く ほどく for what is tied or wound (紐を解く, 髪を解く, 腕を解く); Sudachi's とく otherwise (謎を解く).
+    '解く': [('ほどく', r'(?<![一-鿿])' + words(TIED) + r'(?:の(?:結び目|紐))?を$', None)],
+    # 堪える こらえる for holding something back (涙を堪える, 笑うのを堪え, 堪えきれない); たえる (痛みに堪える) is the model's.
+    '堪える': [('こらえる', r'を(?:ぐっと|必死に|必死で|なんとか|何とか|じっと|懸命に|どうにか)?$', None),
+             ('こらえる', None, r'きれ')],
+    # 吐く つく for a sigh, a lie or abuse (ため息を吐く, 嘘を吐く, 悪態を吐く); Sudachi's はく otherwise (息を吐く: both).
+    '吐く': [('つく', r'(?:ため息|溜め息|溜息|嘘|ウソ|悪態)を$', None)],
+    # 被る こうむる for harm or favour received (被害を被る, 恩恵を被る); Sudachi's かぶる otherwise (帽子を被る).
+    '被る': [('こうむる', words(SUFFERED) + 'を$', None)],
+    # 来るべき is きたる before a noun (来るべき時); くる as a predicate (来るべきではなかった).
+    '来る': [('くる', None, r'べき(?:では|じゃ|でな|だった|だろ|でしょ|です|だ[。、よなね！？」])')],
     '今日': [('こんにち', None, 'の' + words(REALM - {'国'}, SOCIETY - {'未来', '地球'}, ISSUE - {'急務', '懸案'})
               + r'|に(?:至|いた)る|では|において')],
     # Sudachi says あす; books mostly say あした, except in formal phrases.
@@ -231,7 +272,12 @@ _CONTEXT_RULES = {
     '末期': [('まつご', None, r'の(?:水|言葉|際|願い|一言|息)')],
     '床': [('とこ', r'(?:病の|お)$', r'に(?:就|つ|伏|臥|入|はい)|から(?:起|出|離)|の(?:間|中)|を(?:上げ|敷|延べ|離|とっ|取)')],
     '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?'
-              r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'}))],
+              r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'})),
+             # つらい unless food follows or it ends a verb stem (見辛い づらい) or a kanji word; 辛くも (からくも) and
+             # 辛いもの go to the model.
+             ('つらい', r'(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねい])(?<![一-鿿]し)$',
+              r'(?!も|物|の好き|方が|の(?:が|は|も)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
+              r'|すぎ|過ぎ|[？?]|ない(?:もの|物|の)|.{0,6}?(?:食べ|食う|料理|' + words(DISH) + '))', 'and')],
     '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
     '一寸': [('いっすん', None, r'先|法師|の虫|刻み')],
@@ -270,13 +316,14 @@ _CONTEXT_RULES = {
     '開く': [('ひらく', r'を$', None),
             ('あく', words(OPEN_HOURS, '日', '曜日', 'まで') + r'[はがも]?$', None),
             ('あく', None, r'て(?:ますか|ます？|る？|ますよ)'),
-            ('あく', r'(?:蓋|ふた|フタ)[がはも]?$', r'(?!れ)', 'and')],
+            ('あく', r'(?:蓋|ふた|フタ)[がはも]?$', r'(?!れ)', 'and'),
+            ('あく', r'(?<!落とし)穴[がはもの]?$', None)],
     # 止める: とめる for machines and flows (エンジンを止める); やめる for doing something (食べるのを止める, お止めください).
     '止める': [('とめる', words(HALTED) + 'を$', None),
              ('やめる', r'(?<!へ)(?:の|こと)を?$', r'(?!られ)', 'and'),
              ('やめる', r'お$', r'(?:ください|下さい|になって|なさい)', 'and')],
     # 空く: すく for roads and trains (道が空いている); お腹が空く is left to the model (it reads it already).
-    '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None)],
+    '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None), ('あく', r'穴[がはもの]?$', None)],
     # 額: がく for a frame (額に入れて飾る); ひたい for the forehead (額に汗, 額を拭う).
     '額': [('がく', None, r'に.{0,10}?(?:収め|納め|入れ|飾[っらりるれ])|縁|ぶち'),
            ('ひたい', None, r'[がは](?:熱|汗|広|狭)|に(?:汗|手|皺|しわ|傷|当て|かか|垂)|から汗|の(?:汗|傷|皺|しわ)'
@@ -334,7 +381,10 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('分別', 'ぶんべつ'): 'ふんべつ',
                  # The stage's side is a context rule (舞台の下手, 上手と下手); Sudachi's しもて elsewhere is
                  # 下手をすれば, 下手に動く (TRADEOFFS T61).
-                 ('下手', 'しもて'): 'へた'}
+                 ('下手', 'しもて'): 'へた',
+                 # Left out of default-readings.tsv for want of Tatoeba cases (T34); training-author library ruby:
+                 # 咽喉 のど 448 of 449, 空地 あきち 40 of 43.
+                 ('咽喉', 'いんこう'): 'のど', ('空地', 'くうち'): 'あきち'}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:

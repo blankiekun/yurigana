@@ -227,7 +227,7 @@ class ReaderTest(unittest.TestCase):
             self.assertNotIn(pair, plain)
 
 
-@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-full')
+@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-core')
 class SudachiReaderTest(unittest.TestCase):
     def test_lemma_with_extra_kana(self):
         # Sudachi's lemma for the misspelt 可愛いく is 可愛いい (可愛 read かわ); the list's 可愛い holds the い
@@ -240,6 +240,13 @@ class SudachiReaderTest(unittest.TestCase):
         # nor a noun with older okurigana (先き): its surface is the lemma
         reader = Reader(known={('先', 'さき'), ('先', 'せん')})
         self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
+
+    def test_okurigana_variant(self):
+        # the list reads 幼ない only いとけない; Sudachi reads it おさない, the reading of its normalized form 幼い
+        reader = Reader(known={('幼ない', 'いとけない'), ('幼い', 'おさない'), ('幼い', 'いとけない')})
+        for text in ('まだ幼なくて', '幼ない子供だった。'):
+            self.assertEqual(reader.read(text)[0][2:5], ('幼ない', 'おさない', 'dictionary'), text)
+        self.assertIn('幼[おさ]なく', reader.furigana('まだ幼なくて'))
 
     def test_defaults(self):
         hints = []

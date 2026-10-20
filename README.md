@@ -15,7 +15,10 @@ their readings and the reader its "Known" furigana style.
 pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.2.0.tar.gz"
 ```
 
-That installs SudachiPy and SudachiDict-full too (pinned: readings depend on its version). Then:
+That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
+SudachiDict-full, install `yurigana[full]` and set `YURIGANA_SUDACHI_DICT=full` (or pass
+`Reader(tokenizer=SudachiTokenizer('full'))`): it reads the sets below the same, within 0.1 point,
+and takes about 120 MB more disk and 100-240 MB more memory. Then:
 
 ```python
 from yurigana import Reader, aozora_text
@@ -73,19 +76,21 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main, 2026-10-19. Sudachi is SudachiDict-full, mode C; MeCab runs with
+reads right). yurigana main, 2026-10-19, measured with SudachiDict-full (yurigana's and Sudachi's
+rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
-| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | wrong words per book⁴ |
-|---|---|---|---|---|---|---|
-| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **about 460** |
-| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | about 820 |
-| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | about 830 |
-| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | about 990 |
-| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | about 960 |
-| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | about 960 |
-| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | about 1,360 |
-| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – |
+| | modern books | hard (437) | older books (NDL) | hard (908) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
+|---|---|---|---|---|---|---|---|
+| **yurigana** | **94.5** | **83.8** | **92.1**² | **89.0**² | **99.0**² | **98.2** | **about 460** |
+| Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | 97.4 | about 820 |
+| GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.2 | 97.3 | about 830 |
+| yomikata | 92.2 | 79.4 | 91.1 | 86.9 | 93.0 | 96.7 | about 990 |
+| MeCab + unidic-lite | 91.9 | 77.1 | 90.7 | 85.9 | 93.2 | 96.9 | about 960 |
+| MeCab + IPAdic | 86.5 | 72.1 | 87.5 | 83.3 | 97.0 | 95.5 | about 960 |
+| pykakasi | 85.0 | 68.6 | 84.0 | 77.8 | 93.7 | 93.6 | about 1,360 |
+| Claude Opus³ | 97.6 | 95.2 | 95.4 | 93.3 | – | – | – |
+| DeBERTa-CRF (Hu et al.)⁶ | – | – | – | – | – | 99.6 | – |
 
 - **Modern books**: the books' own ruby (furigana) over 1,811 clean words in post-war novels and
   light novels by authors the tables never saw. The books are a private library, so this set
@@ -99,6 +104,15 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
   is rebuilt without them).
 - ³ One blind annotation run per set.
+- ⁵ **Joyo-Kanji-Yomi** (JKYB-Parakeet revision, 13,536 sentences, MIT; Sarashina2.2-TTS, arXiv
+  2606.25369): three native-checked sentences per reading of every Jōyō kanji, scored with its own
+  toolkit (`jkyb-eval g2p`, the target kanji's reading). Every reading counts the same, so rare and
+  literary readings (社 やしろ, 政 まつりごと) weigh far more than in real books: it measures coverage
+  of the Jōyō table, not what a reader meets. MeCab here is unidic-lite (the paper's full UniDic:
+  96.66; its Sudachi 97.32 matches ours). Measured on yurigana main 79ac3b7.
+- ⁶ The dictionary-constrained CRF over a character DeBERTa (about 100M parameters, trained on GPUs
+  on 2.3M LLM-annotated sentences) of Hu, Zhan and Lin (arXiv 2609.19805): their published number,
+  not run here (no code or model released). For scale, frontier LLMs score 99.4-99.85 in the paper.
 - ⁴ Kanji words read wrong in a typical book: the median of 20 post-war library books has about
   19,000 kanji words (114,000 characters), times each system's error rate on plain sentences of
   held-out authors (1,000 sentences, 4,837 kanji words), scored against Claude Opus reading them
@@ -130,6 +144,8 @@ They include the regression list `eval/sanity.tsv` ([docs/evaluation.md](docs/ev
 
 ## Licence
 
-BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2) and `jmdict-pairs.json.gz`
-(JMdict), which are CC BY-SA 4.0 (EDRDG).
+Free for any use, commercial or not, open or closed, as long as you give credit (keep the copyright
+notice in LICENSE and NOTICE). The code is BSD 3-Clause (LICENSE), except `kanji-readings.json` (KANJIDIC2) and `jmdict-pairs.json.gz`
+(JMdict), which are CC BY-SA 4.0 (EDRDG): also usable commercially with credit, and changed copies
+of those files stay CC BY-SA. Jiten's frequency list, which `known=` takes, is CC BY-SA 4.0 as well.
 The public table is trained on Aozora Bunko and Tatoeba (CC BY 2.0 FR). See NOTICE.

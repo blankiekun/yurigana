@@ -251,6 +251,14 @@ class Reader:
                     form = normalized
                 else:
                     lemma = None
+            # An okurigana variant the list reads one way and Sudachi with the reading of its normalized form
+            # (幼なく: the list's 幼ない いとけない, Sudachi's おさなく, 幼い おさない): Sudachi's, not the list's only.
+            variant = None
+            if (not lemma and form in self.single and normalized != form and normalized in self.readings
+                    and re.search('[ぁ-ゖ]', surface)):  # not a bare stem Sudachi cut off a compound (割|引致)
+                variant = unlisted_reading(surface, form, to_hiragana(token.reading_form()))
+                if variant == self.single[form] or (normalized, variant) not in self.known:
+                    variant = None
             if carry is None:
                 reading, source, certainty = self._checked(form, *self._reading(text, tokens, i, surface, form, hint_at))
             else:
@@ -258,6 +266,8 @@ class Reader:
                                                                                  covering, parts, carry))
             if reading is None and lemma:
                 reading, source = lemma, 'dictionary'
+            if variant and source == 'only':
+                reading, source, certainty = self._checked(form, variant, 'dictionary', None)
             if reading and source not in ('ruby', 'counter', 'book'):
                 reading = self._voicing(tokens, i, form, reading)
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))

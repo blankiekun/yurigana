@@ -1,5 +1,6 @@
 """Sudachi tokens with their offsets in the text, as the readings in context use them
-(SudachiDict-full, split mode C)."""
+(SudachiDict-core unless chosen otherwise, split mode C)."""
+import os
 import re
 
 HAS_CONTENT = re.compile(r'[0-9A-Za-z぀-ヿ㐀-䶿一-鿿豈-﫿０-ｚ々]')
@@ -35,12 +36,18 @@ class Token:
         return self._reading
 
 
+def sudachi_dictionary(dictionary: str | None = None) -> str:
+    """The SudachiDict to load: `dictionary`, else $YURIGANA_SUDACHI_DICT, else core (small, full
+    or core; full and small need their package: pip install "yurigana[full]")."""
+    return dictionary or os.environ.get('YURIGANA_SUDACHI_DICT') or 'core'
+
+
 class SudachiTokenizer:
     """Content tokens (no punctuation or spaces) of a text, with their offsets in it."""
 
-    def __init__(self, dictionary: str = 'full'):
+    def __init__(self, dictionary: str | None = None):
         from sudachipy import Dictionary, SplitMode
-        self.tokenizer = Dictionary(dict=dictionary).create(SplitMode.C)
+        self.tokenizer = Dictionary(dict=sudachi_dictionary(dictionary)).create(SplitMode.C)
         self._pos_by_id: dict[int, tuple] = {}
 
     def tokens(self, text: str):
