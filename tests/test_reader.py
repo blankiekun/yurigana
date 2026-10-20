@@ -305,6 +305,32 @@ class SudachiReaderTest(unittest.TestCase):
         # without dictionaries, nothing changes
         self.assertNotIn('terms', [w.source for w in Reader(known=known).read('女剣豪が鬩霆した。')])
 
+    def test_name_dictionary(self):
+        # JMnedict's shape (yomitan-import): the readings are the glosses. Shows a name nothing else shows when the
+        # dictionaries read it one way only, and that way; never changes a reading, never other words (今日)
+        folder = tempfile.mkdtemp()
+
+        def names(name, rows):
+            path = os.path.join(folder, name)
+            with zipfile.ZipFile(path, 'w') as archive:
+                archive.writestr('index.json', json.dumps({'title': 'JMnedict', 'format': 3}))
+                archive.writestr('term_bank_1.json', json.dumps([[form, '', 'place', '', 0, readings, 1, '']
+                                                                 for form, readings in rows], ensure_ascii=False))
+            return path
+        one = names('one.zip', [['姫路', ['ひめじ']], ['今日', ['こんにち']], ['玲奈', ['れいな', 'れな']]])
+        known = {('姫路', 'ひめじ'), ('姫路', 'ひめろ'), ('玲奈', 'れいな'), ('玲奈', 'れな')}
+
+        def word(reader, text):
+            return next((w.form, w.reading, w.source) for w in reader.read(text) if w.form == text[:2])
+        self.assertEqual(word(Reader(known=known), '姫路に行った。')[2], 'dictionary')
+        reader = Reader(known=known, names=one)
+        self.assertEqual(word(reader, '姫路に行った。'), ('姫路', 'ひめじ', 'only'))
+        self.assertEqual(word(reader, '玲奈が笑う。')[2], 'dictionary')  # two readings
+        self.assertNotEqual(word(reader, '今日は晴れ。')[1:], ('こんにち', 'only'))
+        # two dictionaries that read a name differently: neither shows it
+        other = names('other.zip', [['姫路', ['ひめろ']]])
+        self.assertEqual(word(Reader(known=known, names=[one, other]), '姫路に行った。')[2], 'dictionary')
+
     def test_dominant_readings(self):
         # dominant-readings.tsv: a form the list reads several ways is shown where Sudachi reads it the dominant way
         # and the token stands alone; not inside a compound Sudachi split (一|文字 いちもんじ, 背筋|運動 はいきん)

@@ -50,6 +50,12 @@ Options, all optional:
 - `Reader(terms=[path])`: Yomitan term dictionaries you supply (bring your own; none is bundled), read
   only for words the list and JMdict lack, as `source='terms'`, never shown
   ([Term dictionaries you supply](how-it-works.md#term-dictionaries-you-supply)).
+- `Reader(names=[path])`: Yomitan name dictionaries you supply (JMnedict from
+  [jmdict-yomitan](https://github.com/yomidevs/jmdict-yomitan); none is bundled). Tried last: they never
+  change a reading, they only show (source `only`) a name Sudachi tags 固有名詞 that nothing else shows
+  (source `dictionary`) when the dictionaries give that one reading for it and it isn't glued to a kanji or
+  digit (姫路 ひめじ; not 玲奈, which JMnedict reads six ways, and not 今日, which isn't a name). About 2 s and
+  140 MB more at start for JMnedict.
 - `Reader(tables=[path])`: reading-model tables built from your own library ([training](training.md)), tried
   before the public one. A missing file is skipped, so you can always pass the path.
 - `Reader(tokenizer=...)`: anything with `tokens(text)` yielding `yurigana.tokens.Token`s;
