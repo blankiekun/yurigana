@@ -196,6 +196,8 @@ _CONTEXT_RULES = {
     # 堪える こらえる for holding something back (涙を堪える, 笑うのを堪え, 堪えきれない); たえる (痛みに堪える) is the model's.
     '堪える': [('こらえる', r'を(?:ぐっと|必死に|必死で|なんとか|何とか|じっと|懸命に|どうにか)?$', None),
              ('こらえる', None, r'きれ')],
+    # 吐く つく for a sigh, a lie or abuse (ため息を吐く, 嘘を吐く, 悪態を吐く); Sudachi's はく otherwise (息を吐く: both).
+    '吐く': [('つく', r'(?:ため息|溜め息|溜息|嘘|ウソ|悪態)を$', None)],
     # 被る こうむる for harm or favour received (被害を被る, 恩恵を被る); Sudachi's かぶる otherwise (帽子を被る).
     '被る': [('こうむる', words(SUFFERED) + 'を$', None)],
     # 来るべき is きたる before a noun (来るべき時); くる as a predicate (来るべきではなかった).

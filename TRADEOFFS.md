@@ -72,6 +72,7 @@ ruby). Forms and numbers only.
 | T76 | 来る くる before べき as a predicate (来るべきではなかった, 来るべきだった); きたる before a noun (来るべき時) stays | #63 | library ruby has 3 such rows (all くる): checked by hand | B1 +1/-0; bare sample 3/3 | none |
 | T77 | An okurigana variant the list reads one way (幼ない いとけない) whose Sudachi reading is a listed reading of its normalized form (幼い おさない) gets Sudachi's reading (`source='dictionary'`, certainty 0), not the list's `only`; only when the surface has kana | #63 | pre-war report sets, where Sudachi's normalized form is another word: 凭る (もたれかかる), 啖う (くう for くらう, period 7), 歇む; NDL prewar +19/-5, meiji +4/-5, period +8/-8 | the word-list miss chimimouryou showed (幼なくて いとけない); 懐しい, 癒る, 跼む in older text; modern sets 0/0; 60-book bare sample 2 changes, both right | a per-form check that the normalized form is the same word |
 | T78 | 開く and 空く read あく after 穴 (穴が開く, 穴の空いた), not after 落とし穴 | #63 | library ruby wrong 1 of 80 (開く) | library ruby right 79/80 (開く) and 152/152 (空く, the model's すく); bare sample 7/7 | none |
+| T79 | 吐く つく after ため息/溜め息/溜息/嘘/ウソ/悪態 + を; Sudachi's はく otherwise (息を吐く is both, 血を吐く, 弱音を吐く はく) | #63 | ため息を吐く read はく by a few books: library ruby wrong 93 of 8,048 | library ruby right 7,955/8,048 (old reading 93); B1 +1/-0 (嘘を吐いている); library-bank modern +2/-0; plain DEV +2/-0; 60-book bare sample: 57 ため息を吐く/嘘を吐く, all read はく before | none needed |
 
 ### Period-justified
 
