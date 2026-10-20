@@ -119,7 +119,9 @@ _CONTEXT_RULES = {
     # 期 is ご only in この期に及んで (Sudachi: き); a table learnt it from に and read 戦国期に ご.
     '期': [('ご', r'この$', r'に(?:及|およ)', 'and')],
     # 素振り is そぶり (a table entry); すぶり, a practice swing, with a bat or sword or as a drill (素振り百回, 素振りする).
-    '素振り': [('すぶり', r'(?:木刀|竹刀|バット|ラケット|ゴルフクラブ)[^。」！？]*$', None),
+    '素振り': [('そぶり', r'(?:[うくぐすつぬぶむるたい]|[^のをにでと]な)'
+                         r'(?<!軽く)(?<!暫く)(?<!しばらく)(?<!大きく)(?<!強く)(?<!鋭く)(?<!早く)(?<!速く)(?<!よく)$', None),  # a manner, after a verb or adjective (考える素振り)
+              ('すぶり', r'(?:木刀|竹刀|バット|ラケット|ゴルフクラブ)[^。」！？]*$', None),
               ('すぶり', None, r'を?[0-9０-９一二三四五六七八九十百千]+[回本]|の(?:稽古|練習)|(?:し(?!か)|する|すれ|させ)')],
     # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
     '下': [('もと', words(ABSTRACT, SUPERIOR) + 'の$', None),
@@ -195,7 +197,17 @@ _CONTEXT_RULES = {
             r'|の(?:よう|とお|通り|項目|数|読|中|上|下|左|右|内容|見方|作|縦|横|行|列|欄|形)|や|と(?:グラフ|図)|[0-9０-９１-９]|中|内|参照|計算|示|は(?:次|以下))', 'and')],
     # 主: あるじ for the master of a house or of servants (館の主, 我が主, 奴隷と主); Sudachi's ぬし otherwise
     # (声の主, 部屋の主). 主として is left alone: books' ruby there is mostly あるじ (主として認める), not しゅ.
-    '主': [('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, SERVANT,
+    '主': [('おも', r'は$', r'として(?![のはも、])(?![^。、]{0,8}?(?:認|迎|仰|崇め|崇拝|あがめ|慕|敬|仕え|つか|戴|いただ|選|定め|契約|呼|従|君臨|相応|ふさわ|受け入))',
+           'and'),  # mainly (…は主として扱う), not a master (主として認める, 主としての務め)
+          # The main part: おも (治癒呪文が主で, 会議が主だから), しゅ against 従 (どちらが主でどちらが従).
+          ('しゅ', r'(?<!我ら)(?<!われら)(?<![我わ汝])が$', r'で[^。]{0,12}従', 'and'),
+          ('おも', r'(?<!我ら)(?<!われら)(?<![我わ汝])が$', r'(?:で(?![はあす])|だ(?:から|し|けど|が|な)|であろう)', 'and'),
+          ('しゅ', None, r'[はが](?:仰せ|言われ)'),  # the Lord (主は仰せられた)
+          # The master, standing alone (亡き主, 主は言った); after の Sudachi's ぬし stays (声の主, 森の主).
+          ('あるじ', r'(?:^|[「『（　、。！？…―─])$', r'(?:[はがをへ、。」！？…]|なき|無き|だ|です|である)', 'and'),
+          ('あるじ', r'(?:亡き|なき)$', None),
+          ('あるじ', r'(?<![一-鿿々ァ-ヺー])$', r'として[^。、]{0,8}?(?:認|迎|仰|崇め|崇拝|あがめ|慕|敬|仕え|つか|戴|いただ|選|定め|契約|呼|従|君臨|相応|ふさわ|受け入)|としての', 'and'),
+          ('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, SERVANT,
                                     '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None),
           # A master one serves: 主の命令, 主に仕える, 主を守る (not after の: 声の主の顔). 主様 is also ぬしさま.
           ('あるじ', r'(?<![一-鿿々のが])$', r'の(?:命|元|もと|ため|為|傍|側|身|意|仰せ|好み|期待|役|顔|帰り)|に(?:仕え|忠誠|従)|を(?:守|失|裏切|迎え)', 'and')],
@@ -205,7 +217,10 @@ _CONTEXT_RULES = {
             ('だく', r'(?<!を)$', r'た[いくかけ]', 'and'), ('だく', None, r'て(?:寝|眠)')],
     # 家 け after a katakana name (ローズ家, フジバヤシ家) or a noble title (侯爵家, 大公家, 新王家); Sudachi says か.
     # After a proper noun (佐藤家, 高橋家) it is a POS rule in context_reading.
-    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$|(?:爵|大公|辺境伯|王|公方|管領|関白|貴族|領主)$', None)],
+    '家': [('け', r'[ァ-ヺー・]{2,}(?<!ボロ)$|(?:爵|大公|辺境伯|伯|王|皇帝|騎士|公方|管領|関白|貴族|領主)$', None),
+          # A family Sudachi doesn't know as a surname (黒石家の長男, 東雲家の両親): its members and house.
+          ('け', r'(?<![国御])[一-鿿々]$', r'の(?:人間|者|人々|令嬢|息子|娘|子|長男|次男|三男|長女|次女|三女|末娘|末っ子|末弟|嫡男|嫡子|当主|跡取り|姫'
+           r'|両親|祖父|祖母|父|母|兄|姉|弟|妹|家族|一員|血|使用人|メイド|執事|屋敷|邸|門|敷居|紋章|キッチン|台所|食卓)', 'and')],
     # 側 そば: beside (すぐ側, 彼の側にいる, 駅の側で); がわ (a side) otherwise (向こう側, 民の側につく).
     '側': [('そば', r'すぐ$', None),
            ('そば', r'を$', r'に(?:置|おい|お[かきくけ])', 'and'),  # 護衛を側に置く
@@ -248,10 +263,12 @@ _CONTEXT_RULES = {
     # 上手 かみて/下手 しもて: the stage's sides, also when the other side is named next to it (上手と下手);
     # Sudachi's しもて elsewhere is へた (HAND_DEFAULTS). 上手 is じょうず as an adjective (上手に, 上手だ, 上手。):
     # Sudachi sometimes says かみて there; 上手の, 上手を, 上手から keep its reading (stage, shogi うわて).
-    '上手': [('かみて', r'(?:舞台|演壇)の?$|下手(?:と|から|へ)$|下手[がに].{1,10}、$', r'側|(?:と|から|へ|、)下手|[がに].{1,10}、下手[がに]'),
-             ('うわて', r'枚$', r'に出(?:る|た|て|ら|ま)'),
+    '上手': [('かみて', r'(?:舞台|演壇|山|川|河)の?$|下手(?:と|から|へ)$|下手[がに].{1,10}、$', r'側|の?(?:袖|そで)|から(?:出|登場|現|入|来|やって)|(?:と|から|へ|、)下手|[がに].{1,10}、下手[がに]'),
+             ('うわて', r'枚$|落ちの$', r'に出(?:る|た|て|ら|ま)|を(?:行|い)[かきくけっこ]'),
              ('じょうず', r'(?<!遥かに)(?<!はるかに)(?<!数段)(?<!一段)$',
-              r'(?:に(?![出来入回立座向寄])|な(?![いく])|だ|です|でした|じゃ|ね|よ(?!り)|ー|っ|そう|すぎ|過ぎ|。|」|！|!)', 'and')],
+              r'(?:に(?![出来入回立座向寄])|な(?![いく])|だ|です|でした|じゃ|ね|よ(?!り)|ー|っ|そう|すぎ|過ぎ|。|」|！|!|…|の手から)', 'and'),
+             # A skill's suffix Sudachi split off (からかい上手, 射撃上手, 日本語上手).
+             ('じょうず', r'(?:(?<!段)[一-鿿ァ-ヺー]|[いきしちひみりえけせてねべめれぎじび])$', None)],
     # 下手 しもて: the stage's or a river's lower side; へた takes no へ (下手へ退く).
     '下手': [('しもて', r'(?:舞台|演壇|川|河)の?(?:ずっと|少し|やや|すぐ)?$|上手(?:と|から|へ|、)$|上手[がに].{1,10}、$',
               r'へ|から(?:登場|出|入|現)|向き|寄り|側|(?:と|から|へ)上手|[がに].{1,10}、上手[がに]'),
@@ -330,7 +347,23 @@ _CONTEXT_RULES = {
     # 露 あらわ: laid bare (感情を露にする, 首が露になる); つゆ (dew, 露ほども, 露知らず) otherwise (HAND_DEFAULTS).
     '露': [('あらわ', None, r'に(?:し|す|さ|せ|な)|な(?![らりるれろ])'), ('つゆ', None, r'(?:知|し)ら')],
     # 素 もと: what something is made from (鍋の素, スープの素, 魂を素にする); す (素の自分, 素で) otherwise (HAND_DEFAULTS).
-    '素': [('もと', r'(?:鍋|ナベ|スープ|カレー|かれー|シチュー|おにぎり|ふりかけ|料理|だし|出汁|味|混乱|元気)の$', None)],
+    # 日本 is にほん (HAND_DEFAULTS; a rule here also keeps the public table's にっぽん guesses out); にっぽん in cheers.
+    '日本': [('にっぽん', r'(?:がんばれ|頑張れ|ガンバレ|フレーフレー)[、！!　]*$', r'[、！!　]*(?:チャチャチャ|ちゃちゃちゃ)')],
+    # 転生 てんせい, 輪廻転生 keeps the Buddhist てんしょう; 御方 おかた (Sudachi: みかた).
+    # Rules, not HAND_DEFAULTS, so the reading is shown (source rule).
+    '転生': [('てんせい', r'(?<!輪廻)$', None)],
+    '御方': [('おかた', r'$', None)],
+    # 半身 はんみ: the body turned sideways (半身になる, 半身に構える); はんしん (half the body) otherwise.
+    '半身': [('はんみ', r'(?<!の)$', r'に(?:な[っるりれろら]|構え|かまえ)|の(?:体勢|姿勢|構え)|で構え', 'and')],
+    # 理 ことわり: the law of something (世の理, 自然の理); り otherwise (理にかなう, 理がある).
+    '理': [('ことわり', r'(?<!分の)(?<!一面の)の$', r'(?!に(?:かな|適|叶|合|反|背|そむ)|合|がある)', 'and')],
+    # 白髪 はくはつ for a young character's white hair (白髪の少女); しらが otherwise (HAND_DEFAULTS).
+    '白髪': [('はくはつ', None, r'の(?:美?少女|美?少年|幼女|美?青年|美女|娘|女の子|男の子)')],
+    '素': [('もと', r'(?:鍋|ナベ|スープ|カレー|かれー|シチュー|おにぎり|ふりかけ|料理|だし|出汁|味|混乱|元気)の$', None),
+          # Not a person's 素 (彼女の素の顔, 雪平の素だ) or a prefix (素ッ首, 素筵).
+          ('もと', r'(?<!彼)(?<!彼女)(?<!俺)(?<!私)(?<!僕)(?<!あたし)(?<!わたし)(?<!自分)(?<!ちゃん)(?<!さん)(?<!君)(?<!くん)(?<!様)(?<!前)の$',
+           r'(?![のっだでなッ一-鿿々？]|が(?:出|見)|を(?:見|知|出|引|さら|表))', 'and'),
+          ('もと', r'(?<![がはも])$', r'と(?:な[るりっ]|し|す)', 'and'), ('もと', r'を$', r'に(?:し|す)', 'and')],
     # 一日 as one token is Sudachi's ついたち (DEFAULT_READINGS: いちにち), the first of a month after 月 (来月の一日).
     '一日': [('ついたち', r'月(?:初め)?の?$', None), ('いちじつ', None, r'の長(?![さいくけかめ所男女子期官])')],
     # 銀杏 ぎんなん: the nut, eaten or picked (銀杏を焼く, 茶碗蒸しの銀杏); the tree いちょう (HAND_DEFAULTS).
@@ -415,7 +448,11 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('下手', 'しもて'): 'へた',
                  # Left out of default-readings.tsv for want of Tatoeba cases (T34); training-author library ruby:
                  # 咽喉 のど 448 of 449, 空地 あきち 40 of 43.
-                 ('咽喉', 'いんこう'): 'のど', ('空地', 'くうち'): 'あきち'}
+                 ('咽喉', 'いんこう'): 'のど', ('空地', 'くうち'): 'あきち',
+                 # Post-war bare text (TRADEOFFS T103): 妃 alone きさき
+                 # (glued it keeps ひ: 王妃, 第四妃), 素 alone す (素に戻る; glued そ: 元素).
+                 ('妃', 'ひ'): 'きさき', ('素', 'そ'): 'す'
+}
 
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:
@@ -449,7 +486,7 @@ def default_kept(text: str, begin: int, end: int, form: str) -> bool:
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
-GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ')})
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ'), ('妃', 'ひ'), ('素', 'そ')})
 # Glued by what comes before only: 上位種, オーク種 (しゅ), but 種選び, 種入り (たね).
 GLUED_BEFORE = frozenset({('種', 'しゅ')})
 
@@ -490,7 +527,10 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     # 気味 is ぎみ as a suffix: right after a noun (風邪気味) or a verb's 連用形 (太り気味); Sudachi says きみ.
     if form == '気味' and previous_pos and (form, 'ぎみ') in known and (
             previous_pos[0] in ('名詞', '接尾辞') and previous_pos[2] != '副詞可能'
-            or previous_pos[0] == '動詞' and ''.join(previous_pos[5:6]).startswith('連用形')):
+            or previous_pos[0] == '動詞' and ''.join(previous_pos[5:6]).startswith('連用形')
+            # 押され気味, not ようで気味が悪い
+            or previous_pos[0] == '助動詞' and ''.join(previous_pos[5:6]).startswith('連用形') and text[begin - 1] != 'で'
+            and not re.match('[がの]?(?:悪|わる)', text[begin + len(surface):])):
         return 'ぎみ'
     rules = _CONTEXT_RULES.get(form)
     if not rules:
