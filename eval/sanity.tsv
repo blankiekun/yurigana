@@ -825,6 +825,13 @@ sentence	span	reading	alts	kind	status	note
 娘は二十歳になった。	二十歳	はたち	にじゅっさい|にじっさい	counter		
 一つください。	一つ	ひとつ		counter		
 二つください。	二つ	ふたつ		counter		
+三つください。	三つ	みっつ		counter		
+四つください。	四つ	よっつ		counter		
+五つください。	五つ	いつつ		counter		
+六つください。	六つ	むっつ		counter		
+七つください。	七つ	ななつ		counter		
+八つください。	八つ	やっつ		counter		
+４つください。	４つ	よっつ		counter		
 九つください。	九つ	ここのつ		counter		
 明日は雨が降るだろう。	明日	あした	あす	convention		
 明日また来ます。	明日	あした	あす	convention		
@@ -890,3 +897,8 @@ sentence	span	reading	alts	kind	status	note
 野原には六頭の羊がいた。	六頭	ろくとう		probe		tatoeba 79611
 牛は何頭飼ってるんですか？	何頭	なんとう		probe		tatoeba 12146470
 うちの息子は、再来年二十歳になります。	二十歳	はたち		probe		tatoeba 10682237
+正方形には四つの辺がある。	四つ	よっつ		probe		tatoeba 142870
+トムは６つ部屋がある家を買った。	６つ	むっつ		probe		tatoeba 2609028
+孫は八つだよ。	八つ	やっつ		probe		tatoeba 10798105
+見て！四つ葉！	四つ葉	よつば		probe		tatoeba 10746415
+床にピアスを落としてしまい、四つん這いになって探した。	四つん這い	よつんばい		probe		tatoeba 8643906

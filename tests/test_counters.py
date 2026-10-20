@@ -43,6 +43,10 @@ CASES = [
     ('四', '畳', 'じょう', 'よじょう'), ('八', '分目', 'ふんめ', 'はちぶんめ'), ('二', '粒', 'つぶ', 'ふたつぶ'),
     ('二三', '日', 'にち', 'にさんにち'), ('三四', '日', 'にち', 'さんよっか'), ('四五', '人', 'にん', 'しごにん'),
     ('五六', '本', 'ぽん', 'ごろっぽん'), ('一', '間', '', 'いっけん'),
+    ('一', 'つ', 'つ', 'ひとつ'), ('二', 'つ', 'つ', 'ふたつ'), ('三', 'つ', 'つ', 'みっつ'), ('四', 'つ', 'つ', 'よっつ'),
+    ('五', 'つ', 'つ', 'いつつ'), ('六', 'つ', 'つ', 'むっつ'), ('七', 'つ', 'つ', 'ななつ'), ('八', 'つ', 'つ', 'やっつ'),
+    ('九', 'つ', 'つ', 'ここのつ'), ('４', 'つ', 'つ', 'よっつ'), ('8', 'つ', 'つ', 'やっつ'),
+    ('六', 'つ切り', 'つぎり', 'むつぎり'), ('四', 'つ折り', 'つおり', 'よつおり'), ('二', 'つ折り', 'つおり', 'ふたつおり'),
 ]
 
 # The acceptance grid, written by hand from standard counter grammar (not from any corpus):
@@ -155,6 +159,8 @@ class CounterReadingTest(unittest.TestCase):
         self.assertIsNone(reading('七', '間', 'ま'))  # rooms: ななま
         self.assertIsNone(reading('一二', '人', 'にん'))  # ひとりふたり, not split
         self.assertIsNone(reading('二', '升', 'しょう', '', '目'))  # 升目 ますめ
+        self.assertIsNone(reading('十', 'つ', 'つ'))  # 十 is とお alone, no つ
+        self.assertIsNone(reading('二三', 'つ', 'つ'))  # 二つ三つ is the usual form
 
     def test_number_value(self):
         for written, value in (('三十五', 35), ('一九九九', 1999), ('３万５千', 35000), ('十', 10), ('百二', 102),
@@ -227,6 +233,14 @@ class SudachiCounterTest(unittest.TestCase):
         self.assertIn(('六百', 'ろっぴゃく', 'counter'), words)  # a number alone: not Sudachi's ろくひゃく
         self.assertIn(('五分', 'ごぶ', 'counter'), words)
         self.assertNotIn('counter', [w.source for w in reader.read('数万の人')[:2]])  # 万 alone isn't いちまん
+        for text, span, expected in (('りんごを四つ買った。', '四つ', 'よっつ'), ('六つの箱', '六つ', 'むっつ'),
+                                     ('八つある。', '八つ', 'やっつ'), ('４つ目の角', '４つ', 'よっつ'),
+                                     ('三つ年上の兄', '三つ', 'みっつ'), ('四つ以上', '四つ', 'よっつ'),
+                                     ('四つ辻に出た。', '四つ', 'よつ'), ('八ツ裂きにされる', '八ツ', 'やつ'),
+                                     ('写真を六つ切りにする。', '六つ切り', 'むつぎり')):
+            with self.subTest(text):
+                words = [(w.form, w.reading) for w in reader.read(text) if w.source == 'counter']
+                self.assertEqual(words[0], (span, expected))
         words = reader.read('一人で十分です。')  # lexicalised: one token each, left alone
         self.assertNotIn('counter', [w.source for w in words])
 
