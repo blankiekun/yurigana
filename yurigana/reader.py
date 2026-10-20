@@ -8,7 +8,7 @@ import unicodedata
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, ONE_THOUSAND, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
+from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
@@ -602,6 +602,11 @@ class Reader:
             reading = context_reading(text, begin, surface, form, self.known)
             if reading:
                 return reading, 'rule', 1.0
+        hatachi = surface == '二十' and is_hatachi(text[:begin], text[begin + 2:begin + 6])
+        if hatachi:
+            return ('はたち', 'rule', 1.0) if hatachi == 'shown' else ('はたち', 'dictionary', None)
+        if surface == '金' and is_kin(text, begin):
+            return 'きん', 'dictionary', None
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
         if surface in ('1日', '１日') and not re.search('月 ?$', text[:begin]):  # Sudachi's ついたち is a date, after a month
             return 'いちにち', 'rule', 1.0

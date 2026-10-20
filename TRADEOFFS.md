@@ -138,6 +138,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T371 | 被る: Sudachi's こうむる for a bare 被る is a hand default to かぶる (not shown); こうむる by cue (`cues.SUFFERED` + を/は/も, ごめん/御免被る, 被った被害) | this PR | ~0.02: こうむる objects outside SUFFERED (害 is in; 呪い, 損, 責任 mixed in ruby). Accept | – |
 | T372 | Verb cues: 開ける ひらける (視界/道/森… + が/は, an adverb between; 開けた場所/空間), 脅かす おどかす (脅かさないで, なよ, すぎ, やがっ, ちょっと), 汚す けがす (`cues.HONOUR` + を), 汚れなき けがれ; Sudachi's あける/おびやかす/よごす elsewhere | this PR | ~0.3: おどかす as a plain threat and けがれる are left to Sudachi (no cue reaches 90% in ruby); 断つ/断る (断っ) kept: no ruby, 2 bare cases either way. Accept | the lemma from context (T2) |
 | T373 | Lone-noun cues: 面 つら (どの面下げて, 面貸せ, みたいな面をして) / おもて (面を上げる, 面に出す), 値 ね (値が張る, 値がつく), 弦 つる (a bow near, 弦に番える), 方 かた before たち/達, 柄 つか when gripped | this PR | ~0.2: 面 つら/おもて and 値 ね (a price) without one of these cues keep Sudachi's めん/あたい. Accept | – |
+| T380 | A lone 二十 is はたち, shown only with an age cue (歳は/年は/年齢は/齢 before it and no 代/才/半 after, a person + は/も before 二十になる/を過ぎ, 二十の誕生日), for word lists only before にもなる/の時/の頃 (`counters.is_hatachi`); 二十になる/を過ぎ alone stay にじゅう (counts: 合計で二十になる); 金 before a written amount is きん, not shown (`counters.is_kin`, not after お); a bare 万/億/兆 before a counter has no いち (万年 まんねん) | this PR | ~0.2: はたち missed where only the verb says age (来月で二十になる) or before 前後/そこそこ without 歳は; 金 before an amount that is a name (金一族 キム). Accept | a person subject further back than the word before |
 
 ### Period-justified
 
