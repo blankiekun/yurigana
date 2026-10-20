@@ -1045,3 +1045,17 @@ sentence	span	reading	alts	kind	status	note
 僕はピアノなんて弾けないよ。	弾け	ひける		glaring		hand; T241
 泡が弾けて消えた。	弾け	はじける		glaring		hand; T241: Sudachi's ひける
 鍵がなくて家に入れなかった。	入れ	はいれる		glaring	xfail	hand; T242: 入る's potential, not shown; xfail: word lists keep いれる
+何時か必ずここへ戻ってくる。	何時	いつ		glaring		hand; model なんじ (T250)
+あれは何時だったか、もう覚えていない。	何時	いつ		glaring		hand; model なんじ (T250)
+何故か涙が止まらなかった。	何故	なぜ		glaring		hand; model なにゆえ (T250)
+それならば何故、彼は黙っていたのか。	何故	なぜ		glaring		hand; model なにゆえ (T250)
+今回の件で話があります。	件	けん		glaring		hand; model くだり (T250)
+書類等は受付に出してください。	等	など	とう	glaring		hand; model ら after a noun (T250)
+あいつ等はどこへ行った？	等	ら		glaring		hand; ら after a pronoun stays (T250)
+最後の一文だけが心に残った。	一文	いちぶん		glaring		hand; 一|文 もん (T250)
+あいつは一文も払わなかった。	一文	いちもん		glaring		hand; money stays もん (T250)
+彼は護衛術を学んだ。	術	じゅつ		glaring		hand; model すべ glued (T250)
+村の外の人が来た。	外	そと		glaring		hand; ほか rule after a noun + の (T252)
+「入れ」と彼は短く言った。	入れ	はいれ		glaring		hand; noun 入れ only いれ (T251)
+一回部屋を出て廊下を見た。	部屋	へや		glaring		hand; voiced after 一回 (T253)
+二年Ａ組の教室に入った。	組	ぐみ		glaring		hand; くみ only after a class letter (T253)

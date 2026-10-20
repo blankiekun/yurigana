@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .yomitan import extra_readings, preferred
 
@@ -105,6 +105,13 @@ _VOICED = {'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
 _UNVOICED = str.maketrans({v: k for k, vs in _VOICED.items() for v in vs})
 _VOICED_OBSTRUENT = re.compile('[がぎぐげござじずぜぞだぢづでどばびぶべぼ]')
 _HEAD_SURFACE = re.compile('[ァ-ヺー㐀-䶿一-鿿豈-﫿々]')
+# 入れ not after a noun or お (用具入れ, お入れになる) and before a quote's or sentence's end or と言う (「入れ」,
+# 入れと言わんばかり): 入る's imperative.
+_HAIRE = re.compile(r'(?<![お御ァ-ヺー㐀-䶿一-鿿々A-Za-zＡ-Ｚａ-ｚ])$')
+_HAIRE_AFTER = re.compile(r'(?:[」』）)！!。…―─]|と(?:言|い|云)|$)')
+_LETTER = re.compile('[A-Za-zＡ-Ｚａ-ｚ]')  # a class or group's letter before 組 (Ａ組 ぐみ, T253)
+# A count of times or steps before a noun (一回|部屋, 一歩|部屋): not a compound's first part.
+_ACTION_COUNT = re.compile(r'^[0-9０-９〇一二三四五六七八九十百何数]+[回歩度]$')
 
 
 def _one_voicing_apart(a: str, b: str) -> bool:
@@ -544,6 +551,8 @@ class Reader:
             following = tokens[i + 1] if i + 1 < len(tokens) and tokens[i + 1].begin == begin + 1 else None
             if following and following.part_of_speech()[0] == '動詞' and HAS_KANJI.search(following.surface()):
                 return 'ひと', 'rule', 1.0  # 一 + a verb's stem: 一睨み, 一撫で
+        if form == '入れ' and _HAIRE.search(text[max(0, begin - 6):begin]) and _HAIRE_AFTER.match(text, begin + 2):
+            return 'はいれ', 'dictionary', None  # 「入れ」: 入る's imperative; the list reads the noun 入れ いれ only (T251)
         previous = tokens[i - 1] if i and tokens[i - 1].begin + len(tokens[i - 1].surface()) == begin else None
         reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:
@@ -555,6 +564,9 @@ class Reader:
         reading = self.model and self.model.reading(text, tokens, i, form, self.known)
         if reading:
             certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
+            for before, after, given, shown in MODEL_FIX.get((form, reading), ()):  # T250
+                if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, _end(tokens[i]))):
+                    return given, 'model' if shown else 'dictionary', certainty if given == reading else None
             # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
             return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
@@ -577,6 +589,10 @@ class Reader:
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
         if only and may_be_potential(text, begin, form):
             only = None  # 部屋には入れない: はいれる (入る) or いれる
+        # 癖 glued after a noun or a verb's stem is くせ, ぐせ or へき (逃げ癖, 貧乏癖, 収集癖): not shown (T254).
+        if only and form == '癖' and previous and (_HEAD_SURFACE.match(previous.surface()[-1]) and previous.part_of_speech()[0] == '名詞'
+                                                   or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):
+            return only, 'dictionary', None
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):
@@ -661,7 +677,8 @@ class Reader:
         # (一|箱, 時間|話), an adverbial or adjectival noun (今|風呂, いい加減|部屋), kana (こと|好き)
         # or a prefix (お|菓子).
         if (pos and _end(prev) == token.begin and pos[0] == '名詞' and pos[1] != '数詞'
-                and pos[2] not in ('副詞可能', '形状詞可能', '助数詞可能') and _HEAD_SURFACE.match(prev.surface()[-1])):
+                and (pos[2] not in ('副詞可能', '形状詞可能', '助数詞可能') and _HEAD_SURFACE.match(prev.surface()[-1])
+                     and not _ACTION_COUNT.match(prev.surface()) or _LETTER.fullmatch(prev.surface()))):
             if token.part_of_speech()[0] not in ('名詞', '接尾辞'):
                 return reading
             voiced, unvoiced = self._tail_counts().get((form, plain), (0, 0))
