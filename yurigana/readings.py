@@ -725,6 +725,10 @@ _CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.c
 _CONTEXT = 12  # characters looked at on each side
 
 
+_ELDER = {'兄': 'にい', '姉': 'ねえ'}
+_HONORIFIC = re.compile('様|さま|ちゃま')
+
+
 def context_reading(text: str, begin: int, surface: str, form: str, known, previous_pos=None) -> str | None:
     """The reading _CONTEXT_RULES give a word whose head token `surface` starts at `begin` in
     `text`, if `known` lists it for the form (as in ruby_reading). previous_pos: the part of
@@ -752,6 +756,11 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
             or previous_pos[0] == '助動詞' and ''.join(previous_pos[5:6]).startswith('連用形') and text[begin - 1] != 'で'
             and not re.match('[がの]?(?:悪|わる)', text[begin + len(surface):])):
         return 'ぎみ'
+    # お兄様, お姉さま: にい, ねえ after the prefix お before 様 (T283); Sudachi says あに, あね. Without お (兄様) it is
+    # either (にいさま, あにさま).
+    if form in _ELDER and previous_pos and previous_pos[0] == '接頭辞' and text[begin - 1:begin] in ('お', '御') \
+            and _HONORIFIC.match(text, begin + len(surface)) and (form, _ELDER[form]) in known:
+        return _ELDER[form]
     rules = _CONTEXT_RULES.get(form)
     if not rules:
         return None

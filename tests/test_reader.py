@@ -370,6 +370,9 @@ class SudachiReaderTest(unittest.TestCase):
             word = next(w for w in reader.read(text) if w.form == form)
             self.assertEqual(word[3:5], (reading, 'rule'), text)
         self.assertEqual(next(w for w in reader.read('輪廻転生を信じる。') if w.form == '転生').reading, 'てんしょう')
+        # T283: お兄様, お姉さま; 兄様 alone stays Sudachi's
+        words = [w for w in reader.read('お兄様とお姉さまと兄様') if w.form in ('兄', '姉')]
+        self.assertEqual([w[3:5] for w in words], [('にい', 'rule'), ('ねえ', 'rule'), ('あに', 'dictionary')])
 
     def test_compounds_the_list_doesnt_give_one_reading(self):
         known = {('力尽く', 'ちからずく'): 9000, ('力尽く', 'ちからづく'): 9000, ('力', 'ちから'): 300,
