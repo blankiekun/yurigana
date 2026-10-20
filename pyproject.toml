@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yurigana"
-version = "0.5.0"
+version = "0.5.1"
 description = "Readings of Japanese kanji words in context: a book's ruby, hand rules, a small reading model and Sudachi"
 readme = "README.md"
 requires-python = ">=3.10"
