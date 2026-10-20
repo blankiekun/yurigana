@@ -77,7 +77,7 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana main 8444ac5, 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana main f035a06, 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
@@ -104,7 +104,7 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   out (`--exclude`).
 - ² Slightly favours yurigana: the public table was trained on Aozora texts that include the NDL
   test authors, and pruned on all of Tatoeba's half b, B2 included (TRADEOFFS T44, until the table
-  is rebuilt without them).
+  is rebuilt without them); #96's rules were picked from 12 of B2's disagreements.
 - ³ One blind annotation run per set.
 - ⁵ **Joyo-Kanji-Yomi** (JKYB-Parakeet revision, 13,536 sentences, MIT; Sarashina2.2-TTS, arXiv
   2606.25369): three native-checked sentences per reading of every Jōyō kanji, scored with its own
