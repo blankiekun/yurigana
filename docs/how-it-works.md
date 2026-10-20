@@ -210,10 +210,20 @@ ruby over it that isn't taken (flavour, katakana) or that gives a second reading
 
 | source | certainty |
 |---|---|
-| `ruby`, `book`, `rule`, `only` | 1.0 |
+| `ruby`, `book`, `rule`, `only` | 1.0 (`only` also for a dominant reading, below) |
 | `model` | the model's posterior for its reading (0.7 or more) |
 | `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`); 1.0 for a counter span that is shown (Numbers and counters) |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
+
+A form the list reads several ways is still `only` where Sudachi's reading (or the listed one a conjugated
+word comes from) is the form's reading in `dominant-readings.tsv`: about 1,200 forms such as 俺 おれ, 声 こえ, 目 め,
+彼 かれ, 言葉 ことば, 言う いう, 二人 ふたり, 本当 ほんとう, whose other listed readings are rare, literary or list
+noise. `tools/dominant_readings.py` picks them from training-author post-war book ruby: where the reader would
+give that reading as `dictionary`, the ruby agrees 97%+ of 10+ times in each half of the books (a few forms
+below that were checked by hand on bare text). Ties in the list (言う いう = ゆう) are decided by that ruby, not by
+rank. Not for forms with a reading from `extra-readings.tsv` (良い いい, 夜 よ), names, a one-kanji token glued
+to a kanji, digit or katakana word (`readings.glued`), or a longer token with a kanji or digit beside it
+(一|文字 いちもんじ, 背筋|運動 はいきん: a compound Sudachi split). TRADEOFFS T300.
 
 Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's
 reading of a word the list lacks, or reads otherwise) has certainty 0, and a reading that

@@ -9,6 +9,7 @@ import zipfile
 MAX_MEMBER_BYTES = 128 * 1024 * 1024
 # Hand-checked (form, reading) pairs Jiten's list lacks (描く かく, 良い いい): see the file's header.
 EXTRA_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extra-readings.tsv')
+DOMINANT_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dominant-readings.tsv')
 
 
 def _read(archive: zipfile.ZipFile, name: str) -> bytes:
@@ -43,6 +44,12 @@ def reading_ranks(path: str) -> dict:
         if reading:
             ranks[term, reading] = min(value, ranks.get((term, reading), value))
     return with_extra_readings(ranks)
+
+
+def dominant_readings(path: str = DOMINANT_READINGS) -> dict:
+    """{form: reading} of dominant-readings.tsv (tools/dominant_readings.py)."""
+    with open(path, encoding='utf-8') as f:
+        return dict(line.split('\t')[:2] for line in f if line.strip() and not line.startswith('#'))
 
 
 def extra_readings(path: str = EXTRA_READINGS) -> set:

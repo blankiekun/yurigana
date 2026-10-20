@@ -269,6 +269,18 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('先', 'さき'), ('先', 'せん')})
         self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
 
+    def test_dominant_readings(self):
+        # dominant-readings.tsv: a form the list reads several ways is shown where Sudachi reads it the dominant way
+        # and the token stands alone; not inside a compound Sudachi split (一|文字 いちもんじ, 背筋|運動 はいきん)
+        reader = Reader()
+        read = lambda text: {w.form: (w.reading, w.source) for w in reader.read(text)}
+        self.assertEqual(read('俺は目を閉じた。')['目'], ('め', 'only'))
+        self.assertEqual(read('ご両親は元気？')['両親'], ('りょうしん', 'only'))
+        self.assertEqual(read('口を一文字に結ぶ。')['文字'][1], 'dictionary')
+        self.assertEqual(read('背筋運動をした。')['背筋'][1], 'dictionary')
+        reader.dominant = {}
+        self.assertEqual(read('俺は目を閉じた。')['目'][1], 'dictionary')
+
     def test_okurigana_variant(self):
         # the list reads 幼ない only いとけない; Sudachi reads it おさない, the reading of its normalized form 幼い
         reader = Reader(known={('幼ない', 'いとけない'), ('幼い', 'おさない'), ('幼い', 'いとけない')})
