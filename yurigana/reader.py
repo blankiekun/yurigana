@@ -17,7 +17,7 @@ from .rules import (CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED
                     SHOWN_DEFAULTS)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
-from .yomitan import dominant_checked, dominant_readings, extra_readings, preferred, term_readings
+from .yomitan import dominant_checked, dominant_readings, extra_readings, name_readings, preferred, term_readings
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
@@ -188,9 +188,12 @@ class Reader(Compounds):
     terms: paths of Yomitan term dictionaries you supply (a str is one), for words of 2+ characters the
         list and JMdict both lack: ruby over one, a reading where Sudachi has none, and compounds
         Sudachi splits, where Sudachi has no reading or reads the compound otherwise (source 'terms', never
-        shown). Earlier dictionaries' readings come first."""
+        shown). Earlier dictionaries' readings come first.
+    names: paths of Yomitan name dictionaries (JMnedict; a str is one). Last of all: they never change a
+        reading, only show one nothing else would (source 'dictionary', Sudachi's 固有名詞) when the
+        dictionaries read the name that one way only (姫路 ひめじ). Not other words (今日 こんにち there)."""
 
-    def __init__(self, known=None, tables=(), tokenizer=None, terms=()):
+    def __init__(self, known=None, tables=(), tokenizer=None, terms=(), names=()):
         if isinstance(known, str):
             from .yomitan import reading_ranks
             known = reading_ranks(known)
@@ -266,6 +269,11 @@ class Reader(Compounds):
                     if kept:
                         self.terms[form] = self.terms.get(form, []) + kept
         self._term_pairs = _TermPairs(self.terms)
+        merged = {}
+        for path in [names] if isinstance(names, str) else names:
+            for form, readings in name_readings(path).items():
+                merged[form] = merged.get(form, set()) | readings
+        self.names = {form: next(iter(r)) for form, r in merged.items() if len(r) == 1}
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.dominant = dominant_readings()
         self.dominant_checked = dominant_checked()
@@ -375,6 +383,12 @@ class Reader(Compounds):
                 reading, source, certainty = self._checked(form, variant, 'dictionary', None)
             if reading and source not in ('ruby', 'counter', 'book'):
                 reading = self._voicing(tokens, i, form, reading)
+            end = token.begin + len(surface)
+            if (source == 'dictionary' and form == surface and reading and self.names.get(form) == reading
+                    and token.part_of_speech()[1] == '固有名詞'  # not glued to kanji or digits: 一日|中海岸 is 一日中 海岸
+                    and not any(is_kanji(c) or c.isdigit() for c in text[max(token.begin - 1, 0):token.begin] + text[end:end + 1])
+                    and not any(s < end and e > token.begin for s, (e, _) in hint_at.items())):  # nor under partial ruby
+                source, certainty = 'only', 1.0
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
             if carry is not None and len(form) > 1:
                 if carry.get(form) and form in pending and HIRAGANA_WORD.match(carry[form]):

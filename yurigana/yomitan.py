@@ -1,6 +1,6 @@
 """Readings from a rank-based Yomitan frequency dictionary (e.g. Jiten's list,
 jiten.moe/frequency-dictionaries): the `known` set of (form, reading) pairs; and from Yomitan term
-dictionaries you supply (term_readings)."""
+dictionaries you supply (term_readings) and name dictionaries (name_readings)."""
 import json
 import math
 import os
@@ -137,4 +137,28 @@ def term_readings(path: str) -> dict:
                 readings = out.setdefault(term, [])
                 if to_hiragana(reading) not in readings:
                     readings.append(to_hiragana(reading))
+    return out
+
+
+def name_readings(path: str) -> dict:
+    """{name: its readings in hiragana} from a Yomitan name dictionary (JMnedict as yomitan-import builds it:
+    the readings are the glosses where the reading column is empty), for names with kanji. JMnedict lists a
+    name's readings in kana order, not by use (玲奈: あきな, なな, れいな …)."""
+    out = {}
+    with zipfile.ZipFile(path) as archive:
+        _read(archive, 'index.json')  # not a Yomitan dictionary without one
+        for name in archive.namelist():
+            if not os.path.basename(name).startswith('term_bank_'):
+                continue
+            for row in json.loads(_read(archive, name)):
+                if not isinstance(row, list) or len(row) < 2:  # an uploaded zip: skip malformed rows
+                    continue
+                term = row[0]
+                if not isinstance(term, str) or not _TERM.match(term) or not HAS_KANJI.search(term):
+                    continue
+                glosses = row[5] if len(row) > 5 and isinstance(row[5], list) else []
+                readings = [row[1]] if row[1] else [g for g in glosses if isinstance(g, str)]
+                for reading in readings:
+                    if isinstance(reading, str) and _READING.match(reading):
+                        out.setdefault(term, set()).add(to_hiragana(reading))
     return out

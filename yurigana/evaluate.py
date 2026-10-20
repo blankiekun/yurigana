@@ -145,9 +145,9 @@ def fold(reading: str, voicing: bool) -> str:
 # ---------------------------------------------------------------------------- systems
 # Each returns tokens(text) -> [(start, end, reading of text[start:end] or None, shown or None[, source])].
 
-def _ours(known):
+def _ours(known, names=()):
     from .reader import Reader
-    reader = Reader(known=known)
+    reader = Reader(known=known, names=names)
     return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), (w.source in SHOWN or w.source == 'counter' and w.certainty == 1.0),
                           w.source) for w in reader.read(text)]
 
@@ -228,9 +228,9 @@ def _yomikata():
 
 
 
-def make_system(name: str, known=None):
+def make_system(name: str, known=None, names=()):
     kind, _, arg = name.partition('-')
-    factory = {'ours': lambda: _ours(known), 'sudachi': lambda: _sudachi(arg), 'mecab': lambda: _mecab(arg),
+    factory = {'ours': lambda: _ours(known, names), 'sudachi': lambda: _sudachi(arg), 'mecab': lambda: _mecab(arg),
                'pykakasi': _pykakasi, 'ginza': _ginza, 'yomikata': _yomikata}.get(kind)
     if factory is None or name not in SYSTEMS:
         raise ValueError(f'unknown system {name}; known: {", ".join(SYSTEMS)}')
@@ -670,7 +670,7 @@ def triage(name, sentences, right, readings, agree=2):
 
 
 def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(), alts=None, review=None, agree=2,
-             exclude=frozenset(), classes=None, tags=None):
+             exclude=frozenset(), classes=None, tags=None, names=()):
     """tags: an earlier report's 'sets' whose per-item tags are used instead of computing them."""
     sets = {}
     for path in paths:
@@ -686,7 +686,7 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
     made = {}
     for system in systems:
         try:
-            made[system] = (lambda f: lambda s: f(s['text']))(make_system(system, known))
+            made[system] = (lambda f: lambda s: f(s['text']))(make_system(system, known, names))
         except ImportError as error:
             how = ('a second environment: see the docstring of yurigana/evaluate.py' if system in ('ginza', 'yomikata')
                    else 'pip install "yurigana[eval]"')
@@ -871,6 +871,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(prog='yurigana.evaluate', description=__doc__.split('\n\n')[0])
     p.add_argument('sets', nargs='+', help='gold JSONL files')
     p.add_argument('--known', help='reading list for ours (e.g. jiten_freq_global.zip); without one, none')
+    p.add_argument('--names', action='append', default=[], help='a Yomitan name dictionary for ours (JMnedict); repeatable')
     p.add_argument('--systems', default='ours', help=f'comma-separated, or all: {",".join(SYSTEMS)}')
     p.add_argument('--compare', help='an earlier --out report: paired changes per item')
     p.add_argument('--out', help='write the report (metrics and per-item results) as JSON')
@@ -898,7 +899,7 @@ def main(argv=None):
         with open(args.tags, encoding='utf-8') as f:
             tags = json.load(f)['sets']
     report = evaluate(args.sets, systems, args.known, args.bootstrap, misses, predictions, args.alts, review, args.agree,
-                      read_exclude(args.exclude) if args.exclude else frozenset(), classes, tags)
+                      read_exclude(args.exclude) if args.exclude else frozenset(), classes, tags, args.names)
     if args.classes:
         with open(args.classes, 'w', encoding='utf-8') as f:
             f.write('set\tkey\tlisted\t' + '\t'.join(TAGS) + '\n')
