@@ -8,11 +8,11 @@ import unicodedata
 from collections import defaultdict
 from typing import NamedTuple
 
-from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .counters import COUNTERS, ONE_THOUSAND, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
-from .yomitan import extra_readings, preferred
+from .yomitan import dominant_readings, extra_readings, preferred
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
@@ -280,6 +280,7 @@ class Reader:
                         and (form, best) in plain):
                     self.ranked[form] = best
         self.model = load_tables([*tables, PUBLIC_TABLE])
+        self.dominant = dominant_readings()
         self.ateji = ateji_readings()
         self._ateji_re = re.compile('|'.join(sorted(map(re.escape, self.ateji), key=len, reverse=True)))
         if tokenizer is None:
@@ -387,10 +388,14 @@ class Reader:
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
+        token_at = {t.begin: t for t in tokens}
         for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
-            word = Word(start, end, text[start:end], number + (counter or ''), 'counter', None)
+            # shown (certainty 1.0) unless the counter or span is often read otherwise, or Sudachi took it for a name
+            sure = counter_shown(text[start:end], text[number_end:end], text[end:end + 2], text[max(0, start - 2):start]) and not (
+                start in token_at and token_at[start].part_of_speech()[1] == '固有名詞')
+            word = Word(start, end, text[start:end], number + (counter or ''), 'counter', 1.0 if sure else None)
             if start in at and words[at[start]].end == end:  # one token (三軒 みのき, 一回 いちかい)
                 words[at[start]] = word
             else:
@@ -409,6 +414,9 @@ class Reader:
                     and not any(s < end and e > start for s, (e, _) in hint_at.items())):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
+        words = [w._replace(source='rule', certainty=1.0) if w.source == 'default' and (w.form, w.reading) in SHOWN_DEFAULTS
+                 and not (w.end - w.start == 1 and (glued(text, w.start, w.end) or re.match('[ァ-ヺー]', text[w.end:w.end + 1])))
+                 else w for w in words]
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
@@ -602,7 +610,7 @@ class Reader:
         if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
             value = number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
-            return number_reading(value, '一千' in surface), 'counter', None
+            return number_reading(value, bool(ONE_THOUSAND.search(surface))), 'counter', None
         if surface == '一' and tokens[i].part_of_speech()[1] == '数詞':
             after = text[begin + 1:begin + 4]
             for one, kana in _ONE_KANA:
@@ -663,7 +671,7 @@ class Reader:
             if default and (form, default) in self.known and not default_kept(text, begin, begin + len(surface), form):
                 return default, 'default', None
             if reading:
-                return reading, 'dictionary', None
+                return self._dominant(text, tokens[i], form, reading)
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
             if reading:
@@ -684,8 +692,21 @@ class Reader:
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]
-            return sudachi, 'dictionary', round(priors[entry[0].index(sudachi)] / sum(priors), 3)
-        return sudachi, 'dictionary', None
+            return self._dominant(text, tokens[i], form, sudachi, round(priors[entry[0].index(sudachi)] / sum(priors), 3))
+        return self._dominant(text, tokens[i], form, sudachi)
+
+    def _dominant(self, text, token, form, reading, certainty=None):
+        """Sudachi's reading (or the listed one it conjugates from) as `dictionary`, or as `only` where
+        dominant-readings.tsv gives it as the form's reading in bare post-war text and the token stands alone:
+        not glued to a kanji, digit or katakana word (日 in 二日酔い, 族 in ドラゴン族; a longer token with a kanji or digit
+        next to it, part of a compound Sudachi split: 一|文字 もんじ, 背筋|運動 はいきん), not a name, and a surface the
+        reading spells (not the classical 若かり)."""
+        begin, end = token.begin, token.begin + len(token.surface())
+        if (self.dominant.get(form) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
+                or end - begin > 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
+                or not surface_reading(token.surface(), form, reading, text[end:end + 3])):
+            return reading, 'dictionary', certainty
+        return reading, 'only', 1.0
 
     def _unlisted_sudachi(self, token, form, sudachi) -> str | None:
         """The list's top reading of a form when Sudachi's reading of it is neither listed nor

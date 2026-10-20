@@ -121,7 +121,7 @@ B2_IDS = os.path.join(HERE, 'tatoeba-b2-ids.txt.gz')
 SYSTEMS = ('ours', 'sudachi-A', 'sudachi-B', 'sudachi-C', 'mecab-ipadic', 'mecab-unidic', 'pykakasi', 'ginza',
            'yomikata')
 BOTH_STANDARD = frozenset('明日 日本 私 昨日 一昨日 明後日 一昨年 今年 何故 他'.split())
-SHOWN = ('only', 'rule', 'model')  # the sources chimimouryou shows as furigana
+SHOWN = ('only', 'rule', 'model')  # the sources chimimouryou shows as furigana, and counter spans with certainty 1.0
 # ours' sources, weakest first: a stretch of several tokens counts as its weakest one's
 SOURCES = ('dictionary', 'default', 'only', 'book', 'counter', 'model', 'rule', 'ruby')
 CONTEXT = ('ruby', 'rule', 'model')  # sources that read a hard form by its context
@@ -148,7 +148,7 @@ def fold(reading: str, voicing: bool) -> str:
 def _ours(known):
     from .reader import Reader
     reader = Reader(known=known)
-    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), w.source in SHOWN,
+    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), (w.source in SHOWN or w.source == 'counter' and w.certainty == 1.0),
                           w.source) for w in reader.read(text)]
 
 
