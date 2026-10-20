@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, DEFAULT_KEEP, SPLIT_TOKENS, WRONG_LEMMA
+from .rules import CONTEXT_RULES, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -68,6 +68,24 @@ def may_be_potential(text: str, begin: int, form: str) -> bool:
         return False
     clause = _CLAUSE.split(text[max(0, begin - 40):begin])[-1]
     return 'を' not in clause and not _PUT_INTO.search(clause) and not _PUT_AFTER.match(text, begin + 2)
+
+
+def goes(text: str, tokens: list, i: int) -> bool:
+    """Whether 行っ at tokens[i], Sudachi's 行う, is 行く (rules.IKU_*, T432)."""
+    begin = tokens[i].begin
+    clause = _CLAUSE.split(text[max(0, begin - 40):begin])[-1]
+    if 'を' in clause:
+        return bool(IKU_PATH.search(clause) or text.startswith('たり', begin + 2) and IKU_AFTER.match(text, begin + 2))
+    if IKU_AFTER.match(text, begin + 2) or IKU_IDIOM.search(clause):
+        return True
+    k = i - 1  # the particle before, past は, も, でも… (病院にも行った, トイレにでも行った)
+    while k >= 0 and tokens[k].begin + len(tokens[k].surface()) == tokens[k + 1].begin and (
+            tokens[k].surface() in ('は', 'も', 'でも', 'だけ', 'さえ') or tokens[k].surface() == 'で' and tokens[k].part_of_speech()[0] == '助動詞'):
+        k -= 1
+    if k < 0 or tokens[k].begin + len(tokens[k].surface()) != tokens[k + 1].begin or tokens[k].part_of_speech()[1] != '格助詞':
+        return False
+    particle = tokens[k].surface()
+    return particle in ('に', 'へ', 'まで') or particle == 'で' and bool(IKU_MEANS.search(text, max(0, tokens[k].begin - 12), tokens[k].begin))
 
 
 def default_kept(text: str, begin: int, end: int, form: str) -> bool:

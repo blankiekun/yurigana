@@ -11,7 +11,7 @@ from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
-from .readings import (conjugated_reading, context_reading, default_kept, glued, may_be_potential, right_lemma, ruby_reading,
+from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS)
@@ -342,6 +342,8 @@ class Reader(Compounds):
             if not HAS_KANJI.search(surface):
                 continue
             form = right_lemma(text, token.begin, form, token.begin + len(surface))
+            if form == '行う' and surface == '行っ' and token.begin not in hint_at and goes(text, tokens, i):
+                form = '行く'  # read いっ below, not shown (T432)
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
             # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
             # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
@@ -494,6 +496,8 @@ class Reader(Compounds):
         reading = hint_at and form in self.terms and ruby_reading(hint_at, begin, surface, form, self._term_pairs)
         if reading:
             return reading, 'terms', None
+        if form == '行く' and tokens[i].dictionary_form() == '行う':  # readings.goes (T432)
+            return 'いく', 'dictionary', None
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (CONTEXT_RULES)
