@@ -83,6 +83,8 @@ _GIMI_BEFORE = words(KIN_TITLE)
 _KON_NEXT = words(TERM)
 # People and things 外 is ほか before (外の人, 外の乗客): "the other ...".
 _HOKA_OF = words(PEOPLE, THINGS)
+# What follows 一文 when it is money (一文も, 一文の得, 一文無し, 一文でも二文でも).
+_NOT_MONEY = r'(?!も|の(?:得|徳|値|ねうち|価値|銭|金|収入|負担|路用|足し|儲|役|価)|にもな[らっりる]|だに|無|な[しい]|欠|でも|銭|[二三四五六七八九十百千]文|ずつ|づつ)'
 # Verb stems before 入る read いる (眺め入る, 恐れ入る, 聞き入る); Sudachi says はいる.
 _IRU_STEM = '(?:' + words(IRU_STEM) + r'|[一-鿿](?<!少)[きぎしちびみりめれけせえね])'
 # Metals and the like near 金 make it the metal, きん (金は銀より重い); 銀行 is money.
@@ -385,7 +387,8 @@ _CONTEXT_RULES = {
     '尼': [('あま', None, r'君|寺|僧|さん|御前|姿|に(?:な|し)')],
     '今': [('いま', None, r'(?!' + _KON_NEXT + ')')],
     # 外 ほか: "other" (外の人) and "nothing but" (待つ外ない); Sudachi's そと otherwise.
-    '外': [('ほか', r'(?:より|その)$', None), ('ほか', None, r'の' + _HOKA_OF + r'(?![間界])|なら[なぬずん]'),
+    # Not after a noun + の: 里の外の人, 窓の外のこと are outside (そと).
+    '外': [('ほか', r'(?:より|その)$', None), ('ほか', r'(?<!の)$', r'の' + _HOKA_OF + r'(?![間界])|なら[なぬずん]', 'and'),
            ('ほか', r'[うくぐすつぶむるたぬ]$', r'[はにも]?(?:な[いくかし]|無|あり|ある|ござ|仕方|手|道)', 'and')],
     # 人 right after a katakana word (カナダ人); after a place name, see context_reading.
     '人': [('じん', r'[ァ-ヺー]$', None)],
@@ -463,6 +466,8 @@ _CONTEXT_RULES = {
     '盛り': [('さかり', r'(?:かわいい|可愛い|やりたい|遊びたい|食べたい|育ち|働き|伸び|花の|今が)$', None)],
     '類': [('たぐい', r'(?:の|そんな|こんな|あんな|その|この|あの|どの)$', r'(?!を見|稀|まれ|い稀|い希|がな)', 'and')],
     '痛': [('いた', None, r'[っッ…‥]|たた|てて')],
+    # 一文 as one token is a sentence, いちぶん, unless money is meant (一文も出さない, 一文の得にもならない); 一|文: MODEL_FIX.
+    '一文': [('いちぶん', r'(?<!銭)$', _NOT_MONEY, 'and')],
 }
 # Sudachi readings that are almost always wrong in plain modern text: (form, Sudachi's reading):
 # the reading given instead, when no ruby, rule or model gives one. Chosen on Tatoeba's half a
@@ -554,6 +559,28 @@ DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
 # 注ぐ 69%, 弾く 32%, 堪える 58%, 辛い 66% right; plain DEV: 7 of 13 wrong): the model's reading is kept with
 # source 'dictionary' (TRADEOFFS T150). Their rules' readings are still shown.
 MODEL_UNSHOWN = frozenset({'開く', '空く', '止める', '注ぐ', '堪える', '弾く', '辛い'})
+# Model readings that are wrong most of the time, or in a frame (training-author library ruby where the model gives
+# them: 何時 なんじ 9%, 何故 なにゆえ 20%, 件 くだり 53%, 等 ら 53% right; bare text agrees but for 何時).
+# Not context rules: a rule form loses its model. (form, the model's reading) -> [(text before, text after, the reading given, shown)]: the first entry
+# whose patterns (None: any) match the text around the word applies; none: the model's reading (T250).
+PRONOUNS_RA = {'あいつ', 'こいつ', 'そいつ', 'アイツ', 'コイツ', 'ソイツ', '貴様', 'きさま', '俺', 'おれ', 'オレ', 'お前', 'おまえ', 'オマエ',
+               'お主', 'てめえ', 'てめぇ', 'てめー', 'テメエ', 'テメー', '手前', '諸君', '僕', 'ぼく', 'ボク', '私', 'わたし', 'ワタシ', '我',
+               'われ', 'ワレ', '彼', '彼奴', '其方', 'そなた', 'あんた', 'アンタ', 'あなた', '貴方', 'わし', 'ワシ', '儂', 'あたし', 'アタシ',
+               'あっし', 'おいら', 'オイラ', '君', 'きみ', '自分', '貴兄', '貴下', '我々', '奴', 'やつ', 'ヤツ', 'それ', 'これ', 'あれ', '子供', '子ども', '小僧', '娘'}
+# 何時 before か, しか, だって, でも, になく, 、 or a verb (何時か必ず, 何時帰った; not 今何時か, 何時起き): いつ;
+# the model's なんじ is right in bare text elsewhere (何時に起きる, 今何時だ, 何時ぐらい), though authors ruby 何時 mostly where it is いつ.
+MODEL_FIX = {('何時', 'なんじ'): [(r'(?:今|いま)[、は]?$', None, 'なんじ', True),  # 今何時か分かる
+                             (None, r'(?:か(?!な|しら|ら|い[。？?！!」]|ね)|しか|だって|でも|ぞや|の日|にな[くっ]|になれ|にも|以来|ぶり|、|(?:だった|じゃった)か'
+                                    r'|(?!起き)[㐀-䶿一-鿿々](?<![頃間]))', 'いつ', True)],
+             ('何故', 'なにゆえ'): [(None, None, 'なぜ', False)], ('件', 'くだり'): [(None, None, 'けん', False)],
+             # 等 after a pronoun or a person (あいつ等, 貴様等, 子供等): ら; after other nouns など or とう.
+             ('等', 'ら'): [(words(PRONOUNS_RA) + '$', None, 'ら', True), (None, None, 'など', False)],
+             # 一|文: a sentence (その一文, 一文だけ), not money (一文も, 一文の得).
+             ('文', 'もん'): [(r'(?<![〇一二三四五六七八九十百千万銭])一$', _NOT_MONEY, 'ぶん', True)],
+             # 術 glued after a kanji or katakana noun is a technique (護衛術, 変身術, スピン術); not 他術 (他に術はない).
+             ('術', 'すべ'): [(r'[ァ-ヺー㐀-䶿一-鿿々](?<!他)$', None, 'じゅつ', True)]}
+MODEL_FIX = {key: [(before and re.compile(before), after and re.compile(after), reading, shown)
+                   for before, after, reading, shown in fixes] for key, fixes in MODEL_FIX.items()}
 
 # Conjugated words take the default of the reading their surface conjugates from too (擦った すっ: 擦る こする,
 # TRADEOFFS T2). Where a hand default doesn't hold, Sudachi's reading stays: (text before, text after) the word.

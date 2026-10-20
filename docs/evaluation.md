@@ -99,7 +99,7 @@ ruby, not NDL's readings).
 
 ## The sanity list
 
-`eval/sanity.tsv` is a regression list of 1,008 rows, checked by `tests/test_sanity.py` in CI. Each
+`eval/sanity.tsv` is a regression list of 1,059 rows, checked by `tests/test_sanity.py` in CI. Each
 row is a sentence, a span in it, the expected reading and other accepted ones (`alts`, `|`
 between them). The test runs `Reader().read` on the sentence (no ruby, no reading list) and
 compares the reading of the word that is exactly the span, else the readings of the words inside
@@ -113,7 +113,7 @@ it joined with its kana (三 + 本 gives さんほん). Kinds:
   standard grammar (いっぽん, さんびき, なんばい, ついたち, はつか).
 - `convention` (20): words with two standard readings (明日 あした/あす, 家 いえ/うち).
 - `probe` (67): numbers with counters in real Tatoeba sentences.
-- `glaring` (108): hand-written sentences for misreads found by readers or review (札 ふだ, あなた方 がた, 何これ なに, 転生 てんせい, いつ家 いえ, 至福の一時 ひととき, 数多 あまた, 無問題 もーまんたい, 数百 すうひゃく, 村長殿 どの),
+- `glaring` (129): hand-written sentences for misreads found by readers or review (札 ふだ, 何時か いつ, Ａ組 ぐみ, あなた方 がた, 何これ なに, 転生 てんせい, いつ家 いえ, 至福の一時 ひととき, 数多 あまた, 無問題 もーまんたい, 数百 すうひゃく, 村長殿 どの),
   one per fix, added in the PR that fixes it.
 
 Rows the reader gets wrong are marked `xfail` in the `status` column, with what it gives in the
