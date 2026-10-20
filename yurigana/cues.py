@@ -40,9 +40,10 @@ PLAYED = frozenset({'ピアノ', 'ギター', 'バイオリン', 'ヴァイオ�
 DRAWN = frozenset({'絵', 'マンガ', '漫画', 'まんが', 'イラスト', '挿絵', '似顔絵', '原稿', '落書き', 'らくがき', '絵本', 'ネーム'})
 # Things tied or wound that one undoes (紐を解く, 髪を解く: 解く ほどく); 帯, 荷, 包み are mixed in books' ruby.
 TIED = frozenset({'紐', 'リボン', '髪', '結び目', '糸', 'ネクタイ', '三つ編み', '包帯', '腕', '手', '指', '縄', '鎖', '靴紐', '風呂敷'})
-# Harm and favour one suffers or receives (被害を被る, 恩恵を被る: 被る こうむる).
-SUFFERED = frozenset({'恩恵', '被害', '損害', '損失', 'ダメージ', '迷惑', '打撃', '影響', '不利益', '損', '罰', '天罰', '災難', '災い',
-                      '嫌疑', '汚名', '痛手', '恩', '苦痛'})
+# Harm and favour one suffers or receives (被害を被る, 恩恵を被る: 被る こうむる). Not 汚名 or 損: books' ruby is mostly
+# かぶる there (汚名を被る 32 of 42, 損を 4 of 13).
+SUFFERED = frozenset({'恩恵', '被害', '損害', '損失', 'ダメージ', '迷惑', '打撃', '影響', '不利益', '罰', '天罰', '災難', '災い',
+                      '嫌疑', '痛手', '恩', '苦痛'})
 
 # Family and rank words a name-like 君 follows as ぎみ (尼君, 姫君, 母君).
 KIN_TITLE = frozenset({'尼', '姫', '婿', '姉', '妹', '兄', '弟', '若', '母', '父'})

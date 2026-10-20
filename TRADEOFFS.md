@@ -16,7 +16,7 @@ rule. **Needs work**: the way out says what would fix it.
 | id | trade-off | from | post-war cost | way out |
 |---|---|---|---|---|
 | T1 | 何 defaults to なに/なん by the next word; なんか read なにか | #1 | ~3 (何重 なにじゅう). Needs work | なんか/なにか is often the transcriber's choice |
-| T2 | Conjugated words take Sudachi's surface reading when it fits the list, wrong ones included (開い ひらい, 辛く つらく) | #4 | ~26 on dev (行 いく/ゆく, 描 かく/えがく, 良 よい/いい: mostly two standard readings). Needs work | context rules per form; certainty keeps them out of shown furigana |
+| T2 | Conjugated words take Sudachi's surface reading when it fits the list, Sudachi's lemma included (行ったり来たり 行う, 通ってる 通る); not `only` where two listed verbs share the っ-form (T152); hand defaults apply (擦った こする) | #4, #75 | shown ~0; word list ~10 lemma errors on dev (the rest are T154's choices). Needs work | the lemma from context (たり来, に通う) |
 | T3 | Compounds are joined only when the list (or JMdict, T90) reads them one way; phrases with particles or ending in kana never are | #9 | small, unmeasured (身体中 しんたいじゅう for からだじゅう). Needs work | a cleaner list; JMdict priority tags (T91) |
 | T5 | 下 もと only after listed nouns (`cues.ABSTRACT`, `SUPERIOR`) and a person + の下へ/に + going or serving (T82) | #10, #62 | ~0.3 (自分の下で). Needs work | more nouns from modern text; a POS cue (監視の下に) was tried in #46 and failed |
 | T6 | 白髪 defaults to しらが | #10 | <0.1 (はくはつ in narration). Accept | a literary cue |
@@ -41,16 +41,16 @@ rule. **Needs work**: the way out says what would fix it.
 | T33 | A conjugated word the list lacks takes Sudachi's surface reading (泳げ およげる) | #23 | none shown; rare in word lists. Accept | per-form lemma checks (往っ さる) |
 | T34 | default-readings.tsv: pre-war NDL nominates, modern text decides (身体 からだ, 時 とき, 実 み, 下 した; 咽喉, 空地 by hand, T83) | #25 | ~0. Accept | modern evidence per pair to admit more |
 | T35 | 都 alone is みやこ (と with Tokyo-government cues); 露 by context (T64) | #34 | ~0. Accept | government cues from news text |
-| T37 | 辛い keeps its model where no rule fires (T75) | #40 | ~0.1 (辛い役目 からい). Accept | more つらい cues |
+| T37 | 辛い keeps its model where no rule fires (T75), not shown (T150) | #40, #75 | ~0.1 (辛い役目 からい), never shown. Accept | more つらい cues |
 | T38 | With `carry`, a name's hiragana ruby is taken even when unlisted and carried to later bare occurrences | #44 | ~0. Accept | stop carrying at a second ruby; widen `_PRONOUNS` |
-| T39 | 開く after を is ひらく; 止める after の/こと is やめる (とめる objects: `cues.HALTED`, #63); 空く すく only for roads and trains | #41 | ~3 (…のを止められない やめる). Needs work | a "stop someone" cue; eyes and windows for 開く |
+| T39 | 開く after を is ひらく; 止める after の/こと is やめる (とめる objects: `cues.HALTED`, #63; 止めに入る); 空く すく only for roads and trains (あく before 穴) | #41, #75 | ~3 in word lists (…のを止められない: ruby 5 やめる / 5 とめる), never shown (T150). Needs work | a "stop someone" cue; eyes and windows for 開く |
 | T40 | Readings Jiten ranks the same are decided by JMdict's first reading, a few the wrong way (一束 いっそく, 一声 いっせい) | #43 | ~0. Accept | JMdict priority tags for ties |
 | T41 | A joined compound JMdict lacks with the list's reading is `dictionary` (not shown) | #43 | none on word lists; right names lose shown furigana. Accept | `carry` (T38); JMnedict confirms only 4 of 10 (dev), 15 of 34 (library ruby): not a way out |
 | T140 | A name (Sudachi's 固有名詞) JMdict lacks is `dictionary`, not `only`: the list's one reading is a guess (T42) | #73 | none wrong; ~100 right name furigana per book not shown (library ruby). Needs work | callers pass `carry` (chimimouryou's readings file doesn't yet) |
 | T141 | Names JMdict has stay `only` (安芸 あき for a character named あげ) | #73 | ~1.4 shown wrong per book. Accept | – |
 | T44 | The public table was trained on the NDL test authors' ruby and pruned on Tatoeba half b | #47 | none (evaluation leakage) | the shared-model rebuild |
-| T45 | Hand defaults 擦る こする, 素 す (from Opus's readings of post-war text) | #49 | ~0.3 (背中を擦った さする). Needs work | a context rule for 素 もと (origin) |
-| T47 | 抱く だく only after a held thing or person + を, or before たい with no を; いだく elsewhere | #50, #63 | ~0.7 (no object in reach, passive). Needs work | a physical cue for the passive (に抱かれて眠る) |
+| T45 | Hand defaults 擦る こする (conjugated forms too: T153), 素 す (from Opus's readings of post-war text) | #49 | ~0.3 (背中を擦った さする: T70), not shown. Needs work | a context rule for 素 もと (origin) |
+| T47 | 抱く だく only after a held thing or person + を, or before たい with no を; いだく elsewhere | #50, #63 | ~0.7 in word lists, not shown (Sudachi's). Accept: no passive cue reaches 90% in books' ruby (Xに抱かれ だく 162 / いだく 75; 腕に 16/16) | – |
 | T48 | By cue: 側 そば, 表 おもて (T81), 主 あるじ (T82), 間 ま, 家 け (T60), この後 あと, 留まる とどまる | #50 | ~0.3 (部屋の主, Xの側について). Needs work | side-of cues (味方の側 がわ) |
 | T49 | With no reading list, JMdict's pairs are the list | #51 | none with a list (chimimouryou always has one). Accept | – |
 | T50 | 分別 alone is ふんべつ; ぶんべつ after ゴミ/資源… or before する/収集… | #55 | ~0. Accept | more sorting cues |
@@ -64,11 +64,10 @@ rule. **Needs work**: the way out says what would fix it.
 | T65 | 素 もと after food and 混乱/元気 + の; す otherwise (T45) | #61 | small (灰を素に) | more cues |
 | T66 | 方 かた after ファン/一般/上司/責任者… + の | #61 | none seen | see T12 |
 | T67 | 間 あいだ before に割って/に入る/に挟む, not after の | #61 | none seen | – |
-| T70 | 擦る こする after 目/瞼/鼻を, ごしごし, 頬/顔を擦りつける; する elsewhere | #63 | ~0.2 (さする). Needs work | a さする cue (背中を + そっと) |
-| T71 | 弾く ひく after an instrument, はじく after を/で/に or before a passive; 弾く, 堪える keep their models | #63 | ~0.05 (instrument out of reach) | a PLAYED word anywhere in the paragraph |
-| T72 | 解く ほどく after a tied thing + を (`cues.TIED`) | #63 | ~0.25 (帯, 荷, both standard). Accept | – |
-| T73 | 堪える こらえる after を and before きれ | #63 | ~0.15. Accept | – |
-| T74 | 被る こうむる after harm or favour + を (`cues.SUFFERED`) | #63 | ~0.05 | drop ダメージ if it costs more |
+| T70 | 擦る こする after 目/瞼/鼻を (+ 右手で…), ごしごし, 頬/顔を擦りつける, さする after お腹を; こする elsewhere (T45, conjugated too: T2), する after マッチ/燐寸を and in split compounds (擦りガラス) | #63, #75 | ~0.2 (背中を, 腕を さする: ruby 69%, 78%), not shown. Accept | – |
+| T71 | 弾く ひく after an instrument, はじく after を/で/に or before a passive; 弾く, 堪える keep their models, not shown (T150) | #63, #75 | ~0.05 (instrument out of reach), never shown. Accept | a PLAYED word anywhere in the paragraph |
+| T72 | 解く ほどく after a tied thing + を (`cues.TIED`) | #63 | ~0.25 (帯, 荷, both standard), not shown. Accept: in books' ruby 帯を ほどく 67%, 荷物を 70%, 包みを 83% | – |
+| T73 | 堪える こらえる after を and before きれ; the model elsewhere, not shown (T150: ruby 58% right) | #63, #75 | ~0.15, never shown. Accept | – |
 | T75 | 辛い つらい unless food follows, after a kanji or verb stem (見辛い づらい), or before も/すぎ/？ | #63 | ~0.1 | a food cue from the paragraph |
 | T76 | 来る くる before べき as a predicate; きたる before a noun | #63 | ~0 | – |
 | T77 | An okurigana variant (幼ない) gets Sudachi's reading of its normalized form, not the list's `only` | #63 | ~0 (pre-war forms go wrong) | check the normalized form is the same word |
@@ -88,9 +87,14 @@ rule. **Needs work**: the way out says what would fix it.
 | T121 | Xつ目 joins as eyes (三つ目 みつめ), so the ordinal (三つ目の角 みっつめ) is wrong | #67 | ~0.2. Needs work | ordinal cues (の + place, 駅, 角) |
 | T122 | 十 alone stays じゅう, so a count or age (十も年下 とお) is missed | #67 | <0.1 | age cues |
 | T130 | `extra-readings.tsv`: 25 hand-checked pairs Jiten's list lacks (良い いい, 描く かく, 刺青 いれずみ) join `known` after the form's own readings | #69 | ~0. Accept | pairs a combined list brings in leave the file |
-| T131 | 描く かく after a picture (`cues.DRAWN`) + を/に/も; えがく elsewhere | #69 | ~2-3 (描いた絵, パステルで描く). Needs work | instrument cues; 絵 after |
+| T131 | 描く かく after a picture (`cues.DRAWN`) + を/に/も or before one (描いた絵, ruby 35/37); えがく elsewhere, not shown (T151) | #69, #75 | ~2-3 in word lists (パステルで描く, 描かせていただく), never shown. Accept: drawings take either reading (T154); instruments are かく 7 / えがく 8 in ruby | – |
 | T132 | 刺青 defaults to いれずみ | #69 | ~0 (titles: 『刺青』 しせい) | – |
 | T133 | Pairs left out of `extra-readings.tsv`: お義母さん かあ, 解せない げせない, 放っておく ほうっ, gikun ruby | #69 | small, unmeasured. Needs work | a rule per item |
+| T150 | `readings.MODEL_UNSHOWN`: the model's readings of 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い are kept with source `dictionary`, not shown | #75 | coverage: plain DEV 68.1 → 67.9%; books' ruby 空く 85 → 6%, 注ぐ 87 → 0%, 止める 71 → 21%, 開く 81 → 39% shown (their shown precision 69-89% → 93-98%). Accept | rules per form (rules' readings are shown) |
+| T151 | A form with an `extra-readings.tsv` pair is never `only` (描く えがく, 経緯 けいい) | #75 | coverage: 描く shown only by T131's rule (25% of ruby occurrences). Accept | rules per form |
+| T152 | A っ-form two listed verbs share (行っ 行う/行く, 通っ, 放っ, 弄っ) is not `only`, unless the other is 5 times rarer in the list | #75 | coverage: also 経っ (経る), 断っ (断つ), whose other verb has no such form; plain DEV 4 words. Accept | Sudachi's conjugation type for the other verb |
+| T153 | Conjugated 擦る takes the こする default (T45) | #75 | ruby: right 197 → 1,840 of 2,538 changed (さする 背中を, 腕を; 擦りつける すり), not shown. Accept | – |
+| T154 | Verbs with two standard readings keep Sudachi's or the model's choice, not shown: 良い よい/いい, 描く for drawings, ドアが開く, 行き交う ゆき/いき, 擦れる こすれる/すれる, 抱かれる, 瞑る, 注ぐ for drinks | – | ~25 on dev (word lists only). Accept: no cue reaches 90% in books' ruby (ドアが あく 44%, 酒を つぐ 70%, 茶を つぐ 70%) | – |
 
 ### Period-justified
 
@@ -127,3 +131,4 @@ majority support from post-war text.
 | R12 | 何 before a counter that starts a verb; 着, 間, 話 not counters (was T36) | #55 (`readings._VERB_AFTER_NANI`) |
 | R20 | A name JMdict lacks kept the list's reading as `only` (麻里 あさざと, 隆治 たかじ; was T42) | #73 (T140) |
 | R21 | Jiten's noisy surname readings (佐藤 さとあ, 加藤 かとお; was part of T133) | measured in #73: Sudachi's reading wins when the list's differs, and agreeing noise is no longer shown (T140) |
+| R25 | 被る こうむる after 汚名/損 (was T74) | #75 (汚名, 損 left out of `cues.SUFFERED`: ruby かぶる 32 of 42, 4 of 13; the rule is 99% right) |

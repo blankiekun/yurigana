@@ -55,13 +55,22 @@ class ReaderTest(unittest.TestCase):
         reader.model = ReadingModel({'人家': entry('R1:がない')})
         return reader
 
-    def test_extra_readings_keep_the_lists_only_reading(self):
-        # 擦る: a list giving only こする; an extra-readings.tsv pair (made up here) doesn't make it ambiguous
+    def test_extra_readings_cost_the_only_reading(self):
+        # 擦る: a list giving only こする; an extra-readings.tsv pair (made up here) keeps it `single` but not `only`
         from unittest import mock
         with mock.patch('yurigana.reader.extra_readings', return_value={('擦る', 'する')}):
             reader = self.reader({('擦る', 'こする'), ('擦る', 'する')})
-        self.assertEqual(reader.only, {'擦る': 'こする'})
+        self.assertEqual((reader.single, reader.only), ({'擦る': 'こする'}, {}))
         self.assertEqual(self.reader({('擦る', 'こする'), ('擦る', 'する')}).only, {})
+
+    def test_shared_conjugation(self):
+        from yurigana.reader import _shared_conjugation
+        readings = {'行う': ['おこなう'], '行く': ['いく', 'ゆく'], '分かる': ['わかる'], '分かつ': ['わかつ'], '待つ': ['まつ']}
+        ranks = {('行う', 'おこなう'): 668, ('行く', 'いく'): 50, ('分かる', 'わかる'): 278, ('分かつ', 'わかつ'): 19788}
+        self.assertTrue(_shared_conjugation('行っ', '行う', readings, ranks))
+        self.assertFalse(_shared_conjugation('分かっ', '分かる', readings, ranks))  # 分かつ is 70 times rarer
+        self.assertFalse(_shared_conjugation('待っ', '待つ', readings, ranks))
+        self.assertFalse(_shared_conjugation('行う', '行う', readings, ranks))
 
     def test_sources_in_order(self):
         hints = []

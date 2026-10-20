@@ -1,8 +1,8 @@
 # form	reading	evidence
 # (form, reading) pairs Jiten's frequency list lacks, hand-checked as standard post-war readings.
 # yomitan.reading_ranks adds them to a list's forms, ranked after the form's own readings, so a list's
-# usual reading stays the usual one; Reader takes them from a book's ruby and from context rules, and
-# they never cost a form its `only` reading. Evidence: ruby over the form in a 200-book sample of
+# usual reading stays the usual one; Reader takes them from a book's ruby and from context rules, and a
+# form with one is never `only` (its own reading isn't sure). Evidence: ruby over the form in a 200-book sample of
 # training-author post-war library books (occurrences/authors), Sudachi's reading of bare occurrences
 # there, JMdict. No creative ruby (娘 こ, 他人 ひと, 理由 わけ), names, rendaku or pre-war readings.
 # CC BY-SA 4.0 (checked against JMdict, EDRDG): see NOTICE.

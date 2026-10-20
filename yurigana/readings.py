@@ -207,9 +207,10 @@ _CONTEXT_RULES = {
     # 擦る こする: eyes rubbed (目を擦る), ごしごし, a cheek rubbed against (頬を擦りつける). Sudachi's する stays for
     # compounds it splits (擦り切れる, 擦りむく, 擦りガラス) and マッチ; さする (stroking a back or an arm) has no cue.
     '擦る': [('こする', '(?:(?<![一-鿿])(?:目|眼|瞼|まぶた|目元|目尻|目蓋|鼻|鼻の下|まなこ|両目|片目)を'
-                       r'(?:手|指|袖|拳|手の甲|両手)?で?(?:ごしごし|ゴシゴシ|こしこし|しきりに|何度も|軽く|強く)?'
+                       r'(?:手|指|袖|拳|手の甲|両手|右手|左手|片手|指先)?で?(?:ごしごし|ゴシゴシ|こしこし|しきりに|何度も|軽く|強く)?'
                        r'|(?:ごしごし|ゴシゴシ|こしこし)と?)$', None),
-            ('こする', r'(?:頬|頰|顔)を$', r'(?:つけ|付け)', 'and')],
+            ('こする', r'(?:頬|頰|顔)を$', r'(?:つけ|付け)', 'and'),
+            ('さする', r'(?:お腹|おなか|お中)を(?:優しく|そっと|ゆっくりと?)?$', None)],
     # 弾く ひく for an instrument (ピアノを弾く); はじく for what bounces off or is flicked (攻撃を弾く, 指で弾く,
     # 弾かれたように) when no instrument is near. Otherwise the model.
     '弾く': [('ひく', r'(?<![一-鿿])' + words(PLAYED) + r'(?:を|で|も|は)$', None),
@@ -221,7 +222,8 @@ _CONTEXT_RULES = {
     '堪える': [('こらえる', r'を(?:ぐっと|必死に|必死で|なんとか|何とか|じっと|懸命に|どうにか)?$', None),
              ('こらえる', None, r'きれ')],
     # 吐く つく for a sigh, a lie or abuse (ため息を吐く, 嘘を吐く, 悪態を吐く); Sudachi's はく otherwise (息を吐く: both).
-    '描く': [('かく', r'(?<![一-鿿])' + words(DRAWN) + r'(?:を|に|も)$', None)],
+    '描く': [('かく', r'(?<![一-鿿])' + words(DRAWN) + r'(?:を|に|も)$', None),
+            ('かく', None, r'(?:[いか]れ)?(?:た|ている|てある|ていた)' + words(DRAWN) + '(?!画)')],  # 描いた絵, 描かれた漫画
     '吐く': [('つく', r'(?:ため息|溜め息|溜息|嘘|ウソ|悪態)を$', None)],
     # 被る こうむる for harm or favour received (被害を被る, 恩恵を被る); Sudachi's かぶる otherwise (帽子を被る).
     '被る': [('こうむる', words(SUFFERED) + 'を$', None)],
@@ -321,10 +323,12 @@ _CONTEXT_RULES = {
             ('あく', r'(?<!落とし)穴[がはもの]?$', None)],
     # 止める: とめる for machines and flows (エンジンを止める); やめる for doing something (食べるのを止める, お止めください).
     '止める': [('とめる', words(HALTED) + 'を$', None),
+             ('とめる', None, r'に(?:入|はい)'),  # 止めに入る: stepping in to stop a fight
              ('やめる', r'(?<!へ)(?:の|こと)を?$', r'(?!られ)', 'and'),
              ('やめる', r'お$', r'(?:ください|下さい|になって|なさい)', 'and')],
     # 空く: すく for roads and trains (道が空いている); お腹が空く is left to the model (it reads it already).
-    '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None), ('あく', r'穴[がはもの]?$', None)],
+    '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None), ('あく', r'穴[がはもの]?$', None),
+           ('あく', None, r'[たて][^。、]{0,6}?穴')],  # 空いた穴, 空いている小さな穴
     # 額: がく for a frame (額に入れて飾る); ひたい for the forehead (額に汗, 額を拭う).
     '額': [('がく', None, r'に.{0,10}?(?:収め|納め|入れ|飾[っらりるれ])|縁|ぶち'),
            ('ひたい', None, r'[がは](?:熱|汗|広|狭)|に(?:汗|手|皺|しわ|傷|当て|かか|垂)|から汗|の(?:汗|傷|皺|しわ)'
@@ -400,6 +404,24 @@ def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__))
 
 
 DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
+
+# Rule forms whose model readings are wrong too often to show as furigana (training-author library ruby: 開く 66%,
+# 注ぐ 69%, 弾く 32%, 堪える 58%, 辛い 66% right; plain DEV: 7 of 13 wrong): the model's reading is kept with
+# source 'dictionary' (TRADEOFFS T150). Their rules' readings are still shown.
+MODEL_UNSHOWN = frozenset({'開く', '空く', '止める', '注ぐ', '堪える', '弾く', '辛い'})
+
+# Conjugated words take the default of the reading their surface conjugates from too (擦った すっ: 擦る こする,
+# TRADEOFFS T2). Where a hand default doesn't hold, Sudachi's reading stays: (text before, text after) the word.
+# Before the kana or katakana half of a compound Sudachi splits off (擦りきれる, 擦りおろす, 擦りガラス) and
+# after a match (マッチを擦る: する, 燐寸 8 of 9 in books' ruby).
+DEFAULT_KEEP = {'擦る': (re.compile(r'(?:マッチ|燐寸|まっち|墨)を$'),
+                       re.compile(r'(?:きれ|きら|ぬけ|ぬか|おろ|下ろ|へっ|へら|へり|へる|むけ|むい|こ[まみむめん]|込|ガラス|硝子|リンゴ|りんご)'))}
+
+
+def default_kept(text: str, begin: int, end: int, form: str) -> bool:
+    """Whether DEFAULT_KEEP keeps Sudachi's reading of `form` at text[begin:end]."""
+    keep = DEFAULT_KEEP.get(form)
+    return bool(keep and (keep[0].search(text[max(0, begin - 12):begin]) or keep[1].match(text, end)))
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
