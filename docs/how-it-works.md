@@ -143,7 +143,9 @@ after a month) are its own, except names (三軒 みのき, 一列 かずなみ)
 the sound change (一回 いちかい), which get the span's reading; 三十分 (三 + 十分) and 二十人 are
 read as numbers. A number alone gets the same readings (六百 ろっぴゃく, 三千
 さんぜん; Sudachi reads them digit by digit), as `source='counter'` with certainty None (十 とお, 二十 はたち); a written 一千 or １千 is いっせん
-(一千万 いっせんまん).
+(一千万 いっせんまん), and a bare 万/億/兆 before a counter has no いち (万年 まんねん). A lone 二十 as an age is はたち,
+shown (二十になる, 二十を過ぎ, 二十の時, 歳は二十…; `counters.is_hatachi`), and 金 before a written amount is きん
+(金五百両, not shown; `counters.is_kin`) (TRADEOFFS T380).
 
 The readings follow standard counter grammar (`yurigana/counters.py`, as in Wiktionary's
 [Japanese counters appendix](https://en.wiktionary.org/wiki/Appendix:Japanese_counters)):

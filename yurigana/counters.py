@@ -108,6 +108,24 @@ _HITOTOKI_BEFORE = re.compile(r'(?:(?:至福|優雅|寛ぎ|くつろぎ|憩い|�
 _HITOTOKI_AFTER = re.compile(r'(?:を|が|は|も|。|、|だ|で[しすあ]|…|」|』|$)')
 
 
+# 二十 on its own as an age: はたち (二十になる, 二十を過ぎ, 二十の時, 歳は二十前後); books' ruby before these: all はたち.
+# Not 二十を超える/二十前後/二十そこそこ without 歳は: as often counts (二十を超える敵).
+_HATACHI_AFTER = re.compile('に(?:な[らりるれっ]|もな|成)|を?(?:過ぎ|すぎ)|少し過ぎ|の(?:時|とき|頃|ころ|誕生日|春)')
+_HATACHI_BEFORE = re.compile('(?:(?:歳|年齢|年)は|齢)$')
+# 金 before a written amount: きん (金五百両, 金一万円也), not お金 (お金三千円)
+_KIN = re.compile('(?<![お御])金(?=[〇一二三四五六七八九十百千万億壱弐参拾0-9０-９])')
+
+
+def is_hatachi(before: str, after: str) -> bool:
+    """Whether a lone 二十 token (`before`/`after`: the text around it) is an age, はたち."""
+    return bool(_HATACHI_AFTER.match(after) or _HATACHI_BEFORE.search(before))
+
+
+def is_kin(text: str, begin: int) -> bool:
+    """Whether the 金 token at `begin` comes before an amount, read きん."""
+    return bool(_KIN.match(text, begin))
+
+
 def is_year(number: str, before: str) -> bool:
     """Whether two consecutive kanji digits are an era's year (昭和二三年: 23), not "two or three"."""
     return bool(_PAIR.fullmatch(number) and _ERA.search(before))
@@ -214,6 +232,8 @@ def reading(number: str, counter: str, sudachi: str = '', before: str = '', afte
             return None
         elements = _elements(value, bool(ONE_THOUSAND.search(number)))
         kana, kind = ''.join(k for k, _ in elements), elements[-1][1]
+        if number[:1] in _BIG:  # a bare 万 (万年, 万人): まん, not いちまん (books' ruby: never いち)
+            kana = kana[2:]
     final = _KANA.get(kind) if isinstance(kind, int) and kind < 10 else None
     if counter == '時' and number == '一' and _HITOTOKI_BEFORE.search(before) and _HITOTOKI_AFTER.match(after):
         return 'ひととき', None  # 至福の一時, 優雅な一時を過ごす (not 夜の一時を回る: a clock time)

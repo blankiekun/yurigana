@@ -46,6 +46,7 @@ CASES = [
     ('一', 'つ', 'つ', 'ひとつ'), ('二', 'つ', 'つ', 'ふたつ'), ('三', 'つ', 'つ', 'みっつ'), ('四', 'つ', 'つ', 'よっつ'),
     ('五', 'つ', 'つ', 'いつつ'), ('六', 'つ', 'つ', 'むっつ'), ('七', 'つ', 'つ', 'ななつ'), ('八', 'つ', 'つ', 'やっつ'),
     ('九', 'つ', 'つ', 'ここのつ'), ('４', 'つ', 'つ', 'よっつ'), ('8', 'つ', 'つ', 'やっつ'),
+    ('万', '年', 'ねん', 'まんねん'), ('億', '年', 'ねん', 'おくねん'),  # a bare 万/億: no いち
     ('六', 'つ切り', 'つぎり', 'むつぎり'), ('四', 'つ折り', 'つおり', 'よつおり'), ('二', 'つ折り', 'つおり', 'ふたつおり'),
 ]
 
@@ -232,6 +233,14 @@ class SudachiCounterTest(unittest.TestCase):
                                       ('七時に起きた。', '七時', None), ('二十歳になった。', '二十歳', None)):
             self.assertEqual({w.certainty for w in reader.read(text) if w.form == form and w.source == 'counter'} or {None},
                              {certainty}, text)
+
+    def test_hatachi_and_kin(self):
+        reader = Reader()
+        for text, form, expected in (('来月で二十になる。', '二十', 'はたち'), ('兄は二十を過ぎても遊んでいた。', '二十', 'はたち'),
+                                     ('年は二十前後に見えた。', '二十', 'はたち'), ('二十を超える敵が来た。', '二十', 'にじゅう'),
+                                     ('金五百両を渡す。', '金', 'きん'), ('金を払った。', '金', 'かね')):
+            with self.subTest(text):
+                self.assertIn(expected, [w.reading for w in reader.read(text) if w.form == form])
 
     def test_written_one_thousand(self):
         # １千万 is いっせんまん like 一千万; 千万 stays せんまん
