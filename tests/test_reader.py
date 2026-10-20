@@ -173,6 +173,17 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(read('柚木《ゆき》。柚木《ユキ》。柚木。', {})[2], ('ゆずき', 'dictionary'))
         self.assertEqual(read('柚木《ゆき》。柚木《ゆず》。柚木。', {})[2], ('ゆずき', 'dictionary'))
         self.assertEqual(read('柚木《あいつ》。柚木。', {}), [('ゆずき', 'dictionary')] * 2)
+        self.assertEqual(read('柚木《こっち》。柚木。', {}), [('ゆずき', 'dictionary')] * 2)
+        # a name rubied after bare use: its earlier bare occurrences in the same text too (2+ characters)
+        self.assertEqual(read('柚木。柚木《ゆき》。柚木。', {}), [('ゆき', 'book'), ('ゆき', 'ruby'), ('ゆき', 'book')])
+        self.assertEqual(read('柚木。柚木《ゆき》。', None)[0], ('ゆずき', 'dictionary'))
+        self.assertEqual(read('柚木。柚木《ゆき》。柚木《ゆず》。', {})[0], ('ゆき', 'book'))
+        # large kana in a name's ruby (old-style typesetting) take the small-kana reading
+        self.assertEqual(read('劉《りゆう》。劉。', {}), [('りゅう', 'ruby'), ('りゅう', 'book')])
+        # 妾《わらわ》 is carried like a name; another of its readings isn't
+        self.assertEqual(read('妾《わらわ》は。妾は。', {})[1][1], 'book')
+        self.assertEqual(read('妾《わらわ》は。妾は。', {})[1][0], 'わらわ')
+        self.assertNotEqual(read('妾《めかけ》は。妾は。', {})[1][1], 'book')
         # ruby over a two-token full name, split where Sudachi's reading of one part fits
         self.assertEqual(read('姫野芽衣《ひめのめい》。芽衣。姫野芽衣。', {}),
                          [('ひめの', 'ruby'), ('めい', 'ruby'), ('めい', 'book'), ('ひめの', 'book'), ('めい', 'book')])
