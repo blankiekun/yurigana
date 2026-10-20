@@ -82,13 +82,13 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana 0.4.0 (main 817671e), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
-rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C; MeCab runs with
+reads right). yurigana main 337e44b, 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C, no term dictionaries; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
 | | modern books | hard (442) | older books (NDL) | hard (912) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
 |---|---|---|---|---|---|---|---|
-| **yurigana** | **94.9** | **85.7** | **92.3**² | **89.4**² | **99.2**² | **98.6** | **about 290** |
+| **yurigana** | **95.2** | **86.7** | **92.4**² | **89.5**² | **99.2**² | **98.9** | **about 280** |
 | Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | 97.4 | about 720 |
 | GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.3 | 97.3 | about 740 |
 | yomikata | 92.2 | 79.0 | 91.1 | 86.8 | 93.1 | 96.7 | about 920 |
@@ -126,7 +126,7 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
   favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
   and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
-  furigana yurigana marks as sure (about 14,600 a book), about 35 are wrong (0.2%). The Tatoeba and
+  furigana yurigana marks as sure (about 14,900 a book), about 33 are wrong (0.2%). The Tatoeba and
   plain-sentence golds were rebuilt and reviewed on 2026-10-19 (accepted readings in `--alts`), which
   moved every system's numbers here, not only yurigana's.
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
@@ -134,7 +134,7 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   from pykakasi; the ranking doesn't change without those items.
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`, and number + counter spans
-with certainty 1.0) are right 99.2% of the time on the modern books and cover 77% of their words; the rest are left for the reader.
+with certainty 1.0) are right 99.3% of the time on the modern books and cover 79% of their words; the rest are left for the reader.
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
