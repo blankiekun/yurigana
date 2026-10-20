@@ -46,8 +46,8 @@ rule. **Needs work**: the way out says what would fix it.
 | T39 | 開く after を is ひらく; 止める after の/こと is やめる (とめる objects: `cues.HALTED`, #63); 空く すく only for roads and trains | #41 | ~3 (…のを止められない やめる). Needs work | a "stop someone" cue; eyes and windows for 開く |
 | T40 | Readings Jiten ranks the same are decided by JMdict's first reading, a few the wrong way (一束 いっそく, 一声 いっせい) | #43 | ~0. Accept | JMdict priority tags for ties |
 | T41 | A joined compound JMdict lacks with the list's reading is `dictionary` (not shown) | #43 | none on word lists; right names lose shown furigana. Accept | `carry` (T38); JMnedict confirms only 4 of 10 (dev), 15 of 34 (library ruby): not a way out |
-| T140 | A name (Sudachi's 固有名詞) JMdict lacks is `dictionary`, not `only`: the list's one reading is a guess (T42) | #NN | none wrong; ~100 right name furigana per book not shown (library ruby). Needs work | callers pass `carry` (chimimouryou's readings file doesn't yet) |
-| T141 | Names JMdict has stay `only` (安芸 あき for a character named あげ) | #NN | ~1.4 shown wrong per book. Accept | – |
+| T140 | A name (Sudachi's 固有名詞) JMdict lacks is `dictionary`, not `only`: the list's one reading is a guess (T42) | #73 | none wrong; ~100 right name furigana per book not shown (library ruby). Needs work | callers pass `carry` (chimimouryou's readings file doesn't yet) |
+| T141 | Names JMdict has stay `only` (安芸 あき for a character named あげ) | #73 | ~1.4 shown wrong per book. Accept | – |
 | T44 | The public table was trained on the NDL test authors' ruby and pruned on Tatoeba half b | #47 | none (evaluation leakage) | the shared-model rebuild |
 | T45 | Hand defaults 擦る こする, 素 す (from Opus's readings of post-war text) | #49 | ~0.3 (背中を擦った さする). Needs work | a context rule for 素 もと (origin) |
 | T47 | 抱く だく only after a held thing or person + を, or before たい with no を; いだく elsewhere | #50, #63 | ~0.7 (no object in reach, passive). Needs work | a physical cue for the passive (に抱かれて眠る) |
@@ -125,5 +125,5 @@ majority support from post-war text.
 | R10 | 一間 always いっけん (was T20) | #55 (ひとま after room words) |
 | R11 | 何 なに in Xやら何やら (was T32) | #55 |
 | R12 | 何 before a counter that starts a verb; 着, 間, 話 not counters (was T36) | #55 (`readings._VERB_AFTER_NANI`) |
-| R20 | A name JMdict lacks kept the list's reading as `only` (麻里 あさざと, 隆治 たかじ; was T42) | #NN (T140) |
-| R21 | Jiten's noisy surname readings (佐藤 さとあ, 加藤 かとお; was part of T133) | measured in #NN: Sudachi's reading wins when the list's differs, and agreeing noise is no longer shown (T140) |
+| R20 | A name JMdict lacks kept the list's reading as `only` (麻里 あさざと, 隆治 たかじ; was T42) | #73 (T140) |
+| R21 | Jiten's noisy surname readings (佐藤 さとあ, 加藤 かとお; was part of T133) | measured in #73: Sudachi's reading wins when the list's differs, and agreeing noise is no longer shown (T140) |
