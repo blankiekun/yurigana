@@ -11,6 +11,7 @@ from typing import NamedTuple
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
 from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
+from .tokens import Token
 from .yomitan import extra_readings, preferred
 
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
@@ -114,6 +115,16 @@ _HAIRE = re.compile(r'(?<![お御ァ-ヺー㐀-䶿一-鿿々A-Za-zＡ-Ｚａ-ｚ
 _HAIRE_AFTER = re.compile(r'(?:[」』）)！!。…―─]|と(?:言|い|云)|$)')
 _LETTER = re.compile('[A-Za-zＡ-Ｚａ-ｚ]')  # a class or group's letter before 組 (Ａ組 ぐみ, T253)
 # A count of times or steps before a noun (一回|部屋, 一歩|部屋): not a compound's first part.
+# After a kanji Sudachi took for a noun or suffix, the rest of an adjective (T281): 酷すぎる, 熱そう, 酷いっ (a
+# one-kanji adjective's stem), 強ェ, 痛ぇ (a slang adjective spelt with a small ェ; Sudachi knows 強え, 痛え).
+_STEM_AFTER = re.compile('すぎ|過ぎ|そう|い[っッーぃィ～〜]')
+_KANJI_RUN = re.compile('[㐀-䶿一-鿿豈-﫿々]{1,3}')
+# Tails voiced after a first part (a noun ending in kanji or katakana) though the list's compounds don't show it 4
+# times in 5: those after a verb's stem (繰り返し, 見通し, 取り皿) or a prefix (お返し) unvoiced, or too few (勢揃い):
+# オウム返し, 予定通り, ドヤ顔, 魔力切れ, 勉強机, 甘味処, 美人揃い (T282).
+_VOICED_TAILS = frozenset(tuple(pair.split(':')) for pair in (
+    '揃い:そろい 返し:かえし 通り:とおり 顔:かお 切れ:きれ 机:つくえ 帰り:かえり 皿:さら 開き:ひらき 処:ところ 走り:はしり '
+    '座り:すわり 疲れ:つかれ 替わり:かわり 心:こころ 稽古:けいこ').split())
 _ACTION_COUNT = re.compile(r'^[0-9０-９〇一二三四五六七八九十百何数]+[回歩度]$')
 
 
@@ -309,7 +320,7 @@ class Reader:
         common word (hiragana ruby once isn't assumed for its later bare heteronyms), and no
         more after ruby over the form that isn't taken (flavour, katakana) or that differs."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
-        tokens = list(self.tokenizer.tokens(text))
+        tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
         if carry is not None:
             for start, end, reading in hints:
@@ -339,7 +350,7 @@ class Reader:
                 form = surface  # full-width digits Sudachi's lemma writes half-width (１人: 1人), not a conjugation
             if not HAS_KANJI.search(surface):
                 continue
-            form = right_lemma(text, token.begin, form)
+            form = right_lemma(text, token.begin, form, token.begin + len(surface))
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
             # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
             # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
@@ -544,6 +555,31 @@ class Reader:
             carry[form] = None  # flavour over the form: carry nothing more for it
         return found
 
+    def _adjectives(self, tokens, text):
+        """Tokens with a kanji noun or suffix that is an adjective's stem (_STEM_AFTER) made that adjective, as
+        Sudachi reads the kanji plus い (酷すぎる: 酷い ひど, not 酷 こく) or plus え (強ェ: 強え つえぇ, not 強 きょう);
+        only where that gives one adjective token and, for い, the list has the adjective."""
+        out, drop = [], None
+        for token in tokens:
+            if token.begin == drop:
+                continue  # the small ェ, now in the adjective
+            surface = token.surface()
+            end = token.begin + len(surface)
+            tail = text[end:end + 1]
+            if _KANJI_RUN.fullmatch(surface) and token.part_of_speech()[0] != '形容詞' and (
+                    tail in ('ェ', 'ぇ') or len(surface) == 1 and _STEM_AFTER.match(text, end) and surface + 'い' in self.readings):
+                small = tail in ('ェ', 'ぇ')
+                after = next((t for t in tokens if t.begin == end), None)
+                whole = list(self.tokenizer.tokens(surface + ('え' if small else 'い')))
+                if (len(whole) == 1 and whole[0].part_of_speech()[0] == '形容詞' and len(whole[0].surface()) == len(surface) + 1
+                        and not (small and after and after.surface() != tail)):
+                    adjective = whole[0]
+                    token = Token(surface + tail if small else surface, adjective.dictionary_form(), adjective.normalized_form(),
+                                  adjective.part_of_speech(), adjective.reading_form()[:-1] + (tail if small else ''), token.begin)
+                    drop = end if small else None
+            out.append(token)
+        return out
+
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
         reading = hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
@@ -703,6 +739,8 @@ class Reader:
                      and not _ACTION_COUNT.match(prev.surface()) or _LETTER.fullmatch(prev.surface()))):
             if token.part_of_speech()[0] not in ('名詞', '接尾辞'):
                 return reading
+            if (form, plain) in _VOICED_TAILS and plain in listed:
+                return rendaku(plain)
             voiced, unvoiced = self._tail_counts().get((form, plain), (0, 0))
             return rendaku(plain) if voiced >= 5 and voiced >= 4 * unvoiced and plain in listed else reading
         return plain if plain != reading and plain in listed and reading not in listed else reading

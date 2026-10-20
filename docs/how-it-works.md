@@ -104,6 +104,9 @@ reading wins:
    (風邪気味, 太り気味, a context rule).
    A one-kanji noun Sudachi took as a suffix after a word no suffix attaches to (いつ家 や, 一日中雨 う,
    矢は的 てき) is read as the noun (いえ, あめ, まと); after nouns and names the suffix stays (豪雨, 田中君).
+   A kanji Sudachi took for a noun is an adjective's stem before すぎる, そう or an emphatic いっ (酷すぎる ひど,
+   not こく) and before a small ェ (強ェ つえぇ, the slang adjective Sudachi knows as 強え); a few lemmas are another
+   word's (瞳に宿した: 宿す, not 宿する; 欲しがる: 欲しい; `WRONG_LEMMA`).
 
 Then, for every reading but ruby, its voicing follows its place (rendaku, `_voicing`), with
 a reading list. Sudachi splits many compounds (プレハブ|小屋, 縮緬|細工) and gives the second
@@ -112,7 +115,8 @@ part's plain reading, and gives some words its voiced reading even alone (この
 a number or counter, an adverbial noun or a prefix: 今|風呂, お|菓子) is voiced when the list's
 one-reading compounds ending in it read it voiced at least 4 times in 5, and 5 times
 (小屋: 犬小屋 いぬごや, 山小屋 …; 細工; not 川 or 方, whose compounds are mixed); otherwise
-it keeps its reading. Anywhere else, a reading Sudachi voiced is unvoiced when the list gives
+it keeps its reading. A few tails are voiced there though the list's compounds are mixed, the unvoiced
+ones having a verb's stem or a prefix first (オウム返し but 繰り返し, 予定通り, ドヤ顔, 美人揃い: `_VOICED_TAILS`). Anywhere else, a reading Sudachi voiced is unvoiced when the list gives
 only the plain one (箱 はこ). Lyman's law holds (a reading with a voiced obstruent, かぜ, never
 voices) and names keep their readings. A voiced reading (小屋 ごや) is not itself in the
 list: fold voicing to look it up there.
