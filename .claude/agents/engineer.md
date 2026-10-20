@@ -16,3 +16,5 @@ committed. The commit message says hypothesis, setup, numbers, what they support
 negative result is a result: report it, don't tune until it turns positive.
 A hard bug: reproduce, isolate, fix the root cause once, and leave a test that would have caught it.
 A design call: each option with its pros, cons and trade-off, in the commit message.
+When the kill condition fires, report `next:` with one alternative that avoids what failed (expected win, measure,
+kill line), or `next: none` and why.
