@@ -36,10 +36,8 @@ to "Shown again".
 | 蛟竜 | こうりょう (was `only`) | こうりゅう, こうりょう | `extra-readings.tsv`: never `only` (T151) | ruby 6-8 each; the list has りょう only | T230 (#84) | a rule for the reading the list lacks |
 | 蛟龍 | こうりょう (was `only`) | こうりゅう, こうりょう | `extra-readings.tsv`: never `only` (T151) | ruby 6-8 each; the list has りょう only | T230 (#84) | a rule for the reading the list lacks |
 | 殿 | でん (was `dictionary`, not shown) | どの after a name or title (村長殿); でん after a number (一殿) | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 8 fixed; ruby where it fires 956/17, 97% | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
-| 数百 | すーひゃく (was `dictionary`, not shown) | すうひゃく | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 12 fixed; bare 105 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 軽々 | けいけい (was `dictionary`, not shown) | かるがる | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 6 fixed; bare 41 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 高名 | こうみょう (was `dictionary`, not shown) | こうめい | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 6 fixed; bare 29 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
-| 敵同士 | かたきどうし (was `only` with the JMdict-only Reader) | てきどうし | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 6 fixed; bare 15 /208 books; extra-readings.tsv てきどうし | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 樽 | そん (was `dictionary`, not shown) | たる on its own | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 3 fixed; bare 17 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 宴 | えん (was `dictionary`, not shown) | うたげ on its own | `readings.HAND_DEFAULTS`: the default's reading, source `default` | labels 5 fixed; bare 89 /208 books | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
 | 身体中 | しんたいじゅう (was `only`) | からだじゅう | `readings.HAND_DEFAULTS`: the default's reading, source `default` | bare 35 /208 books; extra-readings.tsv からだじゅう | T221 (#87) | a check that the default holds in context (ruby/bare precision ≥ 90%) to make it a shown rule |
@@ -72,3 +70,5 @@ to "Shown again".
 
 | form | reading | shown again by | from |
 |---|---|---|---|
+| 数百 | すうひゃく | `readings.SHOWN_DEFAULTS` (source `rule`): bare 183 in 300 training-author books, 12 of 12 sampled すうひゃく | T320 |
+| 敵同士 | てきどうし | `readings.SHOWN_DEFAULTS` (source `rule`): ruby 3 of 3, bare 24 in 300 books, 6 of 6 sampled right | T320 |

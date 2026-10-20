@@ -86,6 +86,11 @@ reading wins:
    擦る する → こする and 素 もと → す were nominated by Opus's readings of post-war library
    sentences (where Opus reads a word otherwise than Sudachi in 3+ sentences by 3+ authors and 80%+
    of the time the same way) and checked on Tatoeba B1 (2 changes, both right); TRADEOFFS T45.
+   Defaults are not shown, but those right 97%+ where they fire in training-author post-war books' ruby
+   (or, for rarer forms, in every sampled bare occurrence checked by hand) are (`readings.SHOWN_DEFAULTS`, source
+   `rule`: 他 ほか, 身体 からだ, 箱 はこ, 数百 すうひゃく, 間近 まぢか …; a one-character one only on its own,
+   not glued or before katakana: 他クラス; TRADEOFFS T320). 私 わたし, 言う いう and 日本 にほん
+   are not: books' ruby reads them otherwise too often (わたくし, ゆう, にっぽん).
    A few more come from `yurigana/default-readings.tsv`, built by `tools/default_readings.py`:
    human readings of public-domain fiction (NDL's huriganacorpus-aozora, training authors only)
    nominate pairs that Sudachi's dictionary lacks or ranks low, and modern text (Tatoeba's half
@@ -203,7 +208,7 @@ ruby over it that isn't taken (flavour, katakana) or that gives a second reading
 |---|---|
 | `ruby`, `book`, `rule`, `only` | 1.0 |
 | `model` | the model's posterior for its reading (0.7 or more) |
-| `default`, `counter` | None |
+| `default`, `counter` | None (the defaults in `readings.SHOWN_DEFAULTS` are `rule`) |
 | `dictionary` | for a form the model has a table entry for: the share of that reading in the entry's prior; else None. For the forms whose model readings aren't shown (`readings.MODEL_UNSHOWN`: 開く, 空く, 止める, 注ぐ, 堪える, 弾く, 辛い), the model's reading with its posterior |
 
 Whatever the source (but `ruby`), a reading the list doesn't give for the form (Sudachi's

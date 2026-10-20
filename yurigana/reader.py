@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from .counters import COUNTERS, is_year, number_reading, number_value, spans as counter_spans
-from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
+from .readings import _CONTEXT_RULES, DEFAULT_READINGS, MODEL_FIX, NOT_JOINED, MODEL_UNSHOWN, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, HAS_KANJI, SHOWN_DEFAULTS, glued, split_suffix, split_token, _HIRAGANA_WORD, conjugated_reading, context_reading, default_kept, is_kanji, may_be_potential, right_lemma, ruby_reading, surface_reading, to_hiragana, unlisted_reading
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token
 from .yomitan import extra_readings, preferred
@@ -409,6 +409,9 @@ class Reader:
                     and not any(s < end and e > start for s, (e, _) in hint_at.items())):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
+        words = [w._replace(source='rule', certainty=1.0) if w.source == 'default' and (w.form, w.reading) in SHOWN_DEFAULTS
+                 and not (w.end - w.start == 1 and (glued(text, w.start, w.end) or re.match('[ァ-ヺー]', text[w.end:w.end + 1])))
+                 else w for w in words]
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 

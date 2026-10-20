@@ -560,6 +560,16 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  ('宿す', 'しゅくす'): 'やどす'
 }
 
+# Defaults shown as furigana (source 'rule'): right 97%+ where they fire in training-author post-war books' ruby
+# (n >= 20) or, for rarer forms, in every sampled bare occurrence checked by hand (T320). A one-character one only on its
+# own: not glued (glued), nor before katakana (他クラス た).
+SHOWN_DEFAULTS = frozenset({
+    ('他', 'ほか'), ('身体', 'からだ'), ('明後日', 'あさって'), ('一昨日', 'おととい'), ('隙', 'すき'), ('胡坐', 'あぐら'),
+    ('鶏肉', 'とりにく'), ('箱', 'はこ'), ('民', 'たみ'), ('咽喉', 'のど'), ('間近', 'まぢか'),
+    ('手近', 'てぢか'), ('卑怯者', 'ひきょうもの'), ('三日月', 'みかづき'), ('痕', 'あと'), ('正気', 'しょうき'),
+    ('鼻血', 'はなぢ'), ('敵同士', 'てきどうし'), ('数百', 'すうひゃく'), ('綿', 'わた'), ('昼飯', 'ひるめし'),
+    ('啄木鳥', 'きつつき'), ('喘息', 'ぜんそく')})
+
 
 def _table_defaults(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default-readings.tsv')) -> dict:
     """default-readings.tsv: the readings human ruby gives instead of Sudachi's, mined from NDL's
