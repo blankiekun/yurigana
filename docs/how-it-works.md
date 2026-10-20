@@ -222,7 +222,7 @@ The word lists the rules look for are shared, named classes in `yurigana/cues.py
 `DURATION_BEFORE`, `DURATION_AFTER` (十分 as minutes, `counters.TEN_MINUTES_*`), `KIN_TITLE` (君 ぎみ), `TERM` (今 こん),
 `PEOPLE`, `THINGS` (外の… ほか), `IRU_STEM` (…入る いる), `METAL` and `JEWELRY` (金 きん), `FEW` and `EDGE`
 (ほんの/最初の: 十分 as minutes, 一行 いちぎょう), `SOCIETY`, `ISSUE` and `ACTIVITY` (今日 こんにち, 明日, 目下 もっか),
-`PRAISE` and `CUSTOMER_ACT` (方 かた), `OCCUPATION` (気質 かたぎ), `COUNTER` (何 なん), `DISH` (辛い からい),
+`PRAISE`, `TRAIT` and `CUSTOMER_ACT` (方 かた), `PLURAL_PERSON` (方 がた), `OCCUPATION` (気質 かたぎ), `COUNTER` (何 なん), `DISH` (辛い からい),
 `PRODUCE` (市場 いちば), `VESSEL` (縁 ふち), `OPEN_HOURS` (開く あく),
 `TRAFFIC` (空く すく), `HALTED` (止める とめる), `HUGGED` (抱く だく), `SERVANT` (主 あるじ), `PLAYED` (弾く ひく),
 `TIED` (解く ほどく), `SUFFERED` (被る こうむる).

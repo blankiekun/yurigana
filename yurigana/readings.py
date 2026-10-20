@@ -12,8 +12,8 @@ import re
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
 from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
                    HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
-                   OPEN_HOURS, PEOPLE, PERSON, PLAYED, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
-                   STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
+                   OPEN_HOURS, PEOPLE, PERSON, PLAYED, PLURAL_PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
+                   STREET, SUFFERED, SUPERIOR, TERM, THINGS, TIED, TRAIT, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
 
 HAS_KANJI = re.compile(r'[㐀-䶿一-鿿豈-﫿]')
 _HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
@@ -155,6 +155,14 @@ _CONTEXT_RULES = {
            ('かた', r'[ァ-ヺー]{2,}の$', r'(?:です|でし|だっ)', 'and'),  # ドイツの方ですか
            ('かた', None, r'[がはをにも]?(?:いらっしゃ|お越し|おいで|お見え|ご存[知じ]|亡くなられ)'),
            ('ほう', None, r'が(?:いい|良|よ[いかくけろ]|まし|無難|得策|安全|楽|早)'),
+           # Plural after a person (あなた方, 先輩方, お嬢様方); not 母/父 (お母さん方の祖母: かた), nor an address (山田さん方で).
+           ('がた', words(PLURAL_PERSON) + r'(?<![母父]さん)(?<![母父]さま)(?<![母父]様)(?<!お偉い)$',
+            r'(?!で[、，]|に(?:住|下宿|寄宿|同居))', 'and'),
+           ('かた', r'(?<!お)' + words(TRAIT) + r'な?$', _NOT_BETTER, 'and'),  # 勇敢な方の下に, 高貴な方のところへ
+           ('かた', r'(?:様|さま|さん|君|くん|殿|陛下|先生|あなた|貴方|貴女|聖母|女神|神様|お前)(?:の(?:ような|様な)|みたいな)$',
+            _NOT_BETTER, 'and'),  # 司祭様のような方, あなたのような方
+           ('かた', r'(?:どのような|どういう|どういった)$', r'(?:です|でし|なの|なん|だ)', 'and'),
+           ('かた', r'亡くな(?:っ|られ)た$', _NOT_BETTER, 'and'),
            # A person: お方, お三方, 紛う方なき; この方 + copula or topic; after an honorific verb (教えてくださった方).
            ('かた', r'(?:お[一二三四五六七八九十]?|紛う|まごう)$', None),
            ('かた', r'(?:この|こちらの|そちらの)$', r'(?:です|でし|でいらっしゃ|は)', 'and'),  # その方は: also そのほう (you)
@@ -260,7 +268,8 @@ _CONTEXT_RULES = {
              ('めした', None, r'の(?:者|人)')],
     # なん before だ/です/で/の/と/て and counters (何年, 何冊): Sudachi's; なに before か, する, verbs and ？.
     '何': [('なん', r'やら$', r'やら', 'and'),  # 雪かきやら何やら
-          ('なに', None, r'[をがもかし]|より|す|[？?！!、」]'
+          ('なに', r'何から$', None),  # 何から何まで
+          ('なに', None, r'[をがもかし]|より|す|それ|これ|あれ|[？?！!、」]'
              r'|や(?:ら|かや|[っりるれろ])|' + _VERB_AFTER_NANI + r'|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
              r'|(?!' + words(COUNTER) + r')[一-鿿]')],
     '色紙': [('しきし', r'(?:サイン|寄せ書きの?)$', r'に(?:サイン|寄せ書き|書)|を(?:飾|贈)'),

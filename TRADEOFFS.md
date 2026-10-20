@@ -15,7 +15,7 @@ rule. **Needs work**: the way out says what would fix it.
 
 | id | trade-off | from | post-war cost | way out |
 |---|---|---|---|---|
-| T1 | 何 defaults to なに/なん by the next word; なんか read なにか | #1 | ~3 (何重 なにじゅう). Needs work | なんか/なにか is often the transcriber's choice |
+| T1 | 何 defaults to なに/なん by the next word (なに before それ/これ/あれ and in 何から何まで); なんか read なにか | #1, PR_NOUNS | ~1 (dev: 0 of 112 after PR_NOUNS; 何重 なにじゅう). Needs work | なんか/なにか is often the transcriber's choice |
 | T2 | Conjugated words take Sudachi's surface reading when it fits the list, Sudachi's lemma included (行ったり来たり 行う, 通ってる 通る); not `only` where two listed verbs share the っ-form (T152); hand defaults apply (擦った こする) | #4, #75 | shown ~0; word list ~10 lemma errors on dev (the rest are T154's choices). Needs work | the lemma from context (たり来, に通う) |
 | T3 | Compounds are joined only when the list (or JMdict, T90) reads them one way; phrases with particles or ending in kana never are | #9 | small, unmeasured (身体中 しんたいじゅう for からだじゅう). Needs work | a cleaner list; JMdict priority tags (T91) |
 | T5 | 下 もと only after listed nouns (`cues.ABSTRACT`, `SUPERIOR`) and a person (pronoun, name, さん, 人/者, 仲間) + の下へ/に/で + going, serving, staying or coming near (T82) | #10, #62, #76 | ~0.1 (彼の下で, 使節団の下に戻る). Needs work | more nouns from modern text; a POS cue (監視の下に) was tried in #46 and failed |
@@ -23,7 +23,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T8 | 日本 defaults to にほん (owner-approved) | #11 | ~0.5, both standard. Accept | names keep にっぽん |
 | T9 | 一歩 reads いっぽ | #15 | ~0. Accept | – |
 | T11 | 下手 しもて only with stage/river cues (T61); へた elsewhere | #15 | ~0. Accept | – |
-| T12 | 方 かた only by person cues (担当の方, お方, この方は, after an honorific verb, `cues.PERSON`) | #16, #58 | ~4 (付き合う方が早い かた). Needs work | 方 after an attributive verb or adjective (早い方 ほう, 優しい方 かた) needs a context model |
+| T12 | 方 かた only by person cues (担当の方, お方, この方は, after an honorific verb, `cues.PERSON`; a person-only quality `cues.TRAIT`, 様のような, 亡くなった) | #16, #58, PR_NOUNS | ~1.5 (dev: 受けた方は かた). Needs work | 方 after a plain attributive verb (受けた方は, 依頼された方) needs a context model |
 | T13 | 後 うしろ and 中 うち have no rule; 後 のち only with clause cues (T55) | #16 | ~1. Needs work | a context model |
 | T17 | Left out of #17: 鬼 おに, 気味 ぎみ | #17 | ~0.05 (おされ気味 きみ). Accept | 気味 after a passive stem |
 | T18 | A number + counter token is read as a counter even in a name (三間) | #18 | ~0. Accept | the book's ruby wins |
@@ -90,6 +90,7 @@ rule. **Needs work**: the way out says what would fix it.
 | T152 | A っ-form two listed verbs share (行っ 行う/行く, 通っ, 放っ, 弄っ) is not `only`, unless the other is 5 times rarer in the list | #75 | coverage: also 経っ (経る), 断っ (断つ), whose other verb has no such form; plain DEV 4 words. Accept | Sudachi's conjugation type for the other verb |
 | T153 | Conjugated 擦る takes the こする default (T45) | #75 | ruby: right 197 → 1,840 of 2,538 changed (さする 背中を, 腕を; 擦りつける すり), not shown. Accept | – |
 | T154 | Verbs with two standard readings keep Sudachi's or the model's choice, not shown: 良い よい/いい, 描く for drawings, ドアが開く, 行き交う ゆき/いき, 擦れる こすれる/すれる, 抱かれる, 瞑る, 注ぐ for drinks | – | ~25 on dev (word lists only). Accept: no cue reaches 90% in books' ruby (ドアが あく 44%, 酒を つぐ 70%, 茶を つぐ 70%) | – |
+| T160 | 方 がた right after a person (あなた方, 先輩方, お嬢様方, `cues.PLURAL_PERSON`); not after 母/父さん (お母さん方, the mother's side) nor in an address (山田さん方で) | PR_NOUNS | ~0: those two keep Sudachi's かた. Accept | – |
 
 ### Period-justified
 
