@@ -1,7 +1,8 @@
 # Building a reading-model table
 
-The committed table (`reading-model-public.json.gz`, 43 forms) is trained on public-domain
-works from Aozora Bunko and half of Tatoeba's reviewed sentences. A table trained on your
+The committed table (`reading-model-public.json.gz`, 64 forms) is trained on public-domain
+works from Aozora Bunko and half of Tatoeba's reviewed sentences (43 forms), and on generated
+sentences (21 forms, below). A table trained on your
 own library reads far more forms (403 on one library of 19,000 books):
 
 ```sh
@@ -32,3 +33,16 @@ The committed table predates these two fetch fixes (T44 in [TRADEOFFS.md](../TRA
 
 The hand-written sentences in `readings-test.tsv` are a unit test of the context rules
 (`tests/test_rule_rows.py`); add rows with every new rule.
+
+## Forms learnt from generated sentences
+
+21 forms (素振り, 貴女, 素性, 前世, 鍛冶, 術, 潜る, 瞬く, 罰, 根, 否…) are learnt from Opus-written
+modern sentences, 20 per reading (`tools/synthetic-sentences.tsv.gz`, not book text), after the recipe
+of Hu et al. 2026 (arXiv 2609.19805): the model first said which of a form's listed readings are used
+today, then wrote sentences for each. A sentence is a training row only where the form is its own token
+that the table is asked about. The priors (`tools/synthetic-priors.tsv`) are the readings' shares in
+bare text, estimated by EM on training-author books' occurrences without ruby, since balanced sentences
+can't give them. `python tools/synthetic_table.py tools/synthetic-sentences.tsv.gz tools/synthetic-priors.tsv
+--known jiten_freq_global.zip --write` rebuilds these entries. Each form was kept only where it read
+library ruby right at least 90% of the times it changed a reading, on two sets of books, and broke nothing
+on the evaluation sets (TRADEOFFS T100).

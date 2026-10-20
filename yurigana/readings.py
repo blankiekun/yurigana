@@ -113,6 +113,11 @@ _CONTEXT_RULES = {
     '他': [('た', r'その$', r'の(?:追随|追従|干渉|介入|模範)|を(?:圧倒|寄せ付け|凌|しの)|に(?:類|例|比類)を(?:見|み)|[一-鿿]')],
     # 種 is たね (DEFAULT_READINGS) except as "kind": この種の, 数種, 百種.
     '種': [('しゅ', r'(?:この|その|あの|どの|ある|各|同|異|別|[数何一二三四五六七八九十百千0-9０-９])$', None)],
+    # 期 is ご only in この期に及んで (Sudachi: き); a table learnt it from に and read 戦国期に ご.
+    '期': [('ご', r'この$', r'に(?:及|およ)', 'and')],
+    # 素振り is そぶり (a table entry); すぶり, a practice swing, with a bat or sword or as a drill (素振り百回, 素振りする).
+    '素振り': [('すぶり', r'(?:木刀|竹刀|バット|ラケット|ゴルフクラブ)[^。」！？]*$', None),
+              ('すぶり', None, r'を?[0-9０-９一二三四五六七八九十百千]+[回本]|の(?:稽古|練習)|(?:し(?!か)|する|すれ|させ)')],
     # 下: もと under an abstract noun (指導の下に); した in "Xの下で" (Sudachi's もと there is nearly always wrong).
     '下': [('もと', words(ABSTRACT, SUPERIOR) + 'の$', None),
           # A person + の下へ/に and a verb of going or serving (陛下の下へ向かう, 俺の下に来い): もと.
