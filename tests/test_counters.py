@@ -208,7 +208,7 @@ class ReaderCounterTest(unittest.TestCase):
         self.assertNotIn('counter', [w.source for w in self.reader().read(text, hints)])
 
 
-@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-full')
+@unittest.skipUnless(sudachipy, 'needs SudachiPy and SudachiDict-core')
 class SudachiCounterTest(unittest.TestCase):
     def test_sentences(self):
         reader = Reader()
