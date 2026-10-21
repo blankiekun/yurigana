@@ -449,6 +449,10 @@ class Reader(Compounds):
         for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
+            if number == 'ふた' and text[max(0, start - 2):start] == '真っ':  # 真っ二つ まっぷたつ (T461)
+                number = 'ぷた'
+                if start in at and words[at[start]].reading == 'ふた':
+                    words[at[start]] = words[at[start]]._replace(reading='ぷた')
             # shown (certainty 1.0) unless the counter or span is often read otherwise, or Sudachi took it for a name
             sure = counter_shown(text[start:end], text[number_end:end], text[end:end + 2], text[max(0, start - 2):start]) and not (
                 start in token_at and token_at[start].part_of_speech()[1] == '固有名詞')
