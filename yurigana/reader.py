@@ -124,7 +124,6 @@ def _potential_of(form: str, reading: str, known) -> bool:
 
 _I_TO_U = dict(zip('いきぎしちにびみり', 'うくぐすつぬぶむる'))
 _SHOWN_DEFAULT = dict(SHOWN_DEFAULTS)
-_PARTS_RULES = frozenset(os.environ.get('YG_PARTS', 'noun potential compound alone').split())
 _COUNT_NAME = re.compile('数[^字]|[一二三四五六七八九十百千万]{2,}')
 
 
@@ -505,8 +504,9 @@ class Reader(Compounds):
 
     def _own(self, part):
         """The reading a part is shown with on its own: the list's only one, or a shown default."""
-        if self.only.get(part) or _SHOWN_DEFAULT.get(part) or 'alone' not in _PARTS_RULES:
-            return self.only.get(part) or _SHOWN_DEFAULT.get(part)
+        own = self.only.get(part) or _SHOWN_DEFAULT.get(part)
+        if own:
+            return own
         cache = self.__dict__.setdefault('_own_cache', {})
         if part not in cache:
             cache[part] = None
@@ -516,23 +516,23 @@ class Reader(Compounds):
                 cache[part] = words[0].reading
         return cache[part]
 
-    def _verb_own(self, verb, rules, whole=False):
+    def _verb_own(self, verb, whole=False, compound=True):
         """A verb's own reading: listed only, its potential (会える: 会う あう), or a compound verb's
         parts (歌い継ぐ: 歌う うたい + 継ぐ つぐ), each part read as it is on its own."""
         own = not whole and self._own(verb)
         if own:
             return own
         # not 為せる: also 為る's causative (させる)
-        if 'potential' in rules and len(verb) > 2 and verb[-1] == 'る' and verb[-2] in _E_TO_U and verb[0] != '為':
+        if len(verb) > 2 and verb[-1] == 'る' and verb[-2] in _E_TO_U and verb[0] != '為':
             base = self._own(verb[:-2] + _E_TO_U[verb[-2]])
             if base and base[-1] == _E_TO_U[verb[-2]]:
                 return base[:-1] + verb[-2] + 'る'
-        if 'compound' in rules:
+        if compound:
             for k in range(1, len(verb) - 1):
                 head, tail = verb[:k], verb[k:]
                 if not is_kanji(tail[0]) or not (is_kanji(head[-1]) or head[-1] in _I_TO_U or head[-1] in _E_TO_U):
                     continue
-                rest = self._verb_own(tail, rules - {'compound'} | {'tail'})
+                rest = self._verb_own(tail, compound=False)
                 if not rest:
                     continue
                 for lemma, cut in ((head[:-1] + _I_TO_U[head[-1]], 1) if head[-1] in _I_TO_U else (None, 0), (head + 'る', 0)):
@@ -546,8 +546,7 @@ class Reader(Compounds):
         voicing: a kanji compound (女性陣 じょせい + じん) or a verb form (会える, 歌い継ぐ)."""
         if form in self.readings or reading not in self._jmdict_all.get(form, (reading,)):
             return False
-        rules = _PARTS_RULES
-        if _ALL_KANJI.match(form) and len(form) > 1 and 'noun' in rules:
+        if _ALL_KANJI.match(form) and len(form) > 1:
             tails = self._tail_counts()
 
             def joined(i):
@@ -559,7 +558,7 @@ class Reader(Compounds):
                         yield from (own + rest for rest in joined(j))
             return reading in set(joined(0))
         if re.fullmatch('[㐀-䶿一-鿿豈-﫿々]+[ぁ-ゖ]*[㐀-䶿一-鿿豈-﫿々]*[ぁ-ゖ]+', form) and form[-1] in _E_TO_U.values():
-            return self._verb_own(form, rules - {'noun'}, whole=True) == reading
+            return self._verb_own(form, whole=True) == reading
         return False
 
     def _is_name(self, token, surface, form) -> bool:
