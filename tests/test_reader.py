@@ -218,7 +218,7 @@ class ReaderTest(unittest.TestCase):
 
     def test_conjugated_word_the_list_lacks_takes_sudachis_reading(self):
         reader = self.reader({('泳ぐ', 'およぐ')})
-        self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'dictionary', 0.0))  # not listed
+        self.assertEqual(reader.read('泳げた。')[0], Word(0, 2, '泳げる', 'およげる', 'rule', 1.0))  # not listed; shown: 泳ぐ's only reading
 
     def test_default_replaces_a_wrong_sudachi_reading(self):
         self.assertEqual(self.reader().read('私。')[0], Word(0, 1, '私', 'わたし', 'rule', 1.0))  # SHOWN_DEFAULTS
@@ -284,6 +284,15 @@ class SudachiReaderTest(unittest.TestCase):
         # nor a noun with older okurigana (先き): its surface is the lemma
         reader = Reader(known={('先', 'さき'), ('先', 'せん')})
         self.assertIn('先[さ]き', reader.furigana('一歩先きを行く。'))
+
+    def test_parts_reading_is_shown(self):
+        # a form the list lacks, read as its parts are read alone: a kanji compound, a potential, a compound verb
+        reader = Reader()
+        words = {w.form: w[2:] for t in ('女性陣が集まった。', '彼に会えるなら歌い継ぐ。', '為せる。') for w in reader.read(t)}
+        self.assertEqual(words['女性陣'], ('女性陣', 'じょせいじん', 'rule', 1.0))
+        self.assertEqual(words['会える'], ('会える', 'あえる', 'rule', 1.0))
+        self.assertEqual(words['歌い継ぐ'], ('歌い継ぐ', 'うたいつぐ', 'rule', 1.0))
+        self.assertEqual(words['為せる'][2:], ('dictionary', 0.0))  # also 為る's causative: not shown
 
     def test_term_dictionary(self):
         # a made-up Yomitan term dictionary: words the list and JMdict lack (source 'terms', never shown)
