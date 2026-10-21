@@ -2,7 +2,7 @@
 
 Readings of Japanese kanji words in context. Given a text, and the ruby (furigana) the
 book prints if it has any, yurigana says how each kanji word is read there: 人気 as にんき
-in この店は人気だ and as ひとけ in 人気のない道. It also decides which of a book's ruby a reader
+in この店は人気 and as ひとけ in 人気のない道. It also decides which of a book's ruby a reader
 no longer needs (the JS package).
 
 It was written for [chimimouryou](https://github.com/blankiekun/chimimouryou), a
