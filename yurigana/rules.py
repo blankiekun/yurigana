@@ -74,6 +74,8 @@ CONTEXT_RULES = {
              ('ひとけ', _HITOKE_PLACE, r'[がは](?:まったく|全く|ほとんど|全然|一切)?(?:な[いくかけ]|無[いくかけ])', 'and')],
     # 他 is ほか in plain text (DEFAULT_READINGS); た in その他, set phrases and as a prefix (他言語).
     '他': [('た', r'その$', r'の(?:追随|追従|干渉|介入|模範)|を(?:圧倒|寄せ付け|凌|しの)|に(?:類|例|比類)を(?:見|み)|[一-鿿]')],
+    # 僕 is ぼく (TOP_READINGS) except as a servant: 神の僕, 忠実なる僕, 僕ども (T445).
+    '僕': [('しもべ', r'(?:(?:神|主|主君|主人|ご主人様|あるじ|王|魔王|女王|悪魔|女神|陛下|殿下)の|忠実なる?|哀れな|卑しき)$', r'(?:ども|共)')],
     # 種 is たね (DEFAULT_READINGS) except as "kind": この種の, 数種, 百種.
     '種': [('しゅ', r'(?:この|その|あの|どの|ある|各|同|異|別|[数何一二三四五六七八九十百千0-9０-９])$', None)],
     # 期 is ご only in この期に及んで (Sudachi: き); a table learnt it from に and read 戦国期に ご.
@@ -565,6 +567,13 @@ DEFAULT_READINGS = {**_table_defaults(), **HAND_DEFAULTS}
 # 注ぐ 69%, 弾く 32%, 堪える 58%, 辛い 66% right; plain DEV: 7 of 13 wrong): the model's reading is kept with
 # source 'dictionary' (TRADEOFFS T150). Their rules' readings are still shown.
 MODEL_UNSHOWN = frozenset({'開く', '空く', '止める', '注ぐ', '堪える', '弾く', '辛い'})
+# Words whose top listed reading (Jiten) is shown like dominant-readings.tsv's, through Reader._dominant's guards:
+# the next reading is 100+ times rarer and no item read otherwise on B1, B2, dev-silver, silver-modern or postwar NDL (T444).
+# Not 他 た, 訳 やく, 夜 よ, 元, 今: as lopsided in the list, wrong in context. Not shown after a noun, prefix or verb
+# stem (Reader._dominant): お得 とく, 発達し得る うる, 白身魚 ざかな.
+TOP_READINGS = {'僕': 'ぼく', '魚': 'さかな', '体': 'からだ', '妹': 'いもうと', '役': 'やく', '得る': 'える',
+                # the list's other readings only respell the word (きずく, ちかずく, はっやい, しやわせ, おまい)
+                '気づく': 'きづく', '近づく': 'ちかづく', '早い': 'はやい', '幸せ': 'しあわせ', 'お前': 'おまえ'}
 # Model readings that are wrong most of the time, or in a frame (training-author library ruby where the model gives
 # them: 何時 なんじ 9%, 何故 なにゆえ 20%, 件 くだり 53%, 等 ら 53% right; bare text agrees but for 何時).
 # Not context rules: a rule form loses its model. (form, the model's reading) -> [(text before, text after, the reading given, shown)]: the first entry
