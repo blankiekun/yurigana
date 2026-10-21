@@ -13,8 +13,11 @@ def is_kanji(char: str) -> bool:
             or 0x20000 <= code <= 0x3134F)
 
 
+_HIRAGANA = {c: c - 0x60 for c in range(ord('ァ'), ord('ヶ') + 1)}
+
+
 def to_hiragana(text: str) -> str:
-    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヶ' else c for c in text)
+    return text.translate(_HIRAGANA)
 
 
 _VOWEL = {**dict.fromkeys('あかさたなはまやらわがざだばぱぁゃゎ', 'あ'), **dict.fromkeys('いきしちにひみりぎじぢびぴぃ', 'い'),

@@ -50,20 +50,22 @@ class Compounds:
             return None
         if i and _NUMERAL.match(tokens[i - 1].surface()) and _end(tokens[i - 1]) == tokens[i].begin:
             return None
-        for n in range(min(_MAX_COMPOUND, len(tokens) - i), 1, -1):
+        run = 1  # tokens from i without a gap
+        while run < min(_MAX_COMPOUND, len(tokens) - i) and _end(tokens[i + run - 1]) == tokens[i + run].begin:
+            run += 1
+        for n in range(min(run, len(tokens) - i), 1, -1):
             span = tokens[i:i + n]
             begin, end = span[0].begin, _end(span[-1])
             # a numeral compound the list and JMdict read one way (十|中|八九 じっちゅうはっく, 三|白眼, 四|人組);
             # not ending in one kanji, mostly a counter (二十|年 isn't はたとせ)
             idiom = len(span[-1].surface()) > 1 and self._numeral_idiom(span)
-            if (any(_end(a) != b.begin for a, b in zip(span, span[1:]))
-                    or any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
+            if (any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
                     or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface()) and not idiom
                     or (i + n < len(tokens) and _NUMERAL.match(tokens[i + n].surface())
                         and _end(span[-1]) == tokens[i + n].begin)  # 一対|一 isn't いっつい
                     or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一' and not idiom)
                     or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
-                    or any(start in hint_at for start in range(begin, end))
+                    or not hint_at.keys().isdisjoint(range(begin, end))
                     or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
                 continue
             form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
@@ -131,6 +133,11 @@ class Compounds:
         their rows. Not shown (`default`, certainty None); ruby, rules and counters win. Left out: phrases the list
         reads otherwise (or two ways, where the tokens read one), the tail of a longer word, a noun after a modifier, starting in a particle or, over two tokens, ending in one (外|に isn't ほかに), NOT_JOINED's (頭を振る: あたま too)."""
         at = {w.start: k for k, w in enumerate(words)}
+        kana = [bool(KANA_READING.match(to_hiragana(t.surface()))) for t in tokens]
+        run = [1] * len(tokens)  # tokens from each one without a gap
+        for k in range(len(tokens) - 2, -1, -1):
+            if _end(tokens[k]) == tokens[k + 1].begin:
+                run[k] = run[k + 1] + 1
         i = 0
         while i < len(tokens):
             found = None
@@ -144,11 +151,11 @@ class Compounds:
                               and (head in ('名詞', '接尾辞') or _HEAD_SURFACE.match(prev.surface()[-1])))
             modified = prev and head == '名詞' and (pos == '連体詞' and not _DEMONSTRATIVE.match(prev.surface())
                                                    or prev.surface() == 'な' and pos == '助動詞')
-            for n in range(min(8, len(tokens) - i), 1, -1) if not glued else ():
+            for n in range(min(8, run[i]), 1, -1) if not glued else ():
                 span = tokens[i:i + n]
                 if modified and span[1].surface() in ('を', 'が', 'に', 'で', 'と') and span[1].part_of_speech()[0] == '助詞':
                     continue
-                found = self._idiom(text, span, words, at, hint_at, counted)
+                found = self._idiom(text, span, kana[i:i + n], words, at, hint_at, counted)
                 if found and (found[0] in SHOWN_IDIOMS or any((f, r) != (words[k].form, words[k].reading) for k, r, f in found[1])):
                     break
                 found = None
@@ -165,14 +172,13 @@ class Compounds:
             i += n
         return words
 
-    def _idiom(self, text, span, words, at, hint_at, counted):
-        """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None."""
-        kana = [bool(KANA_READING.match(to_hiragana(t.surface()))) for t in span]
+    def _idiom(self, text, span, kana, words, at, hint_at, counted):
+        """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None;
+        `kana`: whether each token is kana."""
         begin, end = span[0].begin, _end(span[-1])
         if (not any(kana) or all(kana)
                 or span[0].part_of_speech()[0] in ('助詞', '助動詞')
-                or len(span) < 3 and span[-1].part_of_speech()[0] in ('助詞', '助動詞')
-                or any(_end(a) != b.begin for a, b in zip(span, span[1:]))):
+                or len(span) < 3 and span[-1].part_of_speech()[0] in ('助詞', '助動詞')):
             return None
         form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
         readings = self._jmdict_all.get(form)
