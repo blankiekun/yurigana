@@ -15,7 +15,7 @@ from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_
 from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
-                    SHOWN_DEFAULTS)
+                    SHOWN_DEFAULTS, TOP_READINGS)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
 from .yomitan import dominant_checked, dominant_readings, extra_readings, name_readings, preferred, term_readings
@@ -668,17 +668,17 @@ class Reader(Compounds):
 
     def _dominant(self, text, token, form, reading, certainty=None, previous=None):
         """Sudachi's reading (or the listed one it conjugates from) as `dictionary`, or as `only` where
-        dominant-readings.tsv gives it as the form's reading in bare post-war text and the token stands alone:
+        dominant-readings.tsv (or TOP_READINGS) gives it as the form's reading in bare post-war text and the token stands alone:
         not glued to a kanji, digit or katakana word (日 in 二日酔い, 族 in ドラゴン族; a longer token with a kanji or digit
         next to it, part of a compound Sudachi split: 一|文字 もんじ, 背筋|運動 はいきん), not a name, and a surface the
         reading spells (not the classical 若かり). Pairs admitted on bare-text evidence (dominant_checked) are also
         not shown right after a noun, adverb, prefix or verb stem, where they may be a compound's voiced tail
         (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
         begin, end = token.begin, token.begin + len(token.surface())
-        if (self.dominant.get(form) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
+        if (self.dominant.get(form, TOP_READINGS.get(form)) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
                 or end - begin > 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
                 or not surface_reading(token.surface(), form, reading, text[end:end + 3])
-                or form in self.dominant_checked and previous and _compound_head(previous.part_of_speech())):
+                or (form in self.dominant_checked or form in TOP_READINGS) and previous and _compound_head(previous.part_of_speech())):
             return reading, 'dictionary', certainty
         return reading, 'only', 1.0
 
