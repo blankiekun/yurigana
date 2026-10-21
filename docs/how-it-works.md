@@ -154,6 +154,11 @@ only the plain one (箱 はこ). Lyman's law holds (a reading with a voiced obst
 voices) and names keep their readings. A voiced reading (小屋 ごや) is not itself in the
 list: fold voicing to look it up there.
 
+`rules.VOICED_AFTER_NOUN` (T460) voices 28 tails as shown rules (`readings.context_reading`) right after a noun
+that ends in kanji or two katakana, whatever the list's compounds say (魔術仕掛け じかけ, 勉強漬け づけ, 病院沙汰 ざた,
+川 after a river's name): not after a number or count, a name, or an adverbial or adjectival noun (一回部屋, 今回勝ち,
+いい加減部屋); 頃 also after a counter (三月頃). From Opus labels of 300 post-war books, each tail kept at 99%+ held out.
+
 ## Numbers and counters
 
 Sudachi gives a number and its counter as separate tokens with fixed readings (三/さん +

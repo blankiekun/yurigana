@@ -1103,3 +1103,65 @@ sentence	span	reading	alts	kind	status	note
 実験を行ったことがある。	行っ	おこなう		glaring		hand; 行う stays after を (T432)
 神の僕として生きる。	僕	しもべ		glaring		hand; servant after a master's の (T445)
 この僕が行くよ。	僕	ぼく		glaring		hand; この僕 stays ぼく (T445)
+亜人の少年が森から出てきた。	亜人	あじん		glaring		hand; T446 Sudachi つぐと, JMdict あじん only
+もっと身近な例で説明しよう。	身近	みぢか		glaring		hand; T446 Sudachi みじか, JMdict みぢか only
+姫は窓の外を眺めていた。	姫	ひめ		glaring		hand; T446 lone 姫, Sudachi き
+あいつは性根が曲がっている。	性根	しょうね		glaring		hand; T446 Sudachi しょうこん
+この剣は持ち主に禍をもたらす。	禍	わざわい		glaring		hand; T446 lone 禍, Sudachi か
+若き騎士が門の前に立っていた。	若き	わかし		glaring		hand; T446 Sudachi takes 若き for 若し (もし), no reading
+彼は体よく追い返された。	体	てい		glaring		hand; T446 体よく when Sudachi does not join it
+朝はいつも通りに起きた。	通り	どおり		glaring		hand; T446 voiced after a noun
+僕の言った通りだろう。	通り	とおり		glaring		hand; T446 after a verb stays とおり
+二通りのやり方がある。	通り	とおり		glaring		hand; T446 after a number stays とおり
+あの人はルーク嫌いで有名だ。	嫌い	ぎらい		glaring		hand; T446 voiced after a name
+私嫌いなの、そういうの。	嫌い	きらい		glaring		hand; T446 not after a pronoun
+彼女は昔からアリス贔屓だった。	贔屓	びいき		glaring		hand; T446 voiced after a name
+有体に言えば、失敗だ。	有体	ありてい		glaring		hand; T446 ゆうたい is a legal term
+母の心中を思うと胸が痛む。	心中	しんちゅう		glaring		hand; T446 someone's heart
+彼は心中で毒づいた。	心中	しんちゅう		glaring		hand; T446 in one's heart
+彼は客を煙に巻いた。	煙	けむ		glaring		hand; T448 煙に巻く, Sudachi けむり
+夜空に星の瞬きが見えた。	瞬き	またたき		glaring		hand; T448 a star's twinkle, Sudachi まばたき
+彼は瞬きもせずに見つめた。	瞬き	まばたき		glaring		hand; T448 an eye's blink stays まばたき
+両陣営の宣伝合戦が始まった。	合戦	がっせん		glaring		hand; T460 voiced after a noun
+二人でグリンナ川を眺めた。	川	がわ		glaring		hand; T460 voiced after a noun
+これは俺好みの服だ。	好み	ごのみ		glaring		hand; T460 voiced after a noun
+三月頃に引っ越す予定だ。	頃	ごろ		glaring		hand; T460 voiced after a noun
+危うく病院沙汰になるところだった。	沙汰	ざた		glaring		hand; T460 voiced after a noun
+部屋の隅に魔法仕掛けの人形があった。	仕掛け	じかけ		glaring		hand; T460 voiced after a noun
+洋服棚に服をしまった。	棚	だな		glaring		hand; T460 voiced after a noun
+店のランキング付けをした。	付け	づけ		glaring		hand; T460 voiced after a noun
+毎日勉強漬けの日々だ。	漬け	づけ		glaring		hand; T460 voiced after a noun
+古いガラス戸が音を立てた。	戸	ど		glaring		hand; T460 voiced after a noun
+二人掛けのソファに座った。	掛け	がけ		glaring		hand; T460 voiced after a noun
+ネズミが一匹部屋の中を走っていた。	部屋	へや		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+いい加減部屋を片付けなさい。	部屋	へや		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+今回勝ちに来ているんだ。	勝ち	かち		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+一旦棚に上げておこう。	棚	たな		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+もう一度机に向かった。	机	つくえ		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+二組の夫婦が来た。	組	くみ		glaring		hand; T460 not voiced after a counter, number or adverbial noun
+コート掛けに上着を掛けた。	掛け	かけ		glaring		hand; T460 掛け voiced only after N人 (二人掛け)
+三代目の当主になった。	三代	さんだい		glaring		hand; T461 Sudachi bug
+彼は呪詛の言葉を吐いた。	呪詛	じゅそ		glaring		hand; T461 Sudachi bug
+剣で岩を真っ二つにした。	二つ	ぷたつ		glaring		hand; T461 真っ二つ まっぷたつ
+彼には一男一女がいる。	一女	いちじょ		glaring		hand; T461 Sudachi bug
+三公の位に就いた。	三公	さんこう		glaring		hand; T461 Sudachi bug
+刈田に霜が降りていた。	刈田	かりた		glaring		hand; T461 Sudachi bug
+名香の煙が立ちのぼった。	名香	めいこう		glaring		hand; T461 Sudachi bug
+夜市で屋台を巡った。	夜市	よいち		glaring		hand; T461 Sudachi bug
+小鹿のように震えていた。	小鹿	こじか		glaring		hand; T461 Sudachi bug
+希世の才能を持つ男だ。	希世	きせい		glaring		hand; T461 Sudachi bug
+星光が夜空を満たした。	星光	せいこう		glaring		hand; T461 Sudachi bug
+海月に刺された。	海月	くらげ		glaring		hand; T461 Sudachi bug
+照明さんが走ってきた。	照明	しょうめい		glaring		hand; T461 Sudachi bug
+戦闘機が直衛についた。	直衛	ちょくえい		glaring		hand; T461 Sudachi bug
+陛下の聖徳を称えた。	聖徳	せいとく		glaring		hand; T461 Sudachi bug
+英武な名将として知られた。	英武	えいぶ		glaring		hand; T461 Sudachi bug
+荘司の家に生まれた。	荘司	しょうじ		glaring		hand; T461 Sudachi bug
+西館の三階に向かった。	西館	にしかん		glaring		hand; T461 Sudachi bug
+遠地から客が来た。	遠地	えんち		glaring		hand; T461 Sudachi bug
+金石に文字を刻んだ。	金石	きんせき		glaring		hand; T461 Sudachi bug
+雲中を鳥が飛んだ。	雲中	うんちゅう		glaring		hand; T461 Sudachi bug
+静夜に虫の声が響く。	静夜	せいや		glaring		hand; T461 Sudachi bug
+箱の中に猫がいる。	中	なか		glaring		hand; T449 shown by TOP_READINGS
+兄は医者になった。	兄	あに		glaring		hand; T449 shown by TOP_READINGS
+客が四、五人来た。	四	し		glaring		hand; T462 an approximate count, TOP_READINGS よん

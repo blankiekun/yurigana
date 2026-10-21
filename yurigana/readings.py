@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, WRONG_LEMMA
+from .rules import CONTEXT_RULES, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -137,6 +137,8 @@ def glued(text: str, begin: int, end: int, after_too: bool = True) -> bool:
 _CONTEXT = 12  # characters looked at on each side
 
 
+_TAIL_BEFORE = re.compile(r'(?:(?![一二三四五六七八九十百千万〇幾])[㐀-䶿一-鿿々]|[ァ-ヺー]{2})$')
+_COUNTED = re.compile(r'[0-9０-９〇一二三四五六七八九十百千万何数幾][㐀-䶿一-鿿々]$')
 _ELDER = {'兄': 'にい', '姉': 'ねえ'}
 _HONORIFIC = re.compile('様|さま|ちゃま')
 
@@ -173,6 +175,12 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     if form in _ELDER and previous_pos and previous_pos[0] == '接頭辞' and text[begin - 1:begin] in ('お', '御') \
             and _HONORIFIC.match(text, begin + len(surface)) and (form, _ELDER[form]) in known:
         return _ELDER[form]
+    # VOICED_AFTER_NOUN (T460); the voiced reading needn't be listed: it is the listed one's rendaku. Not after a
+    # number, a name, an adverbial or adjectival noun (今回, いい加減) or a count (一匹部屋, 一回部屋), but for 頃 (三月頃).
+    if form in VOICED_AFTER_NOUN and previous_pos and previous_pos[0] in ('名詞', '接尾辞') and previous_pos[1] not in ('数詞', '固有名詞') \
+            and previous_pos[2] not in ('副詞可能', '形状詞可能') and _TAIL_BEFORE.search(text, 0, begin) and (form == '頃' or (
+                previous_pos[2] not in ('助数詞', '助数詞可能') and not _COUNTED.search(text, 0, begin))):
+        return VOICED_AFTER_NOUN[form]
     rules = CONTEXT_RULES.get(form)
     if not rules:
         return None

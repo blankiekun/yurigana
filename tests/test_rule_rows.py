@@ -30,10 +30,11 @@ class RuleRowsTest(unittest.TestCase):
     def test_rule_rows(self):
         from yurigana import Reader, aozora_text
         from yurigana.reading_model import RULE_FORMS
+        from yurigana.rules import VOICED_AFTER_NOUN
         reader, misses, rows = Reader(), set(), 0
         with open(ROWS, encoding='utf-8') as f:
             for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
-                if row['form'] not in RULE_FORMS:
+                if row['form'] not in RULE_FORMS and row['form'] not in VOICED_AFTER_NOUN:
                     continue
                 rows += 1
                 hints = []

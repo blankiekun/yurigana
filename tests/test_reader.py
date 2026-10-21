@@ -233,8 +233,9 @@ class ReaderTest(unittest.TestCase):
                  *((head + '小屋', reading + 'ごや') for head, reading in
                    (('犬', 'いぬ'), ('山', 'やま'), ('牛', 'うし'), ('馬', 'うま'), ('豚', 'ぶた')))}
         reader = self.reader(known)
+        # 小屋 is VOICED_AFTER_NOUN's (T460) now
         self.assertEqual([w[2:5] for w in reader.read('プレハブ小屋。この棚。睡眠不足。')],
-                         [('小屋', 'ごや', 'only'), ('棚', 'たな', 'dictionary'), ('睡眠不足', 'すいみんぶそく', 'only')])
+                         [('小屋', 'ごや', 'rule'), ('棚', 'たな', 'dictionary'), ('睡眠不足', 'すいみんぶそく', 'only')])
         self.assertEqual(reader.read('小屋。')[0].reading, 'こや')  # no first part
         self.assertEqual(reader.read('プレハブ棚。')[0].reading, 'だな')  # no listed compounds to go by: Sudachi's
         self.assertEqual(rendaku('たな'), 'だな')
@@ -364,15 +365,15 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertIn(('歩', 'ほ', 'default'), read('彼は歩を進めた。'))
         # T435: phrases in shown-idioms.tsv are shown (`rule`); a word already shown keeps its source
         self.assertIn(('異', 'い', 'rule'), read('異を唱える者'))
-        self.assertIn(('首', 'くび', 'rule'), read('彼は首を傾げた。'))
+        self.assertIn(('首', 'くび', 'only'), read('彼は首を傾げた。'))  # TOP_READINGS (T447)
         self.assertIn(('目', 'め', 'only'), read('俺は目を閉じた。'))
         self.assertIn(('持す', 'じす', 'default'), read('満を持して登場した。'))
         self.assertIn(('頭', 'あたま', 'dictionary'), read('彼は頭を振った。'))
         self.assertIn(('甲斐', 'がい', 'dictionary'), read('からかい甲斐がある。'))
         self.assertIn(('歩', 'ふ', 'ruby'), read('歩を進めた。', [(0, 1, 'ふ')]))
         # a modifier right before the noun: literal (大きな音を上げて: おと); a kana noun before a verb doesn't glue
-        self.assertIn(('音', 'おと', 'dictionary'), read('大きな音を上げて車が走った。'))
-        self.assertIn(('音', 'おと', 'dictionary'), read('不気味な音を上げた。'))
+        self.assertIn(('音', 'おと', 'only'), read('大きな音を上げて車が走った。'))  # TOP_READINGS (T447)
+        self.assertIn(('音', 'おと', 'only'), read('不気味な音を上げた。'))
         self.assertIn(('放る', 'ほうる', 'default'), read('そのまま放っておく。'))
 
     def test_okurigana_variant(self):
