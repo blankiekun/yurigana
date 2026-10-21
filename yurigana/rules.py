@@ -531,7 +531,11 @@ HAND_DEFAULTS = {('私', 'わたくし'): 'わたし', ('言う', 'ゆう'): '�
                  # ひける after an instrument is a context rule (T241).
                  ('弾ける', 'ひける'): 'はじける',
                  # 宿す is やどす in modern text (瞳に宿した); しゅくす is Sudachi's reading of 宿する (WRONG_LEMMA, T280).
-                 ('宿す', 'しゅくす'): 'やどす'
+                 ('宿す', 'しゅくす'): 'やどす',
+                 # Common in novels, Sudachi's reading not JMdict's (T446): 亜人 and 身近 have one JMdict reading,
+                 # 姫 alone is ひめ; 性根 しょうね, 禍 alone わざわい are JMdict's first (library ruby 3 of 3, 1 of 1).
+                 ('亜人', 'つぐと'): 'あじん', ('身近', 'みじか'): 'みぢか', ('姫', 'き'): 'ひめ',
+                 ('性根', 'しょうこん'): 'しょうね', ('禍', 'か'): 'わざわい'
 }
 
 # Phrases Reader._idioms shows (each kanji token's slice, as a rule): training-author ruby agrees with the slices
@@ -672,7 +676,7 @@ NOT_JOINED = {'行く方': re.compile(r'(?!知|し[れらりるろ])'), '行く�
 
 
 # Hand defaults that, like the table's, hold only for the word on its own (露大統領 stays ろ).
-GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ'), ('妃', 'ひ'), ('素', 'そ'), ('札', 'さつ'), ('民', 'みん'), ('綿', 'めん'), ('痕', 'こん'), ('樽', 'そん'), ('宴', 'えん')})
+GLUED_CHECKED = frozenset({('都', 'と'), ('露', 'ろ'), ('鬼', 'き'), ('種', 'しゅ'), ('妃', 'ひ'), ('素', 'そ'), ('札', 'さつ'), ('民', 'みん'), ('綿', 'めん'), ('痕', 'こん'), ('樽', 'そん'), ('宴', 'えん'), ('姫', 'き'), ('禍', 'か')})
 # Glued by what comes before only: 上位種, オーク種 (しゅ), but 種選び, 種入り (たね).
 GLUED_BEFORE = frozenset({('種', 'しゅ')})
 
