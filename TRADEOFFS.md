@@ -212,3 +212,4 @@ majority support from post-war text.
 | R37 | 一日 いちにち where ついたち or いちじつ is meant (was T27) | #24, #55, #76 (一日の長 いちじつ; dates after a month: 0 left in 300 books) |
 | R38 | Xつ (3, 4, 6, 8) read as a compound before a one-kanji noun (三つ門) (was T120) | #67 (1 miss in 300 post-war books: ~0) |
 | R39 | Defaults fired on a token Sudachi split off a compound (委託金 かね, 上位種 たね) (was T14) | #76 (金 after a kanji noun or prefix: きん; 種 glued to what precedes keeps しゅ, `GLUED_BEFORE`; ~0.02 left: 米占領軍, 食卵) |
+| T463 | 血肉 けつにく (Sudachi) becomes ちにく and is shown (`HAND_DEFAULTS`, `SHOWN_DEFAULTS`; owner decision, reverses T462's hiding): ちにく is the post-war reading (Opus labels of a multi-genre SF excerpt); けつにく is the reading of older texts (NDL ruby 2 of 2) | this PR | ~0 post-war; NDL test shown −2 right → 2 shown wrong (pre-war, report-only) | a context rule for けつにく if a post-war text shows it |
