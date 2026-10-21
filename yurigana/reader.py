@@ -122,6 +122,9 @@ def _potential_of(form: str, reading: str, known) -> bool:
     return bool(u[0]) and u[0] == u[1] and (form[:-2] + u[0], reading[:-2] + u[1]) in known
 
 
+_I_TO_U = dict(zip('いきぎしちにびみり', 'うくぐすつぬぶむる'))
+_SHOWN_DEFAULT = dict(SHOWN_DEFAULTS)
+_PARTS_RULES = frozenset(os.environ.get('YG_PARTS', 'noun potential compound alone').split())
 _COUNT_NAME = re.compile('数[^字]|[一二三四五六七八九十百千万]{2,}')
 
 
@@ -428,6 +431,10 @@ class Reader(Compounds):
             if reading and source not in ('ruby', 'counter', 'book') and not (source == 'rule' and VOICED_AFTER_NOUN.get(form) == reading):
                 reading = self._voicing(tokens, i, form, reading)
             end = token.begin + len(surface)
+            if (source == 'dictionary' and certainty == 0.0 and reading and token.part_of_speech()[1] != '固有名詞'
+                    and self._parts_reading(form, reading)
+                    and not any(s < end and e > token.begin for s, (e, _) in hint_at.items())):
+                source, certainty = 'rule', 1.0
             if (source == 'dictionary' and form == surface and reading and self.names.get(form) == reading
                     and token.part_of_speech()[1] == '固有名詞'  # not glued to kanji or digits: 一日|中海岸 is 一日中 海岸
                     and not any(is_kanji(c) or c.isdigit() for c in text[max(token.begin - 1, 0):token.begin] + text[end:end + 1])
@@ -495,6 +502,65 @@ class Reader(Compounds):
                 and not (source == 'rule' and VOICED_AFTER_NOUN.get(form) == reading)):  # a listed reading's rendaku (T460)
             certainty = 0.0
         return reading, source, certainty
+
+    def _own(self, part):
+        """The reading a part is shown with on its own: the list's only one, or a shown default."""
+        if self.only.get(part) or _SHOWN_DEFAULT.get(part) or 'alone' not in _PARTS_RULES:
+            return self.only.get(part) or _SHOWN_DEFAULT.get(part)
+        cache = self.__dict__.setdefault('_own_cache', {})
+        if part not in cache:
+            cache[part] = None
+            words = self.read(part)
+            if len(words) == 1 and words[0].start == 0 and words[0].end == len(part) and words[0].form == part \
+                    and words[0].source in ('only', 'rule', 'model'):
+                cache[part] = words[0].reading
+        return cache[part]
+
+    def _verb_own(self, verb, rules, whole=False):
+        """A verb's own reading: listed only, its potential (会える: 会う あう), or a compound verb's
+        parts (歌い継ぐ: 歌う うたい + 継ぐ つぐ), each part read as it is on its own."""
+        own = not whole and self._own(verb)
+        if own:
+            return own
+        # not 為せる: also 為る's causative (させる)
+        if 'potential' in rules and len(verb) > 2 and verb[-1] == 'る' and verb[-2] in _E_TO_U and verb[0] != '為':
+            base = self._own(verb[:-2] + _E_TO_U[verb[-2]])
+            if base and base[-1] == _E_TO_U[verb[-2]]:
+                return base[:-1] + verb[-2] + 'る'
+        if 'compound' in rules:
+            for k in range(1, len(verb) - 1):
+                head, tail = verb[:k], verb[k:]
+                if not is_kanji(tail[0]) or not (is_kanji(head[-1]) or head[-1] in _I_TO_U or head[-1] in _E_TO_U):
+                    continue
+                rest = self._verb_own(tail, rules - {'compound'} | {'tail'})
+                if not rest:
+                    continue
+                for lemma, cut in ((head[:-1] + _I_TO_U[head[-1]], 1) if head[-1] in _I_TO_U else (None, 0), (head + 'る', 0)):
+                    first = lemma and self._own(lemma)
+                    if first and first.endswith(lemma[len(head) - cut:]) and not is_kanji(head[-1]):
+                        return (first[:-1] + head[-1] if cut else first[:-1]) + rest
+        return None
+
+    def _parts_reading(self, form, reading) -> bool:
+        """Whether Sudachi's reading of a form the list lacks is its parts' own readings joined, without
+        voicing: a kanji compound (女性陣 じょせい + じん) or a verb form (会える, 歌い継ぐ)."""
+        if form in self.readings or reading not in self._jmdict_all.get(form, (reading,)):
+            return False
+        rules = _PARTS_RULES
+        if _ALL_KANJI.match(form) and len(form) > 1 and 'noun' in rules:
+            tails = self._tail_counts()
+
+            def joined(i):
+                if i == len(form):
+                    yield ''
+                for j in range(len(form) if i == 0 else len(form) + 1, i, -1):
+                    own = self._own(form[i:j])
+                    if own and (i == 0 or not rendaku(own) or tails.get((form[i:j], own), (0, 0))[0] == 0):
+                        yield from (own + rest for rest in joined(j))
+            return reading in set(joined(0))
+        if re.fullmatch('[㐀-䶿一-鿿豈-﫿々]+[ぁ-ゖ]*[㐀-䶿一-鿿豈-﫿々]*[ぁ-ゖ]+', form) and form[-1] in _E_TO_U.values():
+            return self._verb_own(form, rules - {'noun'}, whole=True) == reading
+        return False
 
     def _is_name(self, token, surface, form) -> bool:
         """A name for `carry`: a 固有名詞 token or a form the list doesn't know, not a number."""
