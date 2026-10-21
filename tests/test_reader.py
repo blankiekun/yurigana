@@ -233,8 +233,9 @@ class ReaderTest(unittest.TestCase):
                  *((head + '小屋', reading + 'ごや') for head, reading in
                    (('犬', 'いぬ'), ('山', 'やま'), ('牛', 'うし'), ('馬', 'うま'), ('豚', 'ぶた')))}
         reader = self.reader(known)
+        # 小屋 is VOICED_AFTER_NOUN's (T460) now
         self.assertEqual([w[2:5] for w in reader.read('プレハブ小屋。この棚。睡眠不足。')],
-                         [('小屋', 'ごや', 'only'), ('棚', 'たな', 'dictionary'), ('睡眠不足', 'すいみんぶそく', 'only')])
+                         [('小屋', 'ごや', 'rule'), ('棚', 'たな', 'dictionary'), ('睡眠不足', 'すいみんぶそく', 'only')])
         self.assertEqual(reader.read('小屋。')[0].reading, 'こや')  # no first part
         self.assertEqual(reader.read('プレハブ棚。')[0].reading, 'だな')  # no listed compounds to go by: Sudachi's
         self.assertEqual(rendaku('たな'), 'だな')

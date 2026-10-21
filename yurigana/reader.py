@@ -14,7 +14,7 @@ from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_
                    to_hiragana)
 from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
-from .rules import (CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
+from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS, TOP_READINGS)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
@@ -425,7 +425,7 @@ class Reader(Compounds):
                 reading, source = lemma, 'dictionary'
             if variant and source == 'only':
                 reading, source, certainty = self._checked(form, variant, 'dictionary', None)
-            if reading and source not in ('ruby', 'counter', 'book'):
+            if reading and source not in ('ruby', 'counter', 'book') and not (source == 'rule' and VOICED_AFTER_NOUN.get(form) == reading):
                 reading = self._voicing(tokens, i, form, reading)
             end = token.begin + len(surface)
             if (source == 'dictionary' and form == surface and reading and self.names.get(form) == reading
@@ -486,7 +486,8 @@ class Reader(Compounds):
             return reading, source, certainty
         if reading and not KANA_READING.match(reading):
             return None, source, None
-        if reading and (form, reading) not in self.known and (form, reading) not in self._term_pairs:
+        if (reading and (form, reading) not in self.known and (form, reading) not in self._term_pairs
+                and not (source == 'rule' and VOICED_AFTER_NOUN.get(form) == reading)):  # a listed reading's rendaku (T460)
             certainty = 0.0
         return reading, source, certainty
 
