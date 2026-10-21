@@ -446,6 +446,7 @@ class Reader(Compounds):
         # certainty its reading in the span doesn't have. Ruby over any of it wins.
         at = {w.start: n for n, w in enumerate(words)}
         token_at = {t.begin: t for t in tokens}
+        first_at = {t.begin: t for t in reversed(tokens)}
         for start, number_end, end, number, counter in counted:
             if any(s < end and e > start for s, (e, _) in hint_at.items()):
                 continue
@@ -463,7 +464,7 @@ class Reader(Compounds):
                 words.append(word)
             if counter and number_end in at and words[at[number_end]].end == end:
                 own = words[at[number_end]]
-                plain = COUNTERS.get(next(t.normalized_form() for t in tokens if t.begin == number_end))
+                plain = COUNTERS.get(first_at[number_end].normalized_form())
                 reading = {'ぶん': own.reading, 'ぶ': 'ぶ', 'ま': 'ま'}.get(counter, plain[0] if plain else own.reading)
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         # A loanword spelt in kanji that Sudachi cuts in pieces (無問題 = 無 む + 問題 もんだい, shown `only`):
