@@ -688,7 +688,8 @@ class Reader(Compounds):
                 variants = list(small_kana(reading))
                 if variants:  # large kana (りゆう): Sudachi's reading of the tokens says which, else none is sure
                     sudachi = ''.join(to_hiragana(t.reading_form()) for t in run)
-                    reading = sudachi if sudachi in variants or sudachi == reading else None
+                    plain = self._small_plain(text[start:end], reading)
+                    reading = sudachi if sudachi in variants or sudachi == reading else plain if plain != reading else None
                 if reading and (text[start:end], reading) not in self.known:  # a listed word's reading (親御《おやご》さん) is no name's sign
                     found[text[start:end]].add(reading)
         out = {}
@@ -736,7 +737,8 @@ class Reader(Compounds):
             # のぶかつ, 柚木 ゆき), which a kanji-spelling check (PlainReadings) refuses
             reading = ruby_reading(hint_at, begin, surface, form, _Any()) or parts.get(begin)
             if reading:  # ruby set in large kana (劉《りゆう》): Sudachi's or the list's small-kana reading
-                reading = next((r for r in small_kana(reading) if r == found[0] or (form, r) in self.known), reading)
+                reading = next((r for r in small_kana(reading) if r == found[0] or (form, r) in self.known), None) \
+                    or self._small_plain(form, reading)
             found = (reading, 'ruby', 1.0) if reading and reading not in _PRONOUNS else found
         if found[1] == 'ruby':
             if name:  # two readings, or a word's other one: none
@@ -744,6 +746,14 @@ class Reader(Compounds):
         elif hint_at.get(begin, (None,))[0] == end or not all(HIRAGANA_WORD.match(r) for r in under):
             carry[form] = None  # flavour over the form: carry nothing more for it
         return found
+
+    def _small_plain(self, form, reading):
+        """`reading`, or its one small-kana variant spelled by the form's kanji readings when `reading` isn't
+        (佳樹《かじゆ》: かじゅ; 自由 じゆう stays)."""
+        if (form, reading) in self._plain_check:
+            return reading
+        found = [r for r in small_kana(reading) if (form, r) in self._plain_check]
+        return found[0] if len(found) == 1 else reading
 
     def _adjectives(self, tokens, text):
         """Tokens with a kanji noun or suffix that is an adjective's stem (_STEM_AFTER) made that adjective, as
