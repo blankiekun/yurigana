@@ -39,7 +39,7 @@ Clean word list accuracy (%): the share of kanji words whose reading is right, w
 list, leaving out the few items the gold itself makes unscorable (ruby over part of a word,
 readings only KANJIDIC spells out); **hard** is the same over words Jiten's list reads two or
 more ways, where tokenisers actually differ (about 60% of a book's words every one of them
-reads right). yurigana 0.5.0 (scores measured on main 337e44b; #108 changes only `carry`), 2026-10-20, measured with SudachiDict-full (yurigana's and Sudachi's
+reads right). yurigana 0.5.6 (main 40e3d21), 2026-10-22, measured with SudachiDict-full (yurigana's and Sudachi's
 rows; with core, yurigana's clean scores are the same and the others move by 0.1 at most), mode C, no term dictionaries; MeCab runs with
 IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind, as a ceiling.
 
@@ -71,12 +71,16 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
   blind (no Opus figure, since the labels are its own). That reference is itself about 1% wrong and
   favours systems that read the way Opus does, so the numbers are rough; the test gives no ruby, while a real book's ruby fixes many names and rare words;
   and a misread word counts each time it appears, so distinct wrong words are far fewer. Of the
-  furigana yurigana marks as sure (about 14,900 a book), about 33 are wrong (0.2%). The Tatoeba and
+  furigana yurigana marks as sure (about 15,200 a book), about 32 are wrong (0.2%). The Tatoeba and
   plain-sentence golds were rebuilt and reviewed on 2026-10-19 (accepted readings in `--alts`), which
   moved every system's numbers here, not only yurigana's.
 - The library gold accepts a ruby span when Sudachi spells it (about 14% of its items), which adds
   about 0.7 points to Sudachi-based systems (yurigana, Sudachi, GiNZA, yomikata) and takes about 2
   from pykakasi; the ranking doesn't change without those items.
+
+Whole books, 2026-10-22: reading each of the 30 library excerpts with its whole source book's word
+list (30,066 kanji words), word list wrong went from 1,042 (aa74f48) to 862 (40e3d21): 181 fixed,
+1 broken; 15 more words shown as sure, none wrong.
 
 ## Clean and hard
 
