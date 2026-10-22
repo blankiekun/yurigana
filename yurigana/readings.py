@@ -150,9 +150,11 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     if form == '人' and previous_pos and tuple(previous_pos[1:3]) == ('固有名詞', '地名') and (form, 'じん') in known:
         return 'じん'
     # 家 is け after a family name (佐藤家, 伊達家) or a kanji proper noun (藤和家); Sudachi says か. Not after a
-    # given name (景家 かげいえ) or a kana one (めぐみん家, 鶴屋さん家: ち).
-    if form == '家' and previous_pos and (tuple(previous_pos[1:4]) == ('固有名詞', '人名', '姓') or tuple(
-            previous_pos[1:3]) == ('固有名詞', '一般') and re.fullmatch(r'[一-鿿々]+', text[max(0, begin - 4):begin][-2:])) \
+    # given name (景家 かげいえ) or a kana one (めぐみん家, 鶴屋さん家: ち). Two kanji of a place or a person's name Sudachi
+    # doesn't class (赤江家, 相馬家) count too (T543).
+    if form == '家' and previous_pos and (tuple(previous_pos[1:4]) == ('固有名詞', '人名', '姓') or (
+            tuple(previous_pos[1:3]) == ('固有名詞', '一般') or tuple(previous_pos[1:4]) in (('固有名詞', '人名', '一般'), ('固有名詞', '地名', '一般')))
+            and re.fullmatch(r'[一-鿿々]+', text[max(0, begin - 4):begin][-2:])) \
             and (form, 'け') in known:
         return 'け'
     # 金 as a suffix Sudachi split off a kanji noun or prefix (委託金, 援助金, 大金): きん, whatever follows
