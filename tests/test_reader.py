@@ -226,6 +226,10 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(read(marked, None)[-1], ('男', 'おとこ', 'only'))
         # a listed word with its listed reading is no name (親御《おやご》さん)
         self.assertNotIn('book', [w[2] for w in read('親《おや》御《ご》さん。親御さん。親御。', {})])
+        # ruby in large kana: the small-kana reading the kanji spell (佳樹《かじゆ》: 樹 じゅ)
+        hints = []
+        text = aozora_text('佳樹《かじゆ》さん。佳樹さん。佳樹。', None, hints)
+        self.assertEqual([w[2:5] for w in reader.read(text, hints, {})][-1], ('佳樹', 'かじゅ', 'book'))
 
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
