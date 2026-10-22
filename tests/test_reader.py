@@ -67,6 +67,19 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual((reader.single, reader.only), ({'擦る': 'こする'}, {}))
         self.assertEqual(self.reader({('擦る', 'こする'), ('擦る', 'する')}).only, {})
 
+    def test_casual_spellings_dont_cost_the_only_reading(self):
+        # the list's casual spellings of JMdict's reading (T510); other readings JMdict lacks still count (鳥 ちょう)
+        from yurigana.kana import colloquial
+        reader = self.reader({('長い', 'ながい'), ('長い', 'なっがい'), ('当たり前', 'あたりまえ'), ('当たり前', 'あたりめえ'),
+                              ('雰囲気', 'ふんいき'), ('雰囲気', 'ふいんき'), ('鳥', 'とり'), ('鳥', 'ちょう'),
+                              ('三つ目', 'みつめ'), ('三つ目', 'みっつめ')})
+        self.assertEqual(reader.only, {'長い': 'ながい', '当たり前': 'あたりまえ', '雰囲気': 'ふんいき'})
+        for casual, standard in [('きずく', 'きづく'), ('ぜいいん', 'ぜんいん'), ('なげえ', 'ながい'), ('おんなじ', 'おなじ'),
+                                 ('いきよい', 'いきおい'), ('ほおって', 'ほうって'), ('しろと', 'しろうと')]:
+            self.assertTrue(colloquial(casual, standard), casual)
+        for other, standard in [('ちょう', 'とり'), ('が', 'かわ'), ('はらえ', 'はらい'), ('なかのいい', 'なかのよい'), ('り', 'りん')]:
+            self.assertFalse(colloquial(other, standard), other)
+
     def test_shared_conjugation(self):
         from yurigana.reader import _shared_conjugation
         readings = {'行う': ['おこなう'], '行く': ['いく', 'ゆく'], '分かる': ['わかる'], '分かつ': ['わかつ'], '待つ': ['まつ']}
