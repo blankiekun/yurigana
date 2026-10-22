@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.5.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.6.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
@@ -68,7 +68,7 @@ From the shell: `python -m yurigana 本を読んだ。`
 ## JavaScript: "Known" furigana
 
 ```sh
-pnpm add github:blankiekun/yurigana#v0.5.5
+pnpm add github:blankiekun/yurigana#v0.5.6
 ```
 
 ```js
@@ -84,12 +84,12 @@ hideKnownRuby('人間', 'にんげん', { 人: 12, 間: 30 }, readings); // true
 ## How it compares
 
 The share of kanji words read right (%), with Jiten's list; **hard** is the same over words that list
-reads two or more ways, where tokenisers actually differ. yurigana 0.5.0, measured 2026-10-20. Claude
+reads two or more ways, where tokenisers actually differ. yurigana 0.5.6, measured 2026-10-22. Claude
 Opus annotating the same sentences blind is a ceiling.
 
 | | modern books | hard (442) | older books (NDL) | hard (912) | Tatoeba B2¹ | Joyo-Kanji-Yomi⁵ | wrong words per book⁴ |
 |---|---|---|---|---|---|---|---|
-| **yurigana** | **95.2** | **86.7** | **92.4**² | **89.5**² | **99.2**² | **98.9** | **about 280** |
+| **yurigana** | **95.5** | **87.8** | **92.4**² | **89.5**² | **99.3**² | **98.9** | **about 260** |
 | Sudachi | 93.3 | 78.5 | 91.0 | 86.6 | 94.3 | 97.4 | about 720 |
 | GiNZA | 93.3 | 78.5 | 90.9 | 86.5 | 94.3 | 97.3 | about 740 |
 | yomikata | 92.2 | 79.0 | 91.1 | 86.8 | 93.1 | 96.7 | about 920 |
@@ -105,9 +105,9 @@ mostly pre-war (report only). Tatoeba B2's gold is MeCab + IPAdic machine furiga
 column measures, its biases and the footnotes: [docs/evaluation.md](docs/evaluation.md#the-readme-table).
 
 The furigana yurigana marks as sure (sources `ruby`, `rule`, `model`, `only`, and number + counter spans
-with certainty 1.0) are right 99.3% of the time on the modern books and cover 79% of their words; the rest are left for the reader.
+with certainty 1.0) are right 99.3% of the time on the modern books and cover 80% of their words; the rest are left for the reader.
 With JMnedict as a name dictionary (`Reader(names='JMnedict.zip')`, not included), names read one way are
-shown too: 99.2% right over 81% of the words (main 33f45a5, 2026-10-20).
+shown too: 99.2% right over 82% of the words (0.5.6, 2026-10-22).
 Method, caveats and older numbers: [docs/evaluation.md](docs/evaluation.md).
 
 ## More
