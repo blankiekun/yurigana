@@ -66,7 +66,7 @@ class FeaturesTest(unittest.TestCase):
         from yurigana import Reader
         from yurigana.evaluate import SHOWN
         reader = Reader()
-        texts = ['木の下で二人の間に座った。', '彼は頭を振り、中に入れた。', '今日は一日中家にいた。金五百両を渡す。', '日本の上の方に表がある。']
+        texts = ['木の下で二人の間に座った。', '彼は頭を振り、中に入れた。', '今日は一日中家にいた。金五百両を渡す。', '日本の上の方に表がある。', '皆が笑った。']
         hidden = 0
         for text in texts:
             words = reader.read(text)

@@ -356,6 +356,7 @@ class Reader(Compounds):
     def _finish(self, tables, tokenizer, glued=()):
         self.model = load_tables([*tables, PUBLIC_TABLE])
         self.form_model = FormModel.load()
+        self._generic = set()
         self.glued = glued_table([*([glued] if isinstance(glued, str) else glued or [os.environ.get('YURIGANA_GLUED_TABLE', '')]), GLUED])
         self._glued_re = self.glued and re.compile('|'.join(sorted(map(re.escape, self.glued), key=len, reverse=True)))
         self.dominant = dominant_readings()
@@ -404,6 +405,7 @@ class Reader(Compounds):
         uses as a name is carried like one (T550, `_named`), and a name Sudachi cuts in kanji tokens is one Word
         with its ruby (T551, `_joined_names`)."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
+        self._generic = set()  # tokens _reading read with the table or Sudachi, no hand rule (T514)
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
         if carry is not None:
@@ -541,14 +543,18 @@ class Reader(Compounds):
         return words
 
     def _classified(self, text, tokens, words):
-        """The hardest forms' hidden Words take their classifier's reading (T514), after every other step, so no
-        shown Word changes (neither its own reading nor a neighbour's through a compound or an idiom)."""
+        """The hardest forms' hidden Words that the table or Sudachi read take their classifier's reading (T514), never
+        one a hand rule, fix table or default gave, nor a reading the form's context rules give; after every other
+        step, so no shown Word changes (neither its own reading nor a neighbour's through a compound or an idiom)."""
         index = {t.begin: i for i, t in enumerate(tokens)}
         for k, w in enumerate(words):
             i = index.get(w.start)
-            if i is None or w.source not in ('dictionary', 'default') or w.form not in self.form_model or w.end != _end(tokens[i]):
-                continue
+            if (i is None or w.source != 'dictionary' or w.start not in self._generic or w.form not in self.form_model
+                    or w.form in TOP_OVERRIDES or w.end != _end(tokens[i])):
+                continue  # hand rules, fix tables and defaults keep their reading
             reading, certainty, _ = self.form_model.reading(text, tokens, i, w.form)
+            if reading in {r[0] for r in CONTEXT_RULES.get(w.form, ())}:
+                continue  # the form's context rules give that reading where it holds (何か国 stays なん)
             reading = (w.form, reading) in self.known and self._voicing(tokens, i, w.form, reading)
             if reading and reading != w.reading:
                 words[k] = w._replace(reading=reading, certainty=round(certainty, 3))
@@ -845,6 +851,7 @@ class Reader(Compounds):
                 if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, _end(tokens[i]))):
                     return given, 'model' if shown else 'dictionary', certainty if given == reading else None
             # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
+            self._generic.add(begin)
             return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
@@ -897,6 +904,7 @@ class Reader(Compounds):
             if default and (form, default) in self.known and not default_kept(text, begin, begin + len(surface), form):
                 return default, 'default', None
             if reading:
+                self._generic.add(begin)
                 return self._dominant(text, tokens[i], form, reading, previous=previous)
             # The list has no reading for the form (potential 泳げる, ら抜き 来れる, 文語 思ふ): Sudachi's.
             reading = not self.readings.get(form) and unlisted_reading(surface, form, to_hiragana(tokens[i].reading_form()))
@@ -904,6 +912,7 @@ class Reader(Compounds):
             if term and surface_reading(surface, form, term, ''):  # Sudachi has none (嘲笑っ): the term dictionaries'
                 return term, 'terms', None
             if reading:
+                self._generic.add(begin)
                 return reading, 'dictionary', None
         default, listed = DEFAULT_READINGS.get((form, sudachi)), True
         if not default and sudachi and 'にっぽん' in sudachi and '日本' in form:
@@ -917,10 +926,12 @@ class Reader(Compounds):
             return default, 'default', None
         reading = self._unlisted_sudachi(tokens[i], form, sudachi)
         if reading:
+            self._generic.add(begin)
             return reading, 'dictionary', None
         reading = surface == form and not (sudachi and KANA_READING.match(sudachi)) and self._term_reading(form, None)
         if reading:
             return reading, 'terms', None
+        self._generic.add(begin)  # Sudachi's reading, through _dominant
         entry = self.model and self.model.forms.get(form)
         if entry and sudachi in entry[0]:  # the reading's share in the table's prior
             priors = [math.exp(p) for p in entry[1]]

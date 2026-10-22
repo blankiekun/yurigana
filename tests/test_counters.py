@@ -241,8 +241,7 @@ class SudachiCounterTest(unittest.TestCase):
                                             ('二十を超える敵が来た。', '二十', 'にじゅう', False), ('年齢は二十代半ばだ。', '二十', 'にじゅう', False),
                                             ('合計で二十になる。', '二十', 'にじゅう', False), ('参加者は二十になった。', '二十', 'にじゅう', False),
                                             ('残りは二十になる。', '二十', 'にじゅう', False), ('人数が二十を過ぎた。', '二十', 'にじゅう', False),
-                                            ('金五百両を渡す。', '金', 'かね', False),  # hidden: 金's classifier over is_kin (T514)
-                                            ('金を払った。', '金', 'かね', True)):
+                                            ('金五百両を渡す。', '金', 'きん', False), ('金を払った。', '金', 'かね', True)):
             with self.subTest(text):
                 words = [(w.reading, w.certainty == 1.0) for w in reader.read(text) if w.form == form]
                 self.assertIn((expected, shown), words)

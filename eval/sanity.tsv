@@ -969,7 +969,7 @@ sentence	span	reading	alts	kind	status	note
 綿のように疲れた。	綿	わた		glaring		hand; lone kanji noun
 一日中雨が降っていた。	雨	あめ		glaring		hand; Sudachi's suffix う; #82
 いつ家に帰るの？	家	いえ		glaring		hand; Sudachi's suffix や; #82
-今日は一日中家にいた。	家	いえ		glaring	xfail	hand; Sudachi's suffix か; #82; hidden け from 家's classifier (T514)
+今日は一日中家にいた。	家	いえ		glaring		hand; Sudachi's suffix か; #82
 いつも君のことを考えている。	君	きみ		glaring		hand; Sudachi's suffix くん; #82
 田中君が来た。	君	くん		glaring		hand; a name's suffix stays; #82
 矢は的に当たらなかった。	的	まと		glaring		hand; Sudachi's suffix てき; #82
@@ -1086,7 +1086,7 @@ sentence	span	reading	alts	kind	status	note
 お兄様が迎えに来てくれた。	兄	にい		glaring		hand; T283: あに before
 お姉さまと一緒に出かけた。	姉	ねえ		glaring		hand; T283: あね before
 一人で行く方が好きだ。	行く	いく		glaring		hand; 行く方 is 行く + 方 before が, not the list's ゆくかた (T290)
-彼は何か国語を話せるの？	何	なん		glaring	xfail	hand; 何か国 is a count, not なにか (T291); hidden なに from 何's classifier (T514)
+彼は何か国語を話せるの？	何	なん		glaring		hand; 何か国 is a count, not なにか (T291)
 辛いソーセージが好きだ。	辛い	からい		glaring		hand; food after 辛い, not つらい (T294)
 リスが実を齧っている。	実	み		glaring		hand; 実を齧る is fruit, not じつ (T295)
 雨が三日間降り続けた。	降り	ふる		glaring		hand; Sudachi's 降りる after rain and a span of days (T293)
