@@ -470,6 +470,10 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('通う', 'かよう'): 5, ('通る', 'とおる'): 5})
         self.assertEqual(word('男の話は筋が通っている。', '通'), ('通る', 'とおる', 'only'))
         self.assertEqual(word('学校に通っている。', '通')[:2], ('通う', 'かよう'))
+        # T547: a test passed, a name one goes by, a way just gone through
+        self.assertEqual(word('書類選考に通った。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('彼女は優等生で通っている。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('バスで通っている。', '通')[:2], ('通う', 'かよう'))
 
     def test_line_veto(self):
         # T534: 弾く's はじく rule doesn't fire with music elsewhere in the paragraph
