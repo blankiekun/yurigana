@@ -216,8 +216,10 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
             and _HONORIFIC.match(text, begin + len(surface)) and (form, _ELDER[form]) in known:
         return _ELDER[form]
     # VOICED_AFTER_NOUN (T460); the voiced reading needn't be listed: it is the listed one's rendaku. Not after a
-    # number, a name, an adverbial or adjectival noun (今回, いい加減) or a count (一匹部屋, 一回部屋), but for 頃 (三月頃).
-    if form in VOICED_AFTER_NOUN and previous_pos and previous_pos[0] in ('名詞', '接尾辞') and previous_pos[1] not in ('数詞', '固有名詞') \
+    # number, a name (but for 川: メコン川, ruby 236/238 がわ), an adverbial or adjectival noun (今回, いい加減) or a count
+    # (一匹部屋, 一回部屋), but for 頃 (三月頃).
+    if form in VOICED_AFTER_NOUN and previous_pos and previous_pos[0] in ('名詞', '接尾辞') and previous_pos[1] != '数詞' \
+            and (previous_pos[1] != '固有名詞' or form == '川') \
             and previous_pos[2] not in ('副詞可能', '形状詞可能') and _TAIL_BEFORE.search(text, 0, begin) and (form == '頃' or (
                 previous_pos[2] not in ('助数詞', '助数詞可能') and not _COUNTED.search(text, 0, begin))):
         return VOICED_AFTER_NOUN[form]
