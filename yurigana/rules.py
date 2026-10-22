@@ -775,7 +775,14 @@ DEFAULT_KEEP = {'実': (re.compile(r'(?!)'), re.compile(_OWN_FAMILY)),  # 実の
 _ALWAYS = re.compile('')
 WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'), re.compile(_PRECIPITATION_AFTER)),
                '宿する': ('宿す', _ALWAYS, None), '欲す': ('欲する', _ALWAYS, None),
-               '欲する': ('欲しい', None, re.compile('が[らりるれろっ]'))}
+               '欲する': ('欲しい', None, re.compile('が[らりるれろっ]')),
+               # 通っ that Sudachi takes for 通う where it is 通る: after what runs or gets through (筋が, 話が, 電気が,
+               # 火が, 審査に) or すっと, or before the nose, a voice or a way gone by (通った鼻筋, 通ってきた道) (T533).
+               '通う': ('通る', re.compile(
+                   r'(?:筋|鼻筋|鼻梁|芯|話|理屈|道理|理|論理|要求|要望|主張|意見|希望|計画|案|申請|審査|選考|試験|収益化|電気|'
+                   r'水道|ガス|電車|線路|街道|運河|水路|河川|清流|霊脈|龍脈|霊道|管|ヒモ|紐|火|風|攻撃|ダメージ|射線|名|名前|顔|'
+                   r'車|馬車|救急車|刃)(?:が|も|は|の|さえ)$|(?:すっと|スッと|すうっと|すーっと|一本|綺麗に|きれいに)$'),
+                   re.compile(r'た(?:鼻|目鼻|声|後|跡|あと|道|場所)|て(?:き|来)た(?:道|場所|ところ|森|経路|ルート|土地|辺り)'))}
 
 # A token Sudachi reads as one word that is another here, Word per entry (surface: [(before, after the token, kanji
 # span or None for the whole token, form, reading, shown)]). お話して, お話させて: 話 はなし + して (the し of

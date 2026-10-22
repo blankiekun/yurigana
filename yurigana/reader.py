@@ -15,7 +15,7 @@ from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, col
 from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
-                    SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN)
+                    SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN, WRONG_LEMMA)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
 from .yomitan import dominant_checked, dominant_readings, extra_readings, name_readings, preferred, term_readings
@@ -750,8 +750,9 @@ class Reader(Compounds):
                 return only, 'only', 1.0
             ranks = self.known if isinstance(self.known, Mapping) else {}
             return min(self.jmdict[form], key=lambda r: ranks.get((form, r), math.inf)), 'dictionary', None
-        if only and surface != form and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, Mapping) else None):
-            only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma)
+        if only and surface != form and WRONG_LEMMA.get(tokens[i].dictionary_form(), ('',))[0] != form \
+                and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, Mapping) else None):
+            only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma; WRONG_LEMMA's pick from context stands)
         if only and may_be_potential(text, begin, form):
             only = None  # 部屋には入れない: はいれる (入る) or いれる
         # 癖 glued after a noun or a verb's stem is くせ, ぐせ or へき (逃げ癖, 貧乏癖, 収集癖): not shown (T254).
