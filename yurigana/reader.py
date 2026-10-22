@@ -397,7 +397,9 @@ class Reader(Compounds):
         common word (hiragana ruby once isn't assumed for its later bare heteronyms) except
         妾《わらわ》, and no more after ruby over the form that isn't taken (flavour, katakana,
         a pronoun or here/there: 東京《こっち》) or that differs. A name of 2+ characters rubied
-        after bare use takes the reading at its earlier bare occurrences in the same text too."""
+        after bare use takes the reading at its earlier bare occurrences in the same text too. A listed word the text
+        uses as a name is carried like one (T550, `_named`), and a name Sudachi cuts in kanji tokens is one Word
+        with its ruby (T551, `_joined_names`)."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
