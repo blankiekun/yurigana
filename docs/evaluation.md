@@ -81,6 +81,8 @@ IPAdic and unidic-lite. Opus is Claude Opus annotating the same sentences blind,
 Whole books, 2026-10-22: reading each of the 30 library excerpts with its whole source book's word
 list (30,066 kanji words), word list wrong went from 1,042 (aa74f48) to 862 (40e3d21): 181 fixed,
 1 broken; 15 more words shown as sure, none wrong.
+yurigana 0.5.7 (川 after a name, names rubied in large kana): 862 to 793, 69 fixed, none broken;
+the benchmark sets are unchanged.
 
 ## Clean and hard
 
