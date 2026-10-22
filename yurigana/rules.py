@@ -187,6 +187,10 @@ CONTEXT_RULES = {
            ('かた', r'亡くな(?:っ|られ)た$', _NOT_BETTER, 'and'),
            # A person: お方, お三方, 紛う方なき; この方 + copula or topic; after an honorific verb (教えてくださった方).
            ('かた', r'(?:お[一二三四五六七八九十]?|紛う|まごう)$', None),
+           ('かた', r'(?:て|から)この$', None),  # since: 生まれてこの方 (T541)
+           # Xの方 after a word for a kind of person (婚約者の方を, 視聴者の方から, 従業員の方だ); not a comparison or a side
+           # (後者の方が, 刑務官の方で, 患者の方の体力); 前者, 後者 are no kind of person (T541).
+           ('かた', r'[一-鿿ァ-ヺー]{1,5}(?<![前後両])(?:者|員|官|師|士|婦|族)の$', r'(?![がでのへ]|より)', 'and'),
            ('かた', r'(?:この|こちらの|そちらの)$', r'(?:です|でし|でいらっしゃ|は)', 'and'),  # その方は: also そのほう (you)
            ('かた', r'(?:くださ|下さ|なさ|いらし|おっしゃ|お越しにな|ご覧にな)(?:っ?た|る)$', _NOT_BETTER, 'and'),
            # A verb's stem before it (喋り方, 考え方, 生き方): the way of doing, かた; not い (早い方: ほう) (T490).

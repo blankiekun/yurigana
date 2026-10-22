@@ -106,7 +106,7 @@ TRAIT = frozenset({'偉大', '高貴', '勇敢', '聡明', '賢明', '寛容', '
 PLURAL_PERSON = frozenset({'あなた', '貴方', '貴女', 'あんた', 'さん', '様', 'さま', 'ちゃん', '先輩', '令嬢', '婦人', '息女',
                            '紳士', '淑女'})
 # What a customer or visitor does, after お/ご: ご利用の方, お越しの方 (方 かた).
-CUSTOMER_ACT = frozenset({'希望', '利用', '来場', '越し', '持ち', '住まい', '参加', '申し込み', '申込み'})
+CUSTOMER_ACT = frozenset({'希望', '利用', '来場', '越し', '持ち', '住まい', '参加', '申し込み', '申込み', '存じ', '存知'})
 # Trades and walks of life whose temperament 気質 is, かたぎ: 職人気質, 学生気質.
 OCCUPATION = frozenset({'職人', '商人', '芸人', '役者', '書生', '学生'})
 
