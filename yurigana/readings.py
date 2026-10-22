@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, LINE_VETO, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
+from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, LINE_VETO, IKU_ACTS, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -75,6 +75,27 @@ def may_be_potential(text: str, begin: int, form: str) -> bool:
 def enters(text: str, begin: int) -> bool:
     """Whether 入れる at `begin`, where it may be 入る's potential, reads はいれる: a negative after it (T546)."""
     return bool(_ENTER_NOT.match(text, begin + 2))
+
+
+def does(text: str, tokens: list, i: int) -> bool:
+    """Whether 行っ at tokens[i], Sudachi's 行く, is 行う: an action noun before it in the sentence as topic or object
+    (調査は行っている, 募集は行っておりません, 詠唱すら行っていない) with no に/へ/まで after it, nor て/で right before
+    行っ, nor a going cue after (T548). Not shown: few held-out labels."""
+    begin = tokens[i].begin
+    if IKU_AFTER.match(text, begin + 2) or i and tokens[i - 1].surface() in ('て', 'で') and tokens[i - 1].part_of_speech()[0] == '助詞':
+        return False
+    for k in range(i - 1, 0, -1):
+        x = tokens[k]
+        if begin - x.begin > 30 or x.surface() in ('。', '「', '」', '！', '？', '!', '?', '\n'):
+            return False
+        if x.surface() in ('に', 'へ', 'まで') and x.part_of_speech()[0] == '助詞':
+            return False
+        if x.surface() in _DONE_PARTICLES and tokens[k - 1].part_of_speech()[:3] == ('名詞', '普通名詞', 'サ変可能'):
+            return not IKU_ACTS.search(tokens[k - 1].surface())
+    return False
+
+
+_DONE_PARTICLES = ('は', 'も', 'すら', 'さえ', 'を', 'ばかり', 'だけ', 'とか', 'なんか', 'など')
 
 
 def goes(text: str, tokens: list, i: int) -> bool:

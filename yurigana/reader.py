@@ -12,7 +12,7 @@ from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
-from .readings import (conjugated_reading, context_reading, default_kept, enters, glued, goes, may_be_potential, right_lemma, ruby_reading,
+from .readings import (conjugated_reading, context_reading, default_kept, does, enters, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN, WRONG_LEMMA)
@@ -424,6 +424,8 @@ class Reader(Compounds):
             form = right_lemma(text, token.begin, form, token.begin + len(surface))
             if form == '行う' and surface == '行っ' and token.begin not in hint_at and goes(text, tokens, i):
                 form = '行く'  # read いっ below, not shown (T432)
+            elif form == '行く' and surface == '行っ' and token.begin not in hint_at and does(text, tokens, i):
+                form = '行う'  # read おこなっ, not shown (T548)
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
             # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
             # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
@@ -689,6 +691,8 @@ class Reader(Compounds):
             return reading, 'terms', None
         if form == '行く' and tokens[i].dictionary_form() == '行う':  # readings.goes (T432)
             return 'いく', 'dictionary', None
+        if form == '行う' and tokens[i].dictionary_form() == '行く':  # readings.does (T548)
+            return 'おこなう', 'dictionary', None
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (CONTEXT_RULES)

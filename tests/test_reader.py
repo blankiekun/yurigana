@@ -474,6 +474,11 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('書類選考に通った。', '通'), ('通る', 'とおる', 'only'))
         self.assertEqual(word('彼女は優等生で通っている。', '通'), ('通る', 'とおる', 'only'))
         self.assertEqual(word('バスで通っている。', '通')[:2], ('通う', 'かよう'))
+        # T548: 行っ that Sudachi takes for 行く after an action noun as topic or object: 行う, not shown
+        reader = Reader(known={('行く', 'いく'): 1, ('行う', 'おこなう'): 9})
+        self.assertEqual(word('募集は行っておりません。', '行'), ('行う', 'おこなう', 'dictionary'))
+        self.assertEqual(word('旅行は行った。', '行')[:2], ('行く', 'いく'))
+        self.assertEqual(word('調査は東京に行ってきた。', '行')[:2], ('行く', 'いく'))
 
     def test_line_veto(self):
         # T534: 弾く's はじく rule doesn't fire with music elsewhere in the paragraph

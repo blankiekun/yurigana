@@ -823,6 +823,10 @@ IKU_MEANS = re.compile(r'(?:[一二三四五六七八九十何数大０-９0-9]�
 IKU_AFTER = re.compile(r'て(?:く[るれ]|き|来|こ[いよ]|らっしゃ)|たり(?:来|き)|た(?:ほう|方)が|たところ|'
                        r'た(?:こと|事)(?:が|も)?(?:ある|あり|あっ|ない|なかっ|無)')
 IKU_PATH = re.compile(r'(?:先|(?<![㐀-䶿一-鿿々])道|前|後ろ|最先端|先頭)を$')
+# Action nouns that are a going (旅行は行った, 買い物も行った): not readings.does's 行う (T548).
+IKU_ACTS = re.compile(r'旅行|旅|散歩|買い物|買物|見学|留学|出張|遠足|遠征|観光|見物|見舞い|登校|通学|通勤|出勤|帰省|参拝|お参り|'
+                      r'墓参り|デート|ドライブ|ハイキング|キャンプ|ツーリング|偵察|巡回|視察|調達|仕入れ|使い|食事|外出|避難|応援|'
+                      r'挨拶|お礼|謝罪|面会|取材|営業|配達|迎え|出迎え|散策|探検|探索|冒険|狩り|狩猟|釣り|旅行中|就職|進学|入院|通院|受診')
 IKU_IDIOM = re.compile(r'(?:目|視線|注意|納得|合点|得心|連絡|情報)が$')  # 目が行く, 納得が行く
 
 # Joined forms the list reads one way that are a phrase of their tokens where the text after matches: 行く方が, 行く行く！
