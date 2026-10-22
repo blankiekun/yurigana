@@ -50,18 +50,18 @@ on the evaluation sets (TRADEOFFS T100).
 ## Classifiers for the hardest forms
 
 124 forms whose readings the table and the rules told apart worst (間, 下, 方, 家, 何, 表…) have their own
-classifiers instead (`yurigana/form_model.py`, `form-model.json.gz`, TRADEOFFS T514): per form a logistic
-regression and a 300-tree LightGBM ensemble, averaged, over the characters around the word and its Sudachi
-neighbours. They are trained on Opus labels of library text (book text: the labels stay private, the weights
-are public):
+classifiers (`yurigana/form_model.py`, `form-model.json.gz`, TRADEOFFS T514): per form a logistic regression
+over the characters around the word and its Sudachi neighbours. They only change readings the rest of the
+pipeline leaves hidden (word lists): a shown word keeps its reading. They are trained on Opus labels of library
+text (book text: the labels stay private, the weights are public):
 
 ```sh
 OMP_NUM_THREADS=1 python tools/form_model.py LABELLED.jsonl [MORE.jsonl ...] --write
 ```
 
 Each file holds one JSON row per occurrence (`text`, `b`, `form`, `label`, `author`, `held`). Held rows are
-never trained on; val authors (`crc32('val:' + author) % 8 == 0`) set each form's threshold for showing
-(99.5% right, models trained without them), then the written models learn from train and val authors.
-The features come from the tokens `Reader.read` uses, so training and reading see the same ones
-(`tests/test_form_model.py`). It needs scikit-learn and lightgbm; reading needs neither. About 2 minutes
-for 85,000 rows.
+never trained on; val authors (`crc32('val:' + author) % 8 == 0`) set each form's threshold (99.5% right,
+models trained without them; written to the file, unused while the classifiers show nothing), then the written
+models learn from train and val authors. The features come from the tokens `Reader.read` uses, so training and
+reading see the same ones (`tests/test_form_model.py`). It needs scikit-learn; reading doesn't. On held
+authors' labels the Reader reads 94.75% of these occurrences right with them, 91.41% without.
