@@ -462,6 +462,18 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('彼が欲したのは力だ。', '欲'), ('欲する', 'ほっする', 'only'))
         self.assertEqual(word('子供がおもちゃを欲しがる。', '欲'), ('欲しい', 'ほしい', 'only'))
         self.assertEqual(word('平和を欲している。', '欲'), ('欲する', 'ほっする', 'only'))
+        # T533: 通っ that Sudachi takes for 通う after 筋が, 火が…: 通る, shown though 通う shares the っ-form
+        reader = Reader(known={('通う', 'かよう'): 5, ('通る', 'とおる'): 5})
+        self.assertEqual(word('男の話は筋が通っている。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('学校に通っている。', '通')[:2], ('通う', 'かよう'))
+
+    def test_line_veto(self):
+        # T534: 弾く's はじく rule doesn't fire with music elsewhere in the paragraph
+        reader = Reader(known={('弾く', 'はじく'): 5, ('弾く', 'ひく'): 5})
+        def word(text):
+            return next(w for w in reader.read(text) if w.form == '弾く')[2:5]
+        self.assertEqual(word('指で弾いた。'), ('弾く', 'はじく', 'rule'))
+        self.assertNotEqual(word('演奏会の曲を、指で弾いた。')[2], 'rule')
 
     def test_adjective_stems(self):
         # T281: Sudachi's noun before すぎる or an emphatic い, and before a small ェ, is the adjective
