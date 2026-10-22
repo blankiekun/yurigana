@@ -772,7 +772,7 @@ class Reader(Compounds):
             out.append(token)
         return out
 
-    def _reading(self, text, tokens, i, surface, form, hint_at):
+    def _reading(self, text, tokens, i, surface, form, hint_at, classify=True):
         begin = tokens[i].begin
         reading = hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
                                or self.plain and ruby_reading(hint_at, begin, surface, form, self.plain))
@@ -824,10 +824,14 @@ class Reader(Compounds):
         if reading and (form, reading) in self.known:
             return reading, 'default', None
         reading = None
-        if form in self.form_model:  # the hardest forms: their own classifiers, shown past a per-form threshold (T513)
+        if classify and form in self.form_model:  # the hardest forms: their own classifiers, shown past a per-form threshold (T514)
             reading, certainty, sure = self.form_model.reading(text, tokens, i, form)
             reading = reading if (form, reading) in self.known else None
             certainty = round(certainty, 3)
+            if reading and not sure:  # unsure: the rules' and the table's shown reading, if any, else the classifier's hidden
+                rest = self._reading(text, tokens, i, surface, form, hint_at, False)
+                if rest[1] in ('model', 'only', 'rule'):
+                    return rest
         if not reading:
             reading = self.model and self.model.reading(text, tokens, i, form, self.known)
             if reading:
@@ -930,7 +934,7 @@ class Reader(Compounds):
         (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
         begin, end = token.begin, token.begin + len(token.surface())
         if form in TOP_OVERRIDES and token.surface() == form and reading != TOP_READINGS[form] and token.part_of_speech()[1] != '固有名詞':
-            reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T513)
+            reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T514)
             if form in TOP_UNSHOWN:
                 return reading, 'dictionary', None
         if (self.dominant.get(form, TOP_READINGS.get(form)) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)

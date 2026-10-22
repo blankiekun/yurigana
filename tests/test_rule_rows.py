@@ -22,7 +22,7 @@ KNOWN_MISSES = {
     ('最中', 'ずっと気になっていた最中に手を伸ばした。'),  # もなか
     ('人気', '深夜の駅前は人気がまったくなかった。'),  # ひとけ
     ('寒気', '強い寒気に襲われ、震えが止まらない。'),  # さむけ
-    # the forms' classifiers (T513), not shown: short sentences are far from the book text they learnt
+    # the forms' classifiers (T514), not shown: short sentences are far from the book text they learnt
     ('方', 'お母さん方の祖父は漁師だった。'),  # がた
     ('表', '結果を表にまとめた。'),  # おもて
     ('下', '机の下に隠れた。'),  # もと

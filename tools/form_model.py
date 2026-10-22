@@ -1,5 +1,5 @@
 """Train yurigana/form-model.json.gz (form_model.py): per form, a logistic regression and a LightGBM
-tree ensemble over the features form_model.features reads from yurigana's own tokens (TRADEOFFS T513).
+tree ensemble over the features form_model.features reads from yurigana's own tokens (TRADEOFFS T514).
 
   OMP_NUM_THREADS=1 python tools/form_model.py LABELLED.jsonl [LABELLED.jsonl ...] [--write]
 
