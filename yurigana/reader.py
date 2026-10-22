@@ -82,6 +82,12 @@ _PRONOUNS = frozenset('あいつ こいつ そいつ どいつ やつ おれ お
                       'ここ そこ あそこ こちら そちら あちら こっち そっち あっち こつち そつち あつち うち'.split())
 # Common words whose ruby `carry` carries like a name's (T441): the book's 妾《わらわ》 is its later bare 妾 too.
 _CARRIED_WORDS = {'妾': 'わらわ'}
+# A listed word the book uses as a name (T550): `carry`'s key for the set of such forms, the honorifics and the speaker
+# tag (「…」と温水は) that mark one, and kin words' flavour ruby that is no name's reading (義父《とう》さん).
+_NAMED = '\0named'
+_HONORIFIC = re.compile('さん|くん|君|ちゃん|様|さま|殿|先輩|氏|嬢|先生|姫|兄|姉|師匠')
+_SPEAKER = re.compile('」と?$')
+_KIN = frozenset('とう かあ にい ねえ じい ばあ'.split())
 
 
 class _Any:
@@ -399,6 +405,8 @@ class Reader(Compounds):
                 end, reading = hint_at.get(a.begin, (None, ''))
                 if end == _end(b) and _end(a) == b.begin and HIRAGANA_WORD.match(reading):
                     parts.update(_split_name(a, b, reading))
+        if carry is not None:
+            carry.setdefault(_NAMED, set()).update(self._named(text, tokens, hint_at))
         words, pending = [], defaultdict(list)
         next_token = 0
         counted = list(counter_spans(text, tokens))
@@ -470,7 +478,7 @@ class Reader(Compounds):
                     # a name rubied after bare use: its earlier bare occurrences in this text too
                     for k in pending.pop(form):
                         words[k] = words[k]._replace(reading=carry[form], source='book', certainty=1.0)
-                elif form not in carry and source not in ('ruby', 'book') and self._is_name(token, surface, form):
+                elif form not in carry and source not in ('ruby', 'book') and (self._is_name(token, surface, form) or form in carry[_NAMED]):
                     pending[form].append(len(words) - 1)
         # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
@@ -627,12 +635,32 @@ class Reader(Compounds):
         unlisted = not isinstance(self.known, _Any) and form not in self.readings
         return surface == form and not _NUMERAL.match(surface) and (unlisted or token.part_of_speech()[1] == '固有名詞')
 
+    def _named(self, text, tokens, hint_at) -> set:
+        """Listed words `text` uses as names (T550): forms of 2+ characters, not 固有名詞, marked twice or more by an
+        honorific after them or a speaker tag (「…」と温水は), and rubied at least once with a hiragana reading the list
+        doesn't know for them (温水《ぬくみず》, 名代《なしろ》), so `carry` takes their ruby like a name's."""
+        cues, rubied = defaultdict(int), set()
+        for i, token in enumerate(tokens):
+            surface, end = token.surface(), _end(token)
+            if (len(surface) < 2 or surface != token.dictionary_form() or not HAS_KANJI.search(surface)
+                    or surface not in self.readings or token.part_of_speech()[1] == '固有名詞'):
+                continue
+            after = tokens[i + 1] if i + 1 < len(tokens) and tokens[i + 1].begin == end else None
+            if after and _HONORIFIC.fullmatch(after.surface()) or _SPEAKER.search(text[max(0, token.begin - 2):token.begin]) \
+                    and text[end:end + 1] in ('は', 'が'):
+                cues[surface] += 1
+            reading = ruby_reading(hint_at, token.begin, surface, surface, _Any())
+            if (reading and reading not in _PRONOUNS and reading not in _KIN
+                    and not any((surface, r) in self.known for r in (reading, *small_kana(reading)))):
+                rubied.add(surface)
+        return {form for form in rubied if cues[form] >= 2}
+
     def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
         """_reading with the book's ruby over names carried (Reader.read's `carry`)."""
         begin, end = tokens[i].begin, _end(tokens[i])
         name = self._is_name(tokens[i], surface, form)
         under = {covering[k] for k in range(begin, end) if k in covering}
-        name = name or form in _CARRIED_WORDS
+        name = name or form in _CARRIED_WORDS or form in carry[_NAMED]
         if not under:
             if name and carry.get(form):
                 return carry[form], 'book', 1.0
