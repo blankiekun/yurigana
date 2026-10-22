@@ -294,6 +294,23 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(words['歌い継ぐ'], ('歌い継ぐ', 'うたいつぐ', 'rule', 1.0))
         self.assertEqual(words['為せる'][2:], ('dictionary', 0.0))  # also 為る's causative: not shown
 
+    def test_glued_table(self):
+        # a made-up glued table: forms Sudachi cuts into words, each word taking its slice, never shown
+        path = os.path.join(tempfile.mkdtemp(), 'glued.json')
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump({'水竜': 'すいりゅう', '炎弾': 'えんだん', '竜炎': 'りゅうほむら'}, f, ensure_ascii=False)
+        known = {('水', 'みず'), ('竜', 'りゅう'), ('炎', 'ほのお'), ('弾', 'たま'), ('弾', 'だん')}
+        reader = Reader(known=known, glued=path)
+        words = {w.form: w[3:] for w in reader.read('巨大な水竜が炎弾を放った。')}
+        self.assertEqual(words['水'], ('すい', 'default', None))
+        self.assertEqual(words['竜'], ('りゅう', 'only', 1.0))  # its slice is its own reading: left as is
+        self.assertEqual(words['炎'], ('えん', 'default', None))
+        # ruby over the form wins; a reading no slice spells (ほむら isn't a reading of 炎 here) isn't taken
+        self.assertEqual(reader.read('水竜だ', [(0, 2, 'みずりゅう')])[0].reading, 'みず')
+        self.assertEqual([w.reading for w in reader.read('竜炎だ')], [w.reading for w in Reader(known=known).read('竜炎だ')])
+        # without a table (or a missing file), nothing changes
+        self.assertEqual(Reader(known=known, glued=path + '.missing').read('水竜')[0].reading, 'みず')
+
     def test_term_dictionary(self):
         # a made-up Yomitan term dictionary: words the list and JMdict lack (source 'terms', never shown)
         path = os.path.join(tempfile.mkdtemp(), 'terms.zip')

@@ -32,6 +32,17 @@ def ateji_readings(path: str = ATEJI) -> dict:
                 if len(x) > 1}
 
 
+def glued_table(paths) -> dict:
+    """Glued tables (form -> reading, JSON, gzipped when the name ends in .gz), merged, earlier ones first;
+    missing files are skipped. A server's own, built from its books: never published."""
+    table = {}
+    for path in reversed([paths] if isinstance(paths, str) else list(paths)):
+        if os.path.exists(path):
+            with (gzip.open if path.endswith('.gz') else open)(path, 'rt', encoding='utf-8') as f:
+                table.update(json.load(f))
+    return table
+
+
 def jmdict_readings(path: str = JMDICT_PAIRS) -> dict:
     """form -> JMdict's readings of it, in JMdict's order (tools/jmdict_pairs.py), with ー
     spelled out (ぎょーざ: ぎょうざ, as lists spell it)."""
@@ -194,9 +205,12 @@ class Reader(Compounds):
         shown). Earlier dictionaries' readings come first.
     names: paths of Yomitan name dictionaries (JMnedict; a str is one). Last of all: they never change a
         reading, only show one nothing else would (source 'dictionary', Sudachi's 固有名詞) when the
-        dictionaries read the name that one way only (姫路 ひめじ). Not other words (今日 こんにち there)."""
+        dictionaries read the name that one way only (姫路 ひめじ). Not other words (今日 こんにち there).
+    glued: paths of glued tables (glued_table; a str is one): kanji forms Sudachi cuts into 2+ words, read as the
+        table says where the words cover the form exactly; each word takes its slice, never shown (_glued). Without
+        any, the YURIGANA_GLUED_TABLE environment variable's path (the server's, or scoring a table)."""
 
-    def __init__(self, known=None, tables=(), tokenizer=None, terms=(), names=()):
+    def __init__(self, known=None, tables=(), tokenizer=None, terms=(), names=(), glued=()):
         if isinstance(known, str):
             from .yomitan import reading_ranks
             known = reading_ranks(known)
@@ -277,7 +291,7 @@ class Reader(Compounds):
             for form, readings in name_readings(path).items():
                 merged[form] = merged.get(form, set()) | readings
         self.names = {form: next(iter(r)) for form, r in merged.items() if len(r) == 1}
-        self._finish(tables, tokenizer)
+        self._finish(tables, tokenizer, glued)
 
     # Reader.save's tables: name -> (encode, decode) of the values; pair tables are keyed `form \t reading`.
     _LISTS = ('readings', 'jmdict', '_jmdict_all', 'terms')
@@ -299,8 +313,8 @@ class Reader(Compounds):
         packed.write(path, tables, {'ranked': ranked, 'plain': self.plain is not None, 'source': _source_hash()})
 
     @classmethod
-    def load(cls, path: str, tables=(), tokenizer=None) -> 'Reader':
-        """A Reader from Reader.save's file; `tables` and `tokenizer` as in Reader()."""
+    def load(cls, path: str, tables=(), tokenizer=None, glued=()) -> 'Reader':
+        """A Reader from Reader.save's file; `tables`, `tokenizer` and `glued` as in Reader()."""
         from .packed import Decoded, Packed, PairMap, PairSet
         pack = Packed(path)
         if pack.meta.get('source') != _source_hash():
@@ -316,11 +330,13 @@ class Reader(Compounds):
         self.plain = PlainReadings() if pack.meta['plain'] else None
         self._plain_check = self.plain or PlainReadings()
         self._term_pairs = _TermPairs(self.terms)
-        self._finish(tables, tokenizer)
+        self._finish(tables, tokenizer, glued)
         return self
 
-    def _finish(self, tables, tokenizer):
+    def _finish(self, tables, tokenizer, glued=()):
         self.model = load_tables([*tables, PUBLIC_TABLE])
+        self.glued = glued_table(glued or os.environ.get('YURIGANA_GLUED_TABLE', ()))
+        self._glued_re = self.glued and re.compile('|'.join(sorted(map(re.escape, self.glued), key=len, reverse=True)))
         self.dominant = dominant_readings()
         self.dominant_checked = dominant_checked()
         self.ateji = ateji_readings()
@@ -486,8 +502,44 @@ class Reader(Compounds):
                  and not (w.end - w.start == 1 and (glued(text, w.start, w.end) or re.match('[ァ-ヺー]', text[w.end:w.end + 1])))
                  else w for w in words]
         words = self._idioms(text, tokens, words, hint_at, counted)
+        if self.glued:
+            words = self._glued(text, words, hint_at)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
+
+    def _glued(self, text, words, hint_at):
+        """The glued table's forms where 2+ kanji Words cover one exactly (no Word overlapping it otherwise, no ruby,
+        rule, counter or a name's ruby in it): each Word takes its slice of the table's reading (a listed or plain
+        reading of its surface), as `default`, never shown; one Word per token, so word lists keep their rows."""
+        for m in self._glued_re.finditer(text):
+            start, end = m.span()
+            inside = sorted((k for k, w in enumerate(words) if w.start < end and w.end > start), key=lambda k: words[k].start)
+            parts, pos = [], start
+            for k in inside:
+                w = words[k]
+                if w.start != pos or w.form != text[w.start:w.end] or w.source in ('ruby', 'rule', 'counter', 'book'):
+                    break
+                parts.append(k); pos = w.end
+            if (pos != end or len(parts) != len(inside) or len(parts) < 2
+                    or any(s < end and e > start for s, (e, _) in hint_at.items())):
+                continue
+            pieces = self._slices([words[k].form for k in parts], self.glued[m.group()])
+            for k, piece in zip(parts, pieces or ()):
+                if piece != words[k].reading:
+                    words[k] = words[k]._replace(reading=piece, source='default', certainty=None)
+        return words
+
+    def _slices(self, parts, reading):
+        """Each part's slice of `reading`, the first way where every slice is a listed or plain reading of its part."""
+        if len(parts) == 1:
+            return [reading] if (parts[0], reading) in self.known or (parts[0], reading) in self._plain_check else None
+        for stop in range(1, len(reading)):
+            piece = reading[:stop]
+            if (parts[0], piece) in self.known or (parts[0], piece) in self._plain_check:
+                rest = self._slices(parts[1:], reading[stop:])
+                if rest:
+                    return [piece] + rest
+        return None
 
     def _checked(self, form, reading, source, certainty):
         """Certainty hygiene for a reading not from ruby: one that isn't hiragana or ー (Sudachi's
