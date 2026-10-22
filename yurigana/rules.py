@@ -483,12 +483,12 @@ CONTEXT_RULES = {
     # 止める: とめる for machines and flows (エンジンを止める); やめる for doing something (食べるのを止める, お止めください).
     '止める': [('とめる', words(HALTED) + 'を$', None),
              ('とめる', None, r'に(?:入|はい)'),  # 止めに入る: stepping in to stop a fight
-             # Someone else's act or an event is stopped (T540): a person's のこと, a subject with が in the clause
+             # Someone else's act or an event is stopped (T535): a person's のこと, a subject with が in the clause
              # (彼が行くのを, 涙が零れるのを; not ながら or -がる verbs), trying or ongoing (しようとする, 広がっていく,
-             # されるの), a motion or flow (進む, 漏れる, 震える). Else, after a verb's のを or こと, quitting it.
+             # されるの), a motion or flow (行く, 漏れる, 震える). Else, after a verb's の(を) or こと, quitting it (not そういうの).
              ('とめる', r'のことを?$|(?:(?<![なすやかもだ])が(?![らりるれろっにく])[^、。！？」てで]*|うと(?:する|した)'
               r'|て(?:い|ゆ)く|てしまう|ちゃう|される|' + words(INVOLUNTARY) + r')(?:のを|ことを?)$', None),
-             ('やめる', r'(?<!へ)(?:のを|ことを?)$', r'(?!られ)', 'and'),
+             ('やめる', r'(?<!へ)(?:(?<![そこあど]ういう)(?<=[うくすつぬむぶぐる])のを?|ことを?)$', r'(?!られ)', 'and'),
              ('やめる', r'お$', r'(?:ください|下さい|になって|なさい)', 'and')],
     # 空く: すく for roads and trains (道が空いている); お腹が空く is left to the model (it reads it already).
     '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None), ('あく', r'穴[がはもの]?$', None),
