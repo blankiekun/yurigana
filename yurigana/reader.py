@@ -755,6 +755,15 @@ class Reader(Compounds):
         if only and form == '癖' and previous and (_HEAD_SURFACE.match(previous.surface()[-1]) and previous.part_of_speech()[0] == '名詞'
                                                    or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):
             return only, 'dictionary', None
+        pos = tokens[i].part_of_speech()
+        # 早う はよう: the ウ音便 changes the stem's last kana (not はやう); an adjective's bare stem that JMdict
+        # also reads otherwise is mostly that noun (民族の長 おさ, not なが): not shown (T511)
+        if only and (pos[5].endswith('ウ音便') or pos[5].startswith('語幹') and len(self._jmdict_all.get(surface, ())) > 1):
+            only = None
+        # a kana head Sudachi cuts off a listed word (てっとり|早く): the word's tail reading, not shown (T511)
+        joined = previous and HIRAGANA_WORD.match(previous.surface()) and previous.surface() + form
+        if only and joined and self.only.get(joined, '').startswith(previous.surface()):
+            return surface_reading(surface, form, self.only[joined][len(previous.surface()):]), 'dictionary', None
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):
