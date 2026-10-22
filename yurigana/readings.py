@@ -56,9 +56,11 @@ def right_lemma(text: str, begin: int, form: str, end: int | None = None) -> str
 
 # 入れる is also 入る's potential (はいれる: 部屋には入れない, 中に入れた; books' ruby はいれる 34% in a clause without
 # を): not `only` there, unless the 入れ is imperative, volitional, causative or passive, before a giving or
-# trying verb (入れてくれ, 入れておく), or after 手に, 口に… (T242).
+# trying verb (入れてくれ, 入れておく) or いる/ある (入れてある, 入れていた, T545), or after 手に, 口に… (T242).
 _CLAUSE = re.compile(r'[、。「」『』！？!?（）()\n…―─]')
-_PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見)')
+_PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見|あ|い|る|た)')
+# ... and where it may be, a negative is mostly はいれる (部屋に入れない, 入れなかった; not 入れないで, 入れなくても) (T546).
+_ENTER_NOT = re.compile(r'な(?:い(?!で)|かっ|けれ)|ねえ|ねー|ません|ん[。、」！？]')
 _PUT_INTO = re.compile(r'(?:手|口|耳|目|頭|視界|視野|念頭|考慮|計算|勘定|懐|射程|ポケット|鞄|カバン|袋|箱)[にへ](?:は|も)?$')
 
 
@@ -68,6 +70,11 @@ def may_be_potential(text: str, begin: int, form: str) -> bool:
         return False
     clause = _CLAUSE.split(text[max(0, begin - 40):begin])[-1]
     return 'を' not in clause and not _PUT_INTO.search(clause) and not _PUT_AFTER.match(text, begin + 2)
+
+
+def enters(text: str, begin: int) -> bool:
+    """Whether 入れる at `begin`, where it may be 入る's potential, reads はいれる: a negative after it (T546)."""
+    return bool(_ENTER_NOT.match(text, begin + 2))
 
 
 def goes(text: str, tokens: list, i: int) -> bool:

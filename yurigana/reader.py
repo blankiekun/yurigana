@@ -12,7 +12,7 @@ from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
-from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
+from .readings import (conjugated_reading, context_reading, default_kept, enters, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN, WRONG_LEMMA)
@@ -138,6 +138,7 @@ def _potential_of(form: str, reading: str, known) -> bool:
 _I_TO_U = dict(zip('いきぎしちにびみり', 'うくぐすつぬぶむる'))
 _SHOWN_DEFAULT = dict(SHOWN_DEFAULTS)
 _COUNT_NAME = re.compile('数[^字]|[一二三四五六七八九十百千万]{2,}')
+_NOUN_END = re.compile('[㐀-䶿一-鿿々ァ-ヺー]$')  # a kanji or katakana noun glued before 入れる: its object (T545)
 
 
 def _split_name(a, b, reading: str) -> dict:
@@ -754,7 +755,13 @@ class Reader(Compounds):
                 and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, Mapping) else None):
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma; WRONG_LEMMA's pick from context stands)
         if only and may_be_potential(text, begin, form):
-            only = None  # 部屋には入れない: はいれる (入る) or いれる
+            # 部屋には入れない: はいれる (入る) or いれる; a noun glued before is what is put in (気合入れて, T545)
+            if not (previous and previous.part_of_speech()[0] == '名詞' and _NOUN_END.search(previous.surface())):
+                if enters(text, begin):
+                    return 'はいれる', 'dictionary', None
+                only = None
+            elif enters(text, begin):
+                only = None
         # 癖 glued after a noun or a verb's stem is くせ, ぐせ or へき (逃げ癖, 貧乏癖, 収集癖): not shown (T254).
         if only and form == '癖' and previous and (_HEAD_SURFACE.match(previous.surface()[-1]) and previous.part_of_speech()[0] == '名詞'
                                                    or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):

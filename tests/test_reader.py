@@ -432,7 +432,11 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('電車を降りた。', 3), ('降りる', 'おりる', 'only'))
         self.assertEqual(word('ギターが弾けない。', 4), ('弾ける', 'ひける', 'rule'))
         self.assertEqual(word('泡が弾けた。', 2)[1], 'はじける')
-        self.assertEqual(word('中には入れない。', 3), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中には入れない。', 3), ('入れる', 'はいれる', 'dictionary'))  # T546
+        self.assertEqual(word('中に入れた。', 2), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中に入れてある。', 2), ('入れる', 'いれる', 'only'))  # T545
+        self.assertEqual(word('気合入れていこう。', 2), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('中に入れないで。', 2), ('入れる', 'いれる', 'dictionary'))
         self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
         self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
 
