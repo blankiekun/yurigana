@@ -60,6 +60,7 @@ def right_lemma(text: str, begin: int, form: str, end: int | None = None) -> str
 _CLAUSE = re.compile(r'[、。「」『』！？!?（）()\n…―─]')
 _PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見|あ|い|る|た)')
 # ... and where it may be, a negative is mostly はいれる (部屋に入れない, 入れなかった; not 入れないで, 入れなくても) (T546).
+_ENTER_AT = re.compile(r'(?:に|へ|から|まで)(?:は|も|すら|さえ|だけ|しか)?$')
 _ENTER_NOT = re.compile(r'な(?:い(?!で)|かっ|けれ)|ねえ|ねー|ません|ん[。、」！？]')
 _PUT_INTO = re.compile(r'(?:手|口|耳|目|頭|視界|視野|念頭|考慮|計算|勘定|懐|射程|ポケット|鞄|カバン|袋|箱)[にへ](?:は|も)?$')
 
@@ -73,7 +74,13 @@ def may_be_potential(text: str, begin: int, form: str) -> bool:
 
 
 def enters(text: str, begin: int) -> bool:
-    """Whether 入れる at `begin`, where it may be 入る's potential, reads はいれる: a negative after it (T546)."""
+    """Whether 入れる at `begin`, where it may be 入る's potential, reads はいれる: right after a place's に/へ/から/まで
+    and before a negative (部屋には入れない; not 砂糖は入れない) (T546)."""
+    return bool(_ENTER_AT.search(text, max(0, begin - 6), begin) and _ENTER_NOT.match(text, begin + 2))
+
+
+def negative(text: str, begin: int) -> bool:
+    """Whether 入れる at `begin` is followed by a negative (入れない, 入れなかった; not 入れないで)."""
     return bool(_ENTER_NOT.match(text, begin + 2))
 
 
@@ -82,7 +89,7 @@ def does(text: str, tokens: list, i: int) -> bool:
     (調査は行っている, 募集は行っておりません, 詠唱すら行っていない) with no に/へ/まで after it, nor て/で right before
     行っ, nor a going cue after (T548). Not shown: few held-out labels."""
     begin = tokens[i].begin
-    if IKU_AFTER.match(text, begin + 2) or i and tokens[i - 1].surface() in ('て', 'で') and tokens[i - 1].part_of_speech()[0] == '助詞':
+    if IKU_AFTER.match(text, begin + 2) or _GOES_WELL.search(text, max(0, begin - 4), begin) or i and tokens[i - 1].surface() in ('て', 'で') and tokens[i - 1].part_of_speech()[0] == '助詞':
         return False
     for k in range(i - 1, 0, -1):
         x = tokens[k]
@@ -95,6 +102,7 @@ def does(text: str, tokens: list, i: int) -> bool:
     return False
 
 
+_GOES_WELL = re.compile('(?:うまく|上手く|巧く|旨く|順調に|スムーズに)$')  # 計画はうまく行った: いく
 _DONE_PARTICLES = ('は', 'も', 'すら', 'さえ', 'を', 'ばかり', 'だけ', 'とか', 'なんか', 'など')
 
 
