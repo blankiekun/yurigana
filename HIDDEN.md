@@ -78,6 +78,7 @@ to "Shown again".
 | 娘 | むすめ after この/あの/その/どの (was `only`) | こ, むすめ | `Reader._dominant` (`_DEMONSTRATIVE`) | bare post-war Opus labels there: こ 336, むすめ 232 of 568 | T531 (this PR) | a cue that separates a girl (こ) from a daughter (むすめ) at 99% on held-out authors |
 | 行き交う | いきかう (was `only`) | いきかう, ゆきかう | its `rules.TOP_READINGS` row dropped | bare post-war Opus labels いきかう 877, ゆきかう 470 | T532 (this PR) | none expected: both readings are standard (T154) |
 | 弾く | はじく (was `rule`) where the paragraph has music (曲, 弦, 演奏, 歌, an instrument) | はじく (剣を弾く in a battle with a song), ひく (Xを弾き始める without the instrument in reach) | `rules.LINE_VETO`: the model's reading kept, `dictionary` (`MODEL_UNSHOWN`) | bare post-war Opus labels where it now stays unshown: held-out authors 9 wrong / 5 right, training 65 wrong / 11 right | T534 | a ひく cue for the clause (始め, 終わり, 聴かせ) or a battle cue that keeps はじく |
+| 辛い | つらい (was `rule`) where the paragraph has a taste or food word (_TASTE, 苦い, 麻婆, ケーキ, 焼きそば, 丼, 塩水, 辛さ/辛み…), before さ (辛さ), and after し (し辛い) | からい mostly (spicy food named a sentence earlier); つらい in a hard day with food mentioned | `rules.LINE_VETO`, `rules.CONTEXT_RULES['辛い']`: the model's reading kept, `dictionary` (`MODEL_UNSHOWN`) | bare post-war Opus labels where it now stays unshown: held-out authors 22 wrong / 24 right, training 76 wrong / 85 right | T538 | a つらい cue that holds with food in the paragraph (食べられない, 空腹) |
 
 ## Shown again
 
