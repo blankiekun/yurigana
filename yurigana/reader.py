@@ -16,6 +16,7 @@ from .readings import (conjugated_reading, context_reading, default_kept, does, 
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN, WRONG_LEMMA)
+from .form_model import FormModel
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
 from .yomitan import dominant_checked, dominant_readings, extra_readings, name_readings, preferred, term_readings
@@ -354,6 +355,7 @@ class Reader(Compounds):
 
     def _finish(self, tables, tokenizer, glued=()):
         self.model = load_tables([*tables, PUBLIC_TABLE])
+        self.form_model = FormModel.load()
         self.glued = glued_table([*([glued] if isinstance(glued, str) else glued or [os.environ.get('YURIGANA_GLUED_TABLE', '')]), GLUED])
         self._glued_re = self.glued and re.compile('|'.join(sorted(map(re.escape, self.glued), key=len, reverse=True)))
         self.dominant = dominant_readings()
@@ -821,14 +823,22 @@ class Reader(Compounds):
                                previous and previous.part_of_speech())
         if reading and (form, reading) in self.known:
             return reading, 'default', None
-        reading = self.model and self.model.reading(text, tokens, i, form, self.known)
+        reading = None
+        if form in self.form_model:  # the hardest forms: their own classifiers, shown past a per-form threshold (T513)
+            reading, certainty, sure = self.form_model.reading(text, tokens, i, form)
+            reading = reading if (form, reading) in self.known else None
+            certainty = round(certainty, 3)
+        if not reading:
+            reading = self.model and self.model.reading(text, tokens, i, form, self.known)
+            if reading:
+                certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
+                # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
+                sure = form not in MODEL_UNSHOWN
         if reading:
-            certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
             for before, after, given, shown in MODEL_FIX.get((form, reading), ()):  # T250
                 if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, _end(tokens[i]))):
                     return given, 'model' if shown else 'dictionary', certainty if given == reading else None
-            # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
-            return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
+            return reading, 'model' if sure else 'dictionary', certainty
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
         only = self.only.get(form)
