@@ -379,10 +379,13 @@ CONTEXT_RULES = {
            ('とこ', r'(?<!を)$', r'につ(?!け[てたるらま])', 'and')],
     '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?(?:ほど|より|くらい|ぐらい)?'
               r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'}, '食べ物', '食物', 'ソーセージ', '鍋')),
-             # つらい unless food or a taste is near (辛い食べ物, 甘くて辛い, 舌が痺れるほど辛い: T294) or it ends a verb stem
-             # (見辛い づらい) or a kanji word; 辛くも (からくも) and 辛いもの go to the model.
-             ('つらい', r'^(?!.*(?:' + _TASTE + r')).*(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねい])(?<![一-鿿]し)$',
-              r'(?!も|物|の好き|方が|の(?:が|は|も)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
+             # a strict judge (点が辛い, 評価が辛く: からい, T534)
+             ('からい', r'(?:点|点数|評価|採点)(?:が|は|も)?(?:少し|とても|すごく|かなり|ちょっと)?$', None),
+             # つらい unless food or a taste is near (辛い食べ物, 甘くて辛い, 舌が痺れるほど辛い: T294; or anywhere in the
+             # paragraph, LINE_VETO) or it ends a verb stem (見辛い, し辛い づらい) or a kanji word; 辛さ (からさ as often,
+             # T534), 辛くも (からくも) and 辛いもの go to the model.
+             ('つらい', r'^(?!.*(?:' + _TASTE + r')).*(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねいし])$',
+              r'(?!さ|も|物|の好き|方が|の(?:が|は|も)?(?:あまり|全然|少し|ちょっと)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
               r'|すぎ|過ぎ|[？?]|ない(?:もの|物|の)|.*?(?:料理|' + _TASTE + '))', 'and')],
     '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
@@ -868,6 +871,13 @@ CONTEXT_TABLE = {
     '瞑る': [('つぶる', 'を', None), ('つぶる', None, 'て'), ('つぶる', None, 'た'), ('つぶる', None, '、'), ('つぶる', None, '。'), ('つぶる', None, 'と'), ('つぶる', 'く', None)],
     '良い': [('よい', None, 'た'), ('よい', None, 'な'), ('よい', None, 'さ'), ('よい', None, 'そ')],
 }
+
+# A context rule's reading isn't given where the word's paragraph (the line, the word left out) has these: 辛い's
+# つらい near a taste or a dish anywhere in it (T534), 弾く's はじく near music (T535). The model's reading stays,
+# not shown (MODEL_UNSHOWN).
+LINE_VETO = {('辛い', 'つらい'): re.compile(_TASTE + '|苦[いく]|しょっぱ|酸っぱ|すっぱ|ぴりっ|ピリッ|麻婆|味噌|ミソ|飴|シチュー|ケーキ|ピザ|香草|チリ|辛[みさ味]'),
+             ('弾く', 'はじく'): re.compile(words(PLAYED) + r'|演奏|音色|音楽|楽譜|譜面|鍵盤|弦|絃|旋律|メロディ|曲(?![線がげ])|指揮'
+                                         r'|歌|唄|バンジョー|コントラバス|チェンバロ|三線|フェシュピール|イントロ|メドレー|ライブ|バンド')}
 
 CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in CONTEXT_RULES.items()}
