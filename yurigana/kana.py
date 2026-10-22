@@ -62,3 +62,43 @@ def small_kana(reading: str):
     for k in range(1, len(spots) + 1):
         for chosen in itertools.combinations(spots, k):
             yield ''.join(c.translate(_SMALL) if i in chosen else c for i, c in enumerate(reading))
+
+
+_LARGE = str.maketrans('ぁぃぅぇぉゃゅょ', 'あいうえおやゆよ')
+_E_ROW = dict(zip('あかさたなはまらわがざだばぱおこそとのほもろごぞどぼぽ', 'えけせてねへめれえげぜでべぺえけせてねへめれげぜでべぺ'))
+_I_ROW = dict(zip('うくすつぬふむるぐずぶぷ', 'いきしちにひみりぎじびぴ'))
+# misspellings by one kana for another (ぜいいん, いきよい, しやわせ, とゆう, たあいない, おもひで); not い/え or う/え
+# (意固地 えこじ, 成しうる) nor よ/い (仲の良い いい)
+_LONG = {'お': 'う', 'え': 'い'}
+_SWAPS = ({'ん', 'い'}, {'お', 'よ'}, {'あ', 'や'}, {'い', 'ゆ'}, {'わ', 'あ'}, {'ひ', 'い'})
+
+
+def _sounds(reading: str) -> str:
+    """A reading's sounds without emphasis: spelling(), small kana large, っ dropped, long お/え as う/い
+    (ほおって ほうって, おねえ おねい)."""
+    text = spelling(reading).translate(_LARGE).replace('っ', '')
+    return re.sub('(?<=([^あいうえお]))[おえ]', lambda m: _LONG[m.group(0)] if _VOWEL.get(m.group(1)) == _LONG[m.group(0)]
+                  else m.group(0), text)
+
+
+def colloquial(reading: str, standard: str) -> bool:
+    """Whether `reading` is a casual, emphatic or misspelt way to write `standard` (Jiten's list ranks
+    such readings with the word: 長い なっがい, 当たり前 あたりめえ, 気付く きずく, 雰囲気 ふいんき, 全員 ぜいいん):
+    the same sounds (_sounds), a final ai/ae/oi as ee or ui as ii (なげえ, さみい), one ん or long-vowel う
+    added or dropped (おんなじ, しろと), two kana swapped, or one soft kana for another (_SWAPS), the last
+    three in readings of 3+ kana. Not a reading of another sound (鳥 ちょう, 河 が)."""
+    a, b = _sounds(reading), _sounds(standard)
+    if a == b:
+        return True
+    if len(standard) > 1 and (standard[-1] in 'いえ' and standard[-2] in _E_ROW and a == b[:-2] + _E_ROW[standard[-2]] + 'い'
+                              or standard[-1] == 'い' and standard[-2] in _I_ROW and a == b[:-2] + _I_ROW[standard[-2]] + 'い'):
+        return True
+    long, short = (a, b) if len(a) > len(b) else (b, a)
+    if len(short) < 3:
+        return False
+    if len(long) == len(short) + 1:
+        return any(long[:i] + long[i + 1:] == short and (long[i] == 'ん' or long[i] == 'う' and _VOWEL.get(long[i - 1]) == 'う')
+                   for i in range(1, len(long)))
+    diff = [i for i in range(len(a)) if len(a) == len(b) and a[i] != b[i]]
+    return (len(diff) == 2 and diff[1] == diff[0] + 1 and a[diff[0]] == b[diff[1]] and a[diff[1]] == b[diff[0]]
+            or len(diff) == 1 and {a[diff[0]], b[diff[0]]} in _SWAPS)

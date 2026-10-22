@@ -10,7 +10,7 @@ from collections.abc import Mapping
 
 from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
-from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_kanji, long_vowels, rendaku, small_kana, spelling,
+from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
 from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
@@ -235,10 +235,16 @@ class Reader(Compounds):
         # default gives one (刺青 いれずみ); a form with one is never `only`, though: the extra reading is
         # standard too, so the list's own isn't sure (描く えがく is shown only where a rule reads it).
         extra = extra_readings() - {(form, r) for (form, _), r in DEFAULT_READINGS.items()}
-        own = {form: [r for r in readings if (form, r) not in extra] for form, readings in self.readings.items()}
+        # Nor do the list's casual spellings of a JMdict reading it also has (長い なっがい, 雰囲気 ふいんき: colloquial),
+        # except in numerals (三つ目 みっつめ is its own reading) (T510)
+        casual = {(form, r) for form, readings in self.readings.items() if form in self.jmdict
+                  and not any(c in '一二三四五六七八九十' for c in form) for r in readings if r not in self.jmdict[form]
+                  and any(colloquial(r, j) for j in readings if j in self.jmdict[form])}
+        own = {form: [r for r in readings if (form, r) not in extra and (form, r) not in casual]
+               for form, readings in self.readings.items()}
         self.single = {form: readings[0] for form, readings in own.items() if len(readings) == 1}
         self.only = {form: r for form, r in self.single.items() if r in self.jmdict.get(form, (r,))
-                     and set(self.readings[form]) == {r}}
+                     and {x for x in self.readings[form] if (form, x) not in casual} == {r}}
         self._tails = None
         # 一X whose ひと…/いっ… reading the list ranks 3+ times above its others (一重 ひとえ, not いちえ):
         # read so when Sudachi splits it 一|X; not forms with context rules (一行 いっこう/いちぎょう)
@@ -749,6 +755,17 @@ class Reader(Compounds):
         if only and form == '癖' and previous and (_HEAD_SURFACE.match(previous.surface()[-1]) and previous.part_of_speech()[0] == '名詞'
                                                    or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):
             return only, 'dictionary', None
+        pos = tokens[i].part_of_speech()
+        # an adjective's ウ音便 changes the stem's last kana (早う はよう, not はやう); its bare stem after の that
+        # JMdict also reads otherwise is that noun (民族の長 おさ, not なが): not shown (T511)
+        if only and pos[0] == '形容詞' and (pos[5].endswith('ウ音便') or pos[5].startswith('語幹') and previous and previous.surface() == 'の'
+                     and len(self._jmdict_all.get(surface, ())) > 1):
+            only = None
+        # a kana head Sudachi cuts off a listed word that voices it (てっとり|早く ばやく): that reading, not shown (T511)
+        head = previous.surface() if previous and HIRAGANA_WORD.match(previous.surface()) else None
+        whole = head and self.only.get(head + form, '')
+        if only and whole and whole.startswith(head) and whole[len(head):] != only:
+            return surface_reading(surface, form, whole[len(head):]), 'dictionary', None
         # Sudachi's voicing inside a compound is sometimes wrong (睡眠不足 ふそく, listed ぶそく).
         if only and (sudachi in (None, only) or (len(form) > 2 and tokens[i].part_of_speech()[1] != '固有名詞'
                                                  and _one_voicing_apart(sudachi, only))):
