@@ -93,16 +93,18 @@ def does(text: str, tokens: list, i: int) -> bool:
         return False
     for k in range(i - 1, 0, -1):
         x = tokens[k]
-        if begin - x.begin > 30 or x.surface() in ('。', '「', '」', '！', '？', '!', '?', '\n'):
+        if begin - x.begin > 30 or _SENTENCE_END.search(text, x.begin, begin):  # the tokenizer drops punctuation
             return False
         if x.surface() in ('に', 'へ', 'まで') and x.part_of_speech()[0] == '助詞':
             return False
-        if x.surface() in _DONE_PARTICLES and tokens[k - 1].part_of_speech()[:3] == ('名詞', '普通名詞', 'サ変可能'):
+        if x.surface() in _DONE_PARTICLES and tokens[k - 1].part_of_speech()[:3] == ('名詞', '普通名詞', 'サ変可能') \
+                and tokens[k - 1].surface() not in ('もの', '物', 'こと', '事'):
             return not IKU_ACTS.search(tokens[k - 1].surface())
     return False
 
 
 _GOES_WELL = re.compile('(?:うまく|上手く|巧く|旨く|順調に|スムーズに)$')  # 計画はうまく行った: いく
+_SENTENCE_END = re.compile(r'[。！？!?\n「」『』]')
 _DONE_PARTICLES = ('は', 'も', 'すら', 'さえ', 'を', 'ばかり', 'だけ', 'とか', 'なんか', 'など')
 
 
