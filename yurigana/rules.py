@@ -717,6 +717,13 @@ TOP_READINGS = {'僕': 'ぼく', '魚': 'さかな', '体': 'からだ', '妹': 
                 '黒糖': 'こくとう', '黒馬': 'くろうま',
                 # shown where their context rules (CONTEXT_RULES: 煙に巻く けむ, 星の瞬き またたき) don't fire (T448)
                 '煙': 'けむり', '瞬き': 'まばたき'}
+# TOP_READINGS forms whose top reading replaces Sudachi's other one (腹痛 はらいた, 豚汁 ぶたじる, 私事 しじ), from T480's Opus
+# labels of the rows Sudachi reads otherwise: shown where every row (5+) reads the top one, not shown (TOP_UNSHOWN) where
+# most do (T513). Not 塩水 (B1 えんすい), 恋歌 (Re:Zero れんか).
+TOP_OVERRIDES = frozenset({'腹痛', '豚汁', '毒蛇', '横線', '生薬', '西北', '船影', '罪科', '雷雲', '馬糞', '懐紙', '冷汗', '乳牛',
+                           '内庭', '微風', '波線', '鉱', '私事', '蟷螂', '冷酒', '傀儡', '石室', '松風', '麦飯', '黒土',
+                           '速歩'})
+TOP_UNSHOWN = frozenset({'私事', '蟷螂', '冷酒', '傀儡', '石室', '松風', '麦飯', '黒土', '速歩'})
 # Model readings that are wrong most of the time, or in a frame (training-author library ruby where the model gives
 # them: 何時 なんじ 9%, 何故 なにゆえ 20%, 件 くだり 53%, 等 ら 53% right; bare text agrees but for 何時).
 # Not context rules: a rule form loses its model. (form, the model's reading) -> [(text before, text after, the reading given, shown)]: the first entry

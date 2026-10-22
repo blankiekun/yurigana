@@ -15,7 +15,7 @@ from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, col
 from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
-                    SHOWN_DEFAULTS, TOP_READINGS)
+                    SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN)
 from .reading_model import PUBLIC_TABLE, load_tables
 from .tokens import Token, Word
 from .yomitan import dominant_checked, dominant_readings, extra_readings, name_readings, preferred, term_readings
@@ -817,6 +817,10 @@ class Reader(Compounds):
         not shown right after a noun, adverb, prefix or verb stem, where they may be a compound's voiced tail
         (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
         begin, end = token.begin, token.begin + len(token.surface())
+        if form in TOP_OVERRIDES and token.surface() == form and reading != TOP_READINGS[form] and token.part_of_speech()[1] != '固有名詞':
+            reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T513)
+            if form in TOP_UNSHOWN:
+                return reading, 'dictionary', None
         if (self.dominant.get(form, TOP_READINGS.get(form)) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
                 or end - begin > 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
                 or not surface_reading(token.surface(), form, reading, text[end:end + 3])
