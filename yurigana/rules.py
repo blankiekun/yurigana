@@ -274,7 +274,7 @@ CONTEXT_RULES = {
             ('こする', r'(?:頬|頰|顔)を$', r'(?:つけ|付け)', 'and'),
             ('さする', r'(?:お腹|おなか|お中)を(?:優しく|そっと|ゆっくりと?)?$', None)],
     # 弾く ひく for an instrument (ピアノを弾く); はじく for what bounces off or is flicked (攻撃を弾く, 指で弾く,
-    # 弾かれたように) when no instrument is near. Otherwise the model.
+    # 弾かれたように) when no instrument is near, nor music in the paragraph (LINE_VETO, T534). Otherwise the model.
     '弾く': [('ひく', r'(?<![一-鿿])' + words(PLAYED) + r'(?:を|で|も|は)$', None),
             ('はじく', r'^(?!.*' + words(PLAYED) + r').*(?:(?<!何)を|で|によって|(?<!ため)(?<!よう)に)$', None),
             ('はじく', r'^(?!.*' + words(PLAYED) + ')', r'れ(?!ば)', 'and')],
@@ -775,7 +775,14 @@ DEFAULT_KEEP = {'実': (re.compile(r'(?!)'), re.compile(_OWN_FAMILY)),  # 実の
 _ALWAYS = re.compile('')
 WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRENDER}'), re.compile(_PRECIPITATION_AFTER)),
                '宿する': ('宿す', _ALWAYS, None), '欲す': ('欲する', _ALWAYS, None),
-               '欲する': ('欲しい', None, re.compile('が[らりるれろっ]'))}
+               '欲する': ('欲しい', None, re.compile('が[らりるれろっ]')),
+               # 通っ that Sudachi takes for 通う where it is 通る: after what runs or gets through (筋が, 話が, 電気が,
+               # 火が, 審査に) or すっと, or before the nose, a voice or a way gone by (通った鼻筋, 通ってきた道) (T533).
+               '通う': ('通る', re.compile(
+                   r'(?:筋|鼻筋|鼻梁|芯|話|理屈|道理|理|論理|要求|要望|主張|意見|希望|計画|案|申請|審査|選考|試験|収益化|電気|'
+                   r'水道|ガス|電車|線路|街道|運河|水路|河川|清流|霊脈|龍脈|霊道|管|ヒモ|紐|火|風|攻撃|ダメージ|射線|名|名前|顔|'
+                   r'車|馬車|救急車|刃)(?:が|も|は|の|さえ)$|(?:すっと|スッと|すうっと|すーっと|一本|綺麗に|きれいに)$'),
+                   re.compile(r'た(?:鼻|目鼻|声|後|跡|あと|道|場所)|て(?:き|来)た(?:道|場所|ところ|森|経路|ルート|土地|辺り)'))}
 
 # A token Sudachi reads as one word that is another here, Word per entry (surface: [(before, after the token, kanji
 # span or None for the whole token, form, reading, shown)]). お話して, お話させて: 話 はなし + して (the し of
@@ -861,6 +868,11 @@ CONTEXT_TABLE = {
     '瞑る': [('つぶる', 'を', None), ('つぶる', None, 'て'), ('つぶる', None, 'た'), ('つぶる', None, '、'), ('つぶる', None, '。'), ('つぶる', None, 'と'), ('つぶる', 'く', None)],
     '良い': [('よい', None, 'た'), ('よい', None, 'な'), ('よい', None, 'さ'), ('よい', None, 'そ')],
 }
+
+# A context rule's reading isn't given where the word's paragraph (the line, the word left out) has these: 弾く's
+# はじく near music (T534). The model's reading stays, not shown (MODEL_UNSHOWN).
+LINE_VETO = {('弾く', 'はじく'): re.compile(words(PLAYED) + r'|演奏|音色|音楽|楽譜|譜面|鍵盤|弦|絃|旋律|メロディ|曲(?![線がげ])|指揮'
+                                         r'|歌|唄|バンジョー|コントラバス|チェンバロ|三線|フェシュピール|イントロ|メドレー|ライブ|バンド')}
 
 CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
                          for reading, before, after, *both in rules] for form, rules in CONTEXT_RULES.items()}

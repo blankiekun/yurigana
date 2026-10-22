@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
+from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, LINE_VETO, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -191,6 +191,10 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     for reading, before_rule, after_rule, both in rules:
         hits = (bool(before_rule and before_rule.search(before)), bool(after_rule and after_rule.match(after)))
         if (all(hits) if both else any(hits)) and (form, reading) in known:
+            veto = LINE_VETO.get((form, reading))
+            if veto and (veto.search(text, text.rfind('\n', 0, begin) + 1, begin)
+                         or veto.search(text, end, line_end if line_end >= 0 else len(text))):
+                continue
             return reading
     return None
 
