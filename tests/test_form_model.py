@@ -16,13 +16,14 @@ TOOL = os.path.join(os.path.dirname(__file__), '..', 'tools', 'form_model.py')
 
 class FormModelTest(unittest.TestCase):
     def test_probabilities(self):
-        # two readings: one LR weight and one tree per round, the second reading's log-odds
-        model = FormModel({'間': {'readings': ['あいだ', 'ま'], 'threshold': 0.9, 'lr': [[0.0], {'R1=に': [2.0]}],
-                                  'trees': [['R1=に', 'L1=の'], [[[[0, -1, 1], [1, -2, -3]], [-1.0, 0.5, 1.0]]]]}})
-        p = model.probabilities('間', ['R1=に', 'L1=の'])  # LR: sigmoid(2); tree: present, present -> 1.0
-        self.assertAlmostEqual(p['ま'], (0.880797 + 0.731059) / 2, places=5)
-        p = model.probabilities('間', [])  # LR 0.5; tree: absent -> -1.0
-        self.assertAlmostEqual(p['ま'], (0.5 + 0.268941) / 2, places=5)
+        # two readings: one weight, the second reading's log-odds
+        model = FormModel({'間': {'readings': ['あいだ', 'ま'], 'threshold': 0.9, 'lr': [[-1.0], {'R1=に': [2.0]}]}})
+        self.assertAlmostEqual(model.probabilities('間', ['R1=に', 'L1=の'])['ま'], 0.731059, places=5)
+        self.assertAlmostEqual(model.probabilities('間', [])['あいだ'], 0.731059, places=5)
+        three = FormModel({'下': {'readings': ['した', 'しも', 'もと'], 'lr': [[0.0, 0.0, 0.0], {'L1=の': [1.0, 0.0, 1.0]}]}})
+        p = three.probabilities('下', ['L1=の'])
+        self.assertAlmostEqual(p['した'], p['もと'])
+        self.assertAlmostEqual(sum(p.values()), 1.0)
         self.assertEqual(FormModel({'一度': {'readings': ['いちど'], 'p': 0.99, 'threshold': 0.98}}).probabilities('一度', []),
                          {'いちど': 0.99})
 

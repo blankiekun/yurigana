@@ -222,8 +222,9 @@ class Compounds:
             if kana[k]:
                 continue
             w = words[at[t.begin]] if t.begin in at else None
-            if not w or w.end != _end(t) or w.source in ('ruby', 'rule', 'counter', 'book'):
-                return None  # a Word over several tokens, or a sure reading: leave the phrase
+            if not w or w.end != _end(t) or w.source in ('ruby', 'rule', 'counter', 'book') \
+                    or w.source == 'only' and piece not in (w.reading, surface_reading(t.surface(), w.form, w.reading)):
+                return None  # a Word over several tokens, or a sure reading: leave the phrase (木|の|下: 木 stays き, T514)
             surface = t.surface()
             if k == len(span) - 1 or surface == w.form:
                 if surface != w.form and piece.endswith('いい'):

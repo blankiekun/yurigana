@@ -1,15 +1,13 @@
 """Readings in context for the forms whose readings are hardest to tell apart (間: あいだ/ま, 下:
-した/もと…): per form, a logistic regression and a gradient-boosted tree ensemble over characters
-and Sudachi tokens around the word, trained on Opus labels of library text (tools/form_model.py,
-docs/training.md). The two models' probabilities are averaged; the reading is shown only when that
-passes the form's threshold, chosen on held-back authors for 99.5% shown precision.
+した/もと…): per form, a logistic regression over characters and Sudachi tokens around the word,
+trained on Opus labels of library text (tools/form_model.py, docs/training.md). The reading is
+shown only when its probability passes the form's threshold, chosen on held-back authors for 99.5%
+shown precision.
 
 The file is gzipped JSON: {"version": 1, "forms": {form: entry}}, where an entry is
-{"readings": [...], "threshold": t, "lr": [biases, {feature: weights}], "trees": [features,
-[[nodes, leaves], ...]]} or, for a form the labels read one way, {"readings": [r], "p": p}.
-Two readings have one weight and one tree per round (the second reading's log-odds), more have
-one per reading. A tree node is [feature index, child if absent, child if present]; a child >= 0
-is a node, -1 - k is leaf k.
+{"readings": [...], "threshold": t, "lr": [biases, {feature: weights}]} or, for a form the labels
+read one way, {"readings": [r], "p": p}. Two readings have one weight (the second reading's
+log-odds), more have one per reading.
 """
 import gzip
 import json
@@ -63,20 +61,9 @@ def _softmax(scores: list) -> list:
     return [x / total for x in exps]
 
 
-def _tree(tree, present) -> float:
-    nodes, leaves = tree
-    k = 0
-    while k >= 0:
-        node = nodes[k]
-        k = node[2] if node[0] in present else node[1]
-    return leaves[-1 - k]
-
-
 class FormModel:
     def __init__(self, forms: dict):
         self.forms = forms
-        # feature -> index in the form's trees
-        self._index = {form: {name: k for k, name in enumerate(e['trees'][0])} for form, e in forms.items() if 'trees' in e}
 
     @classmethod
     def load(cls, path: str = FORM_MODEL) -> 'FormModel':
@@ -90,7 +77,7 @@ class FormModel:
         return form in self.forms
 
     def probabilities(self, form: str, found: list) -> dict:
-        """reading -> probability (the mean of the two models')."""
+        """reading -> probability."""
         entry = self.forms[form]
         readings = entry['readings']
         if 'p' in entry:
@@ -101,16 +88,7 @@ class FormModel:
             w = weights.get(feature)
             if w:
                 scores = [s + x for s, x in zip(scores, w)]
-        lr = _softmax(scores)
-        if 'trees' not in entry:
-            return dict(zip(readings, lr))
-        index, trees = self._index[form], entry['trees'][1]
-        present = {index[f] for f in found if f in index}
-        width = len(scores)
-        sums = [0.0] * width
-        for k, tree in enumerate(trees):
-            sums[k % width] += _tree(tree, present)
-        return {r: (a + b) / 2 for r, a, b in zip(readings, lr, _softmax(sums))}
+        return dict(zip(readings, _softmax(scores)))
 
     def reading(self, text: str, tokens, i: int, form: str) -> tuple:
         """(reading, probability, shown) for the word whose head token is tokens[i]."""

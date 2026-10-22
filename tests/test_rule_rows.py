@@ -25,7 +25,6 @@ KNOWN_MISSES = {
     # the forms' classifiers (T514), not shown: short sentences are far from the book text they learnt
     ('方', 'お母さん方の祖父は漁師だった。'),  # がた
     ('表', '結果を表にまとめた。'),  # おもて
-    ('下', '机の下に隠れた。'),  # もと
 }
 
 
