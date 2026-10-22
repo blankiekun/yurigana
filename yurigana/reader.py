@@ -23,6 +23,8 @@ from .yomitan import dominant_checked, dominant_readings, extra_readings, name_r
 KANJI_READINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kanji-readings.json')
 JMDICT_PAIRS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict-pairs.json.gz')
 ATEJI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ateji.tsv')
+# kanji forms Sudachi cuts into 2+ words, read whole: Opus labels of library text, gated (T512)
+GLUED = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'glued-readings.json')
 
 
 def ateji_readings(path: str = ATEJI) -> dict:
@@ -34,7 +36,7 @@ def ateji_readings(path: str = ATEJI) -> dict:
 
 def glued_table(paths) -> dict:
     """Glued tables (form -> reading, JSON, gzipped when the name ends in .gz), merged, earlier ones first;
-    missing files are skipped. A server's own, built from its books: never published."""
+    missing files are skipped."""
     table = {}
     for path in reversed([paths] if isinstance(paths, str) else list(paths)):
         if os.path.exists(path):
@@ -208,7 +210,7 @@ class Reader(Compounds):
         dictionaries read the name that one way only (姫路 ひめじ). Not other words (今日 こんにち there).
     glued: paths of glued tables (glued_table; a str is one): kanji forms Sudachi cuts into 2+ words, read as the
         table says where the words cover the form exactly; each word takes its slice, never shown (_glued). Without
-        any, the YURIGANA_GLUED_TABLE environment variable's path (the server's, or scoring a table)."""
+        any, the YURIGANA_GLUED_TABLE environment variable's path; both before the shipped glued-readings.json (GLUED)."""
 
     def __init__(self, known=None, tables=(), tokenizer=None, terms=(), names=(), glued=()):
         if isinstance(known, str):
@@ -341,7 +343,7 @@ class Reader(Compounds):
 
     def _finish(self, tables, tokenizer, glued=()):
         self.model = load_tables([*tables, PUBLIC_TABLE])
-        self.glued = glued_table(glued or os.environ.get('YURIGANA_GLUED_TABLE', ()))
+        self.glued = glued_table([*([glued] if isinstance(glued, str) else glued or [os.environ.get('YURIGANA_GLUED_TABLE', '')]), GLUED])
         self._glued_re = self.glued and re.compile('|'.join(sorted(map(re.escape, self.glued), key=len, reverse=True)))
         self.dominant = dominant_readings()
         self.dominant_checked = dominant_checked()
