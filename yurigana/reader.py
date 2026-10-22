@@ -190,6 +190,7 @@ class _TermPairs:
     def __contains__(self, item):
         return item[1] in self.terms.get(item[0], ())
 
+_DEMONSTRATIVE = re.compile('(?:この|あの|その|どの)$')
 
 class Reader(Compounds):
     """Readings of kanji words in context. The first that gives one wins: the book's ruby
@@ -824,7 +825,9 @@ class Reader(Compounds):
         if (self.dominant.get(form, TOP_READINGS.get(form)) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
                 or end - begin > 1 and any(is_kanji(c) or c.isdigit() for c in text[max(begin - 1, 0):begin] + text[end:end + 1])
                 or not surface_reading(token.surface(), form, reading, text[end:end + 3])
-                or (form in self.dominant_checked or form in TOP_READINGS) and previous and _compound_head(previous.part_of_speech())):
+                or (form in self.dominant_checked or form in TOP_READINGS) and previous and _compound_head(previous.part_of_speech())
+                # 娘 after この/あの/その/どの is こ or むすめ (bare post-war text: こ 59% of 568) (T531)
+                or form == '娘' and _DEMONSTRATIVE.search(text, max(0, begin - 2), begin)):
             return reading, 'dictionary', certainty
         return reading, 'only', 1.0
 

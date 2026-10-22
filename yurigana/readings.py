@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
+from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -181,7 +181,7 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
             and previous_pos[2] not in ('副詞可能', '形状詞可能') and _TAIL_BEFORE.search(text, 0, begin) and (form == '頃' or (
                 previous_pos[2] not in ('助数詞', '助数詞可能') and not _COUNTED.search(text, 0, begin))):
         return VOICED_AFTER_NOUN[form]
-    rules = CONTEXT_RULES.get(form)
+    rules = _RULES.get(form)
     if not rules:
         return None
     end = begin + len(surface)
@@ -194,6 +194,9 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
             return reading
     return None
 
+
+# CONTEXT_RULES, then the form's context table (T530)
+_RULES = {**CONTEXT_RULES, **{form: CONTEXT_RULES.get(form, []) + rows for form, rows in CONTEXT_TABLE.items()}}
 
 _LARGE = str.maketrans('ぁぃぅぇぉっゃゅょゎ', 'あいうえおつやゆよわ')
 
