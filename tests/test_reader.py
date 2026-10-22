@@ -206,6 +206,27 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(read('人家《じんか》。人家。', {}, known), [('じんか', 'ruby'), ('じんか', 'book')])
         self.assertEqual(read('人気《ひとけ》。人気。', {}, known)[1][1], 'dictionary')
 
+    def test_a_word_a_book_uses_as_a_name_carries_its_ruby(self):
+        known = {('温水', 'おんすい'), ('諸', 'しょ'), ('男', 'おとこ'), ('親御', 'おやご'), ('親', 'おや'), ('御', 'ご')}
+        reader = Reader(known)  # Sudachi: 諸|男 and 親|御 are two tokens
+
+        def read(marked, carry):
+            hints = []
+            text = aozora_text(marked, None, hints)
+            return [w[2:5] for w in reader.read(text, hints, carry) if w.form in ('温水', '諸', '男', '諸男', '親', '御', '親御')]
+        # T550: a listed word rubied with a reading the list lacks and marked twice as a name (honorific, speaker tag)
+        marked = '温水《ぬくみず》君。「うん」と温水は言った。温水。'
+        self.assertEqual(read(marked, {})[-1], ('温水', 'ぬくみず', 'book'))
+        self.assertEqual(read(marked, None)[-1], ('温水', 'おんすい', 'only'))
+        self.assertEqual(read('温水《ぬくみず》君。温水。', {})[-1], ('温水', 'おんすい', 'only'))  # one cue
+        self.assertEqual(read('温水《ぬくみず》様。温水様。温水。', {})[-1], ('温水', 'おんすい', 'only'))  # titles take 様 too
+        # T551: a name Sudachi cuts in kanji tokens, rubied per kanji: one Word at its bare occurrences
+        marked = '諸《もろ》男《お》さん。諸男さん。諸男。'
+        self.assertEqual(read(marked, {})[-1], ('諸男', 'もろお', 'book'))
+        self.assertEqual(read(marked, None)[-1], ('男', 'おとこ', 'only'))
+        # a listed word with its listed reading is no name (親御《おやご》さん)
+        self.assertNotIn('book', [w[2] for w in read('親《おや》御《ご》さん。親御さん。親御。', {})])
+
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
             hints = []
