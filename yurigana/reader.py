@@ -756,9 +756,9 @@ class Reader(Compounds):
                                                    or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):
             return only, 'dictionary', None
         pos = tokens[i].part_of_speech()
-        # 早う はよう: the ウ音便 changes the stem's last kana (not はやう); an adjective's bare stem after の that
+        # an adjective's ウ音便 changes the stem's last kana (早う はよう, not はやう); its bare stem after の that
         # JMdict also reads otherwise is that noun (民族の長 おさ, not なが): not shown (T511)
-        if only and (pos[5].endswith('ウ音便') or pos[5].startswith('語幹') and previous and previous.surface() == 'の'
+        if only and pos[0] == '形容詞' and (pos[5].endswith('ウ音便') or pos[5].startswith('語幹') and previous and previous.surface() == 'の'
                      and len(self._jmdict_all.get(surface, ())) > 1):
             only = None
         # a kana head Sudachi cuts off a listed word that voices it (てっとり|早く ばやく): that reading, not shown (T511)
