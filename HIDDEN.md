@@ -77,6 +77,7 @@ to "Shown again".
 | names of 2+ characters (any) | the list's one reading (`only`) at bare occurrences before the book's first ruby of the name | the book's ruby (横浜 はま, 京坂 きょうさか) | `Reader.read` `carry` backfill: source `book`, not shown | 3 of 65 backfill changes were over `only` (Opus: 3 of 3 right for the book) | T440 (this PR) | show `book` readings |
 | 娘 | むすめ after この/あの/その/どの (was `only`) | こ, むすめ | `Reader._dominant` (`_DEMONSTRATIVE`) | bare post-war Opus labels there: こ 336, むすめ 232 of 568 | T531 (this PR) | a cue that separates a girl (こ) from a daughter (むすめ) at 99% on held-out authors |
 | 行き交う | いきかう (was `only`) | いきかう, ゆきかう | its `rules.TOP_READINGS` row dropped | bare post-war Opus labels いきかう 877, ゆきかう 470 | T532 (this PR) | none expected: both readings are standard (T154) |
+| 弾く | はじく (was `rule`) where the paragraph has music (曲, 弦, 演奏, 歌, an instrument) | はじく (剣を弾く in a battle with a song), ひく (Xを弾き始める without the instrument in reach) | `rules.LINE_VETO`: the model's reading kept, `dictionary` (`MODEL_UNSHOWN`) | bare post-war Opus labels where it now stays unshown: held-out authors 9 wrong / 5 right, training 65 wrong / 11 right | T534 | a ひく cue for the clause (始め, 終わり, 聴かせ) or a battle cue that keeps はじく |
 
 ## Shown again
 
