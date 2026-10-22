@@ -167,7 +167,9 @@ class ContextReadingTest(unittest.TestCase):
     def test_nani_before_ka_suru_and_verbs_nan_before_counters(self):
         for text in ('何か食べたい。', '何してるの？', '何？', '何食べる？'):
             self.assertEqual(self.reading(text, '何'), 'なに', text)
-        for text in ('何ですか。', '何の話だ。', '何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
+        for text in ('何ですか。', '何の話だ。', '何だって？'):  # なん by cue, shown (T490)
+            self.assertEqual(self.reading(text, '何'), 'なん', text)
+        for text in ('何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
             self.assertIsNone(self.reading(text, '何'), text)  # Sudachi's なん stays
 
     def test_juu_after_a_stretch_of_time_or_a_place(self):
@@ -189,7 +191,7 @@ class ContextReadingTest(unittest.TestCase):
     def test_kata_hou_ma_aida_ato(self):
         cases = [('あの方をご存知ですか', '方', 'かた'), ('あの方がいい', '方', 'ほう'), ('とても素敵な方です', '方', 'かた'),
                  ('どんな方なの', '方', 'かた'), ('担当の方はどなたですか', '方', 'かた'), ('ドイツの方ですか', '方', 'かた'),
-                 ('女性の方が多い', '方', None), ('ホテルの方へ歩く', '方', None), ('高血圧の方はいらっしゃいますか', '方', 'かた'),
+                 ('女性の方が多い', '方', None), ('ホテルの方へ歩く', '方', 'ほう'), ('高血圧の方はいらっしゃいますか', '方', 'かた'),
                  ('一緒にやる方がいいよ', '方', 'ほう'), ('北の方へ行く', '方', None), ('得意な方だ', '方', None),
                  ('いつの間にか寝ていた', '間', 'ま'), ('一瞬の間があった', '間', 'ま'), ('またたく間に', '間', 'ま'),
                  ('この間、駅で会った', '間', 'あいだ'), ('その間に', '間', None), ('長い間待った', '間', None),
