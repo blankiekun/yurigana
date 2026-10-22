@@ -147,7 +147,7 @@ def fold(reading: str, voicing: bool) -> str:
 
 def _ours(known, names=()):
     from .reader import Reader
-    reader = Reader(known=known, names=names, glued=os.environ.get('YURIGANA_GLUED_TABLE', ()))  # a private table, for scoring it
+    reader = Reader(known=known, names=names)
     return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), (w.source in SHOWN or w.source == 'counter' and w.certainty == 1.0),
                           w.source) for w in reader.read(text)]
 

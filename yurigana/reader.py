@@ -207,7 +207,8 @@ class Reader(Compounds):
         reading, only show one nothing else would (source 'dictionary', Sudachi's 固有名詞) when the
         dictionaries read the name that one way only (姫路 ひめじ). Not other words (今日 こんにち there).
     glued: paths of glued tables (glued_table; a str is one): kanji forms Sudachi cuts into 2+ words, read as the
-        table says where the words cover the form exactly; each word takes its slice, never shown (_glued)."""
+        table says where the words cover the form exactly; each word takes its slice, never shown (_glued). Without
+        any, the YURIGANA_GLUED_TABLE environment variable's path (the server's, or scoring a table)."""
 
     def __init__(self, known=None, tables=(), tokenizer=None, terms=(), names=(), glued=()):
         if isinstance(known, str):
@@ -334,7 +335,7 @@ class Reader(Compounds):
 
     def _finish(self, tables, tokenizer, glued=()):
         self.model = load_tables([*tables, PUBLIC_TABLE])
-        self.glued = glued_table(glued)
+        self.glued = glued_table(glued or os.environ.get('YURIGANA_GLUED_TABLE', ()))
         self._glued_re = self.glued and re.compile('|'.join(sorted(map(re.escape, self.glued), key=len, reverse=True)))
         self.dominant = dominant_readings()
         self.dominant_checked = dominant_checked()
