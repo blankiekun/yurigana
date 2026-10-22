@@ -61,6 +61,23 @@ class FeaturesTest(unittest.TestCase):
         self.assertIn('Pp1=名詞-普通名詞', tool.row_features(reader, texts[1], texts[1].index('間')))
         self.assertIn('L1=^', tool.row_features(reader, texts[1], texts[1].index('二')))  # the line starts the window
 
+    def test_shown_words_unchanged(self):
+        # the classifiers change hidden readings only: every shown Word is the one without them (T514)
+        from yurigana import Reader
+        from yurigana.evaluate import SHOWN
+        reader = Reader()
+        texts = ['木の下で二人の間に座った。', '彼は頭を振り、中に入れた。', '今日は一日中家にいた。金五百両を渡す。', '日本の上の方に表がある。']
+        hidden = 0
+        for text in texts:
+            words = reader.read(text)
+            classifier, reader.form_model = reader.form_model, FormModel({})
+            plain = reader.read(text)
+            reader.form_model = classifier
+            self.assertEqual([w for w in words if w.source in SHOWN or w.source == 'counter'],
+                             [w for w in plain if w.source in SHOWN or w.source == 'counter'], text)
+            hidden += sum(a != b for a, b in zip(words, plain))
+        self.assertGreater(hidden, 0)
+
 
 if __name__ == '__main__':
     unittest.main()

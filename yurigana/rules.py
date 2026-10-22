@@ -738,7 +738,7 @@ TOP_READINGS = {'僕': 'ぼく', '魚': 'さかな', '体': 'からだ', '妹': 
                 '煙': 'けむり', '瞬き': 'まばたき'}
 # TOP_READINGS forms whose top reading replaces Sudachi's other one (腹痛 はらいた, 豚汁 ぶたじる, 私事 しじ), from T480's Opus
 # labels of the rows Sudachi reads otherwise: shown where every row (5+) reads the top one, not shown (TOP_UNSHOWN) where
-# most do (T514). Not 塩水 (B1 えんすい), 恋歌 (Re:Zero れんか).
+# most do (T513). Not 塩水 (B1 えんすい), 恋歌 (Re:Zero れんか).
 TOP_OVERRIDES = frozenset({'腹痛', '豚汁', '毒蛇', '横線', '生薬', '西北', '船影', '罪科', '雷雲', '馬糞', '懐紙', '冷汗', '乳牛',
                            '内庭', '微風', '波線', '鉱', '私事', '蟷螂', '冷酒', '傀儡', '石室', '松風', '麦飯', '黒土',
                            '速歩'})
@@ -758,7 +758,7 @@ _OWN_FAMILY = r'の(?:お?[父母]|親|両親|子|娘|息子|兄|姉|弟|妹|家
 MODEL_FIX = {('何時', 'なんじ'): [(r'(?:今|いま)[、は]?$', None, 'なんじ', True),  # 今何時か分かる
                              (None, r'(?:か(?!な|しら|ら|い[。？?！!」]|ね)|しか|だって|でも|ぞや|の日|にな[くっ]|になれ|にも|以来|ぶり|、|(?:だった|じゃった)か'
                                     r'|(?!起き)[㐀-䶿一-鿿々](?<![頃間]))', 'いつ', True)],
-             ('何故', 'なにゆえ'): [(None, None, 'なぜ', False)], ('何', 'なに'): [(None, 'か国', 'なん', True)],  # 何か国: a count (T291) ('件', 'くだり'): [(None, None, 'けん', False)],
+             ('何故', 'なにゆえ'): [(None, None, 'なぜ', False)], ('件', 'くだり'): [(None, None, 'けん', False)],
              # 等 after a pronoun or a person (あいつ等, 貴様等, 子供等): ら; after other nouns など or とう.
              ('等', 'ら'): [(words(PRONOUNS_RA) + '$', None, 'ら', True), (None, None, 'など', False)],
              # 一|文: a sentence (その一文, 一文だけ), not money (一文も, 一文の得).

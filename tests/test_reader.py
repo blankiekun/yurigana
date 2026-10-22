@@ -6,7 +6,6 @@ import unittest
 import zipfile
 
 from yurigana import Reader, Word, aozora_text
-from yurigana.form_model import FormModel
 from yurigana.reader import PlainReadings, rendaku
 from yurigana.reading_model import ReadingModel, build_form
 from yurigana.tokens import Token
@@ -128,9 +127,7 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(reader.read('身の上話')[0], Word(0, 4, '身の上話', 'みのうえばなし', 'only', 1.0))
 
     def test_default_readings_replace_sudachis(self):
-        reader = self.reader({('日本', 'にほん'), ('日本', 'にっぽん')})
-        reader.form_model = FormModel({})  # 日本 has a classifier (T514)
-        words = reader.read('日本。')
+        words = self.reader({('日本', 'にほん'), ('日本', 'にっぽん')}).read('日本。')
         self.assertEqual(words[0], Word(0, 2, '日本', 'にほん', 'default', None))
         # from default-readings.tsv (NDL's ruby): fiction's からだ, when the list has it
         self.assertEqual(self.reader({('身体', 'からだ'), ('身体', 'しんたい')}).read('身体。')[0].reading, 'からだ')
@@ -431,7 +428,7 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertIn(('首', 'くび', 'only'), read('彼は首を傾げた。'))  # TOP_READINGS (T447)
         self.assertIn(('目', 'め', 'only'), read('俺は目を閉じた。'))
         self.assertIn(('持す', 'じす', 'default'), read('満を持して登場した。'))
-        self.assertIn(('頭', 'あたま', 'model'), read('彼は頭を振った。'))  # its classifier (T514)
+        self.assertIn(('頭', 'あたま', 'dictionary'), read('彼は頭を振った。'))
         self.assertIn(('甲斐', 'がい', 'dictionary'), read('からかい甲斐がある。'))
         self.assertIn(('歩', 'ふ', 'ruby'), read('歩を進めた。', [(0, 1, 'ふ')]))
         # a modifier right before the noun: literal (大きな音を上げて: おと); a kana noun before a verb doesn't glue
@@ -457,12 +454,12 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('ギターが弾けない。', 4), ('弾ける', 'ひける', 'rule'))
         self.assertEqual(word('泡が弾けた。', 2)[1], 'はじける')
         self.assertEqual(word('中には入れない。', 3), ('入れる', 'はいれる', 'dictionary'))  # T546
-        self.assertEqual(word('中に入れた。', 2), ('入れる', 'いれる', 'model'))  # its classifier (T514)
-        self.assertEqual(word('中に入れてある。', 2)[:2], ('入れる', 'いれる'))  # T545
-        self.assertEqual(word('気合入れていこう。', 2)[:2], ('入れる', 'いれる'))
-        self.assertEqual(word('中に入れないで。', 2)[:2], ('入れる', 'いれる'))
-        self.assertEqual(word('箱にお茶を入れた。', 5)[:2], ('入れる', 'いれる'))
-        self.assertEqual(word('手に入れた。', 2)[:2], ('入れる', 'いれる'))
+        self.assertEqual(word('中に入れた。', 2), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中に入れてある。', 2), ('入れる', 'いれる', 'only'))  # T545
+        self.assertEqual(word('気合入れていこう。', 2), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('中に入れないで。', 2), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
 
     def test_split_tokens(self):
         # T271-T274: one Sudachi token that is another word here (SPLIT_TOKENS); ruby over the token wins

@@ -1,8 +1,7 @@
 """Readings in context for the forms whose readings are hardest to tell apart (間: あいだ/ま, 下:
 した/もと…): per form, a logistic regression over characters and Sudachi tokens around the word,
-trained on Opus labels of library text (tools/form_model.py, docs/training.md). The reading is
-shown only when its probability passes the form's threshold, chosen on held-back authors for 99.5%
-shown precision.
+trained on Opus labels of library text (tools/form_model.py, docs/training.md). The Reader uses it
+for hidden readings only (T514): a word the rules or the table show keeps their reading.
 
 The file is gzipped JSON: {"version": 1, "forms": {form: entry}}, where an entry is
 {"readings": [...], "threshold": t, "lr": [biases, {feature: weights}]} or, for a form the labels

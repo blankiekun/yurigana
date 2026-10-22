@@ -534,9 +534,24 @@ class Reader(Compounds):
         words = self._idioms(text, tokens, words, hint_at, counted)
         if carry is not None:
             words = self._carry_joined(text, tokens, words, hint_at, carry[_JOINED])
+        words = self._classified(text, tokens, words)
         if self.glued:
             words = self._glued(text, words, hint_at)
         words.sort(key=lambda w: (w.start, -w.end))
+        return words
+
+    def _classified(self, text, tokens, words):
+        """The hardest forms' hidden Words take their classifier's reading (T514), after every other step, so no
+        shown Word changes (neither its own reading nor a neighbour's through a compound or an idiom)."""
+        index = {t.begin: i for i, t in enumerate(tokens)}
+        for k, w in enumerate(words):
+            i = index.get(w.start)
+            if i is None or w.source not in ('dictionary', 'default') or w.form not in self.form_model or w.end != _end(tokens[i]):
+                continue
+            reading, certainty, _ = self.form_model.reading(text, tokens, i, w.form)
+            reading = (w.form, reading) in self.known and self._voicing(tokens, i, w.form, reading)
+            if reading and reading != w.reading:
+                words[k] = w._replace(reading=reading, certainty=round(certainty, 3))
         return words
 
     def _glued(self, text, words, hint_at):
@@ -772,7 +787,7 @@ class Reader(Compounds):
             out.append(token)
         return out
 
-    def _reading(self, text, tokens, i, surface, form, hint_at, classify=True):
+    def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
         reading = hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
                                or self.plain and ruby_reading(hint_at, begin, surface, form, self.plain))
@@ -823,26 +838,14 @@ class Reader(Compounds):
                                previous and previous.part_of_speech())
         if reading and (form, reading) in self.known:
             return reading, 'default', None
-        reading = None
-        if classify and form in self.form_model:  # the hardest forms: their own classifiers, shown past a per-form threshold (T514)
-            reading, certainty, sure = self.form_model.reading(text, tokens, i, form)
-            reading = reading if (form, reading) in self.known else None
-            certainty = round(certainty, 3)
-            if reading and not sure:  # unsure: the rules' and the table's shown reading, if any, else the classifier's hidden
-                rest = self._reading(text, tokens, i, surface, form, hint_at, False)
-                if rest[1] in ('model', 'only', 'rule'):
-                    return rest
-        if not reading:
-            reading = self.model and self.model.reading(text, tokens, i, form, self.known)
-            if reading:
-                certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
-                # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
-                sure = form not in MODEL_UNSHOWN
+        reading = self.model and self.model.reading(text, tokens, i, form, self.known)
         if reading:
+            certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
             for before, after, given, shown in MODEL_FIX.get((form, reading), ()):  # T250
                 if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, _end(tokens[i]))):
                     return given, 'model' if shown else 'dictionary', certainty if given == reading else None
-            return reading, 'model' if sure else 'dictionary', certainty
+            # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
+            return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
         # Sudachi's reading, of an unconjugated word only (a conjugated one reads its surface: 行っ).
         sudachi = to_hiragana(tokens[i].reading_form()) if surface == form else None
         only = self.only.get(form)
@@ -934,7 +937,7 @@ class Reader(Compounds):
         (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
         begin, end = token.begin, token.begin + len(token.surface())
         if form in TOP_OVERRIDES and token.surface() == form and reading != TOP_READINGS[form] and token.part_of_speech()[1] != '固有名詞':
-            reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T514)
+            reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T513)
             if form in TOP_UNSHOWN:
                 return reading, 'dictionary', None
         if (self.dominant.get(form, TOP_READINGS.get(form)) != reading or token.part_of_speech()[1] == '固有名詞' or glued(text, begin, end)
