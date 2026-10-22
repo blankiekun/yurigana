@@ -167,7 +167,9 @@ class ContextReadingTest(unittest.TestCase):
     def test_nani_before_ka_suru_and_verbs_nan_before_counters(self):
         for text in ('何か食べたい。', '何してるの？', '何？', '何食べる？'):
             self.assertEqual(self.reading(text, '何'), 'なに', text)
-        for text in ('何ですか。', '何の話だ。', '何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
+        for text in ('何ですか。', '何の話だ。', '何だって？'):  # なん by cue, shown (T490)
+            self.assertEqual(self.reading(text, '何'), 'なん', text)
+        for text in ('何年も待った。', '何冊ある？', '何百人も来た。', '何曜日ですか。'):
             self.assertIsNone(self.reading(text, '何'), text)  # Sudachi's なん stays
 
     def test_juu_after_a_stretch_of_time_or_a_place(self):
