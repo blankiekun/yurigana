@@ -8,7 +8,7 @@ Anything with `__contains__` works.
 import re
 
 from .kana import HAS_KANJI, HIRAGANA_WORD, is_kanji, small_kana, to_hiragana  # noqa: F401 (HAS_KANJI: evaluate.py, chimimouryou)
-from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, LINE_VETO, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
+from .rules import CONTEXT_RULES, CONTEXT_TABLE, DEFAULT_KEEP, LINE_VETO, IKU_ACTS, IKU_AFTER, IKU_IDIOM, IKU_MEANS, IKU_PATH, SPLIT_TOKENS, VOICED_AFTER_NOUN, WRONG_LEMMA
 
 
 def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str | None:
@@ -56,9 +56,12 @@ def right_lemma(text: str, begin: int, form: str, end: int | None = None) -> str
 
 # 入れる is also 入る's potential (はいれる: 部屋には入れない, 中に入れた; books' ruby はいれる 34% in a clause without
 # を): not `only` there, unless the 入れ is imperative, volitional, causative or passive, before a giving or
-# trying verb (入れてくれ, 入れておく), or after 手に, 口に… (T242).
+# trying verb (入れてくれ, 入れておく) or いる/ある (入れてある, 入れていた, T545), or after 手に, 口に… (T242).
 _CLAUSE = re.compile(r'[、。「」『』！？!?（）()\n…―─]')
-_PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見)')
+_PUT_AFTER = re.compile(r'よ|ろ|させ|さす|られ|て(?:くれ|くだ|下さ|もら|貰|あげ|上げ|やる|やっ|ほし|欲し|お|置|み|見|あ|い|る|た)')
+# ... and where it may be, a negative is mostly はいれる (部屋に入れない, 入れなかった; not 入れないで, 入れなくても) (T546).
+_ENTER_AT = re.compile(r'(?:に|へ|から|まで)(?:は|も|すら|さえ|だけ|しか)?$')
+_ENTER_NOT = re.compile(r'な(?:い(?!で)|かっ|けれ)|ねえ|ねー|ません|ん[。、」！？]')
 _PUT_INTO = re.compile(r'(?:手|口|耳|目|頭|視界|視野|念頭|考慮|計算|勘定|懐|射程|ポケット|鞄|カバン|袋|箱)[にへ](?:は|も)?$')
 
 
@@ -68,6 +71,41 @@ def may_be_potential(text: str, begin: int, form: str) -> bool:
         return False
     clause = _CLAUSE.split(text[max(0, begin - 40):begin])[-1]
     return 'を' not in clause and not _PUT_INTO.search(clause) and not _PUT_AFTER.match(text, begin + 2)
+
+
+def enters(text: str, begin: int) -> bool:
+    """Whether 入れる at `begin`, where it may be 入る's potential, reads はいれる: right after a place's に/へ/から/まで
+    and before a negative (部屋には入れない; not 砂糖は入れない) (T546)."""
+    return bool(_ENTER_AT.search(text, max(0, begin - 6), begin) and _ENTER_NOT.match(text, begin + 2))
+
+
+def negative(text: str, begin: int) -> bool:
+    """Whether 入れる at `begin` is followed by a negative (入れない, 入れなかった; not 入れないで)."""
+    return bool(_ENTER_NOT.match(text, begin + 2))
+
+
+def does(text: str, tokens: list, i: int) -> bool:
+    """Whether 行っ at tokens[i], Sudachi's 行く, is 行う: an action noun before it in the sentence as topic or object
+    (調査は行っている, 募集は行っておりません, 詠唱すら行っていない) with no に/へ/まで after it, nor て/で right before
+    行っ, nor a going cue after (T548). Not shown: few held-out labels."""
+    begin = tokens[i].begin
+    if IKU_AFTER.match(text, begin + 2) or _GOES_WELL.search(text, max(0, begin - 4), begin) or i and tokens[i - 1].surface() in ('て', 'で') and tokens[i - 1].part_of_speech()[0] == '助詞':
+        return False
+    for k in range(i - 1, 0, -1):
+        x = tokens[k]
+        if begin - x.begin > 30 or _SENTENCE_END.search(text, x.begin, begin):  # the tokenizer drops punctuation
+            return False
+        if x.surface() in ('に', 'へ', 'まで') and x.part_of_speech()[0] == '助詞':
+            return False
+        if x.surface() in _DONE_PARTICLES and tokens[k - 1].part_of_speech()[:3] == ('名詞', '普通名詞', 'サ変可能') \
+                and tokens[k - 1].surface() not in ('もの', '物', 'こと', '事'):
+            return not IKU_ACTS.search(tokens[k - 1].surface())
+    return False
+
+
+_GOES_WELL = re.compile('(?:うまく|上手く|巧く|旨く|順調に|スムーズに)$')  # 計画はうまく行った: いく
+_SENTENCE_END = re.compile(r'[。！？!?\n「」『』]')
+_DONE_PARTICLES = ('は', 'も', 'すら', 'さえ', 'を', 'ばかり', 'だけ', 'とか', 'なんか', 'など')
 
 
 def goes(text: str, tokens: list, i: int) -> bool:

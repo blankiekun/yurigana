@@ -453,7 +453,11 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('電車を降りた。', 3), ('降りる', 'おりる', 'only'))
         self.assertEqual(word('ギターが弾けない。', 4), ('弾ける', 'ひける', 'rule'))
         self.assertEqual(word('泡が弾けた。', 2)[1], 'はじける')
-        self.assertEqual(word('中には入れない。', 3), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中には入れない。', 3), ('入れる', 'はいれる', 'dictionary'))  # T546
+        self.assertEqual(word('中に入れた。', 2), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中に入れてある。', 2), ('入れる', 'いれる', 'only'))  # T545
+        self.assertEqual(word('気合入れていこう。', 2), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('中に入れないで。', 2), ('入れる', 'いれる', 'dictionary'))
         self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
         self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
 
@@ -487,6 +491,15 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('通う', 'かよう'): 5, ('通る', 'とおる'): 5})
         self.assertEqual(word('男の話は筋が通っている。', '通'), ('通る', 'とおる', 'only'))
         self.assertEqual(word('学校に通っている。', '通')[:2], ('通う', 'かよう'))
+        # T547: a test passed, a name one goes by, a way just gone through
+        self.assertEqual(word('書類選考に通った。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('彼女は優等生で通っている。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('バスで通っている。', '通')[:2], ('通う', 'かよう'))
+        # T548: 行っ that Sudachi takes for 行く after an action noun as topic or object: 行う, not shown
+        reader = Reader(known={('行く', 'いく'): 1, ('行う', 'おこなう'): 9})
+        self.assertEqual(word('募集は行っておりません。', '行'), ('行う', 'おこなう', 'dictionary'))
+        self.assertEqual(word('旅行は行った。', '行')[:2], ('行く', 'いく'))
+        self.assertEqual(word('調査は東京に行ってきた。', '行')[:2], ('行く', 'いく'))
 
     def test_line_veto(self):
         # T534: 弾く's はじく rule doesn't fire with music elsewhere in the paragraph
