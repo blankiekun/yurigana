@@ -148,8 +148,10 @@ def fold(reading: str, voicing: bool) -> str:
 def _ours(known, names=()):
     from .reader import Reader
     reader = Reader(known=known, names=names)
-    return lambda text: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), (w.source in SHOWN or w.source == 'counter' and w.certainty == 1.0),
-                          w.source) for w in reader.read(text)]
+    import inspect
+    era_ok = 'era' in inspect.signature(reader.read).parameters  # not in a base tree compare.sh scores with this file
+    return lambda text, era=None: [(w.start, w.end, surface_reading(text[w.start:w.end], w.form, w.reading, text[w.end:w.end + 3]), (w.source in SHOWN or w.source == 'counter' and w.certainty == 1.0),
+                          w.source) for w in (reader.read(text, era=era) if era and era_ok else reader.read(text))]
 
 
 def _sudachi(mode):
@@ -686,7 +688,9 @@ def evaluate(paths, systems, known=None, rounds=1000, misses=None, predictions=(
     made = {}
     for system in systems:
         try:
-            made[system] = (lambda f: lambda s: f(s['text']))(make_system(system, known, names))
+            # a set item's 'era' (book_era of its book) reaches ours only
+            made[system] = (lambda f, ours: lambda s: f(s['text'], s['era']) if ours and 'era' in s else f(s['text']))(
+                make_system(system, known, names), system == 'ours')
         except ImportError as error:
             how = ('a second environment: see the docstring of yurigana/evaluate.py' if system in ('ginza', 'yomikata')
                    else 'pip install "yurigana[eval]"')

@@ -9,6 +9,7 @@ from collections import defaultdict
 from collections.abc import Mapping
 
 from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
+from .era import PREWAR_READINGS
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
@@ -367,7 +368,7 @@ class Reader(Compounds):
         """`text` with each kanji run's reading after it in brackets: 本を読んだ → 本[ほん]を読[よ]んだ."""
         return ''.join(piece if reading is None else f'{piece}[{reading}]' for piece, reading in self.segments(text, hints))
 
-    def read(self, text: str, hints=(), carry=None) -> list:
+    def read(self, text: str, hints=(), carry=None, era=None) -> list:
         """A Word per token with kanji in `text`. `hints`: the ruby, (start, end, reading) offsets
         in `text`, as yurigana.text's aozora_text and book_text give them.
 
@@ -379,7 +380,10 @@ class Reader(Compounds):
         common word (hiragana ruby once isn't assumed for its later bare heteronyms) except
         妾《わらわ》, and no more after ruby over the form that isn't taken (flavour, katakana,
         a pronoun or here/there: 東京《こっち》) or that differs. A name of 2+ characters rubied
-        after bare use takes the reading at its earlier bare occurrences in the same text too."""
+        after bare use takes the reading at its earlier bare occurrences in the same text too.
+
+        era: the book's era, yurigana.era.book_era(the whole text); 'prewar' reads the words of
+        prewar-readings.tsv the pre-war way (not shown), where neither ruby nor a carried name reads them."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
@@ -505,6 +509,10 @@ class Reader(Compounds):
         if self.glued:
             words = self._glued(text, words, hint_at)
         words.sort(key=lambda w: (w.start, -w.end))
+        if era == 'prewar':
+            words = [w._replace(reading=PREWAR_READINGS[w.form, w.reading], source='default', certainty=None)
+                     if w.source not in ('ruby', 'book', 'counter') and (w.form, w.reading) in PREWAR_READINGS else w
+                     for w in words]
         return words
 
     def _glued(self, text, words, hint_at):
