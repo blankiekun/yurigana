@@ -405,7 +405,7 @@ class Reader(Compounds):
         uses as a name is carried like one (T550, `_named`), and a name Sudachi cuts in kanji tokens is one Word
         with its ruby (T551, `_joined_names`)."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
-        self._generic = set()  # tokens _reading read with the table or Sudachi, no hand rule (T514)
+        saved, self._generic = self._generic, set()  # tokens _reading read with the table or Sudachi, no hand rule (T514); _own reads too
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
         if carry is not None:
@@ -536,20 +536,21 @@ class Reader(Compounds):
         words = self._idioms(text, tokens, words, hint_at, counted)
         if carry is not None:
             words = self._carry_joined(text, tokens, words, hint_at, carry[_JOINED])
-        words = self._classified(text, tokens, words)
+        generic, self._generic = self._generic, saved
+        words = self._classified(text, tokens, words, generic)
         if self.glued:
             words = self._glued(text, words, hint_at)
         words.sort(key=lambda w: (w.start, -w.end))
         return words
 
-    def _classified(self, text, tokens, words):
+    def _classified(self, text, tokens, words, generic):
         """The hardest forms' hidden Words that the table or Sudachi read take their classifier's reading (T514), never
         one a hand rule, fix table or default gave, nor a reading the form's context rules give; after every other
         step, so no shown Word changes (neither its own reading nor a neighbour's through a compound or an idiom)."""
         index = {t.begin: i for i, t in enumerate(tokens)}
         for k, w in enumerate(words):
             i = index.get(w.start)
-            if (i is None or w.source != 'dictionary' or w.start not in self._generic or w.form not in self.form_model
+            if (i is None or w.source != 'dictionary' or w.start not in generic or w.form not in self.form_model
                     or w.form in TOP_OVERRIDES or w.end != _end(tokens[i])):
                 continue  # hand rules, fix tables and defaults keep their reading
             reading, certainty, _ = self.form_model.reading(text, tokens, i, w.form)
