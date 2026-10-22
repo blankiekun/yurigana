@@ -321,8 +321,8 @@ class SudachiReaderTest(unittest.TestCase):
         # ruby over the form wins; a reading no slice spells (ほむら isn't a reading of 炎 here) isn't taken
         self.assertEqual(reader.read('水竜だ', [(0, 2, 'みずりゅう')])[0].reading, 'みず')
         self.assertEqual([w.reading for w in reader.read('竜炎だ')], [w.reading for w in Reader(known=known).read('竜炎だ')])
-        # without a table (or a missing file), nothing changes
-        self.assertEqual(Reader(known=known, glued=path + '.missing').read('水竜')[0].reading, 'みず')
+        # a missing file is skipped; the shipped table (glued-readings.json, which has 水竜) still applies
+        self.assertEqual(Reader(known=known, glued=path + '.missing').read('水竜')[0].reading, 'すい')
 
     def test_term_dictionary(self):
         # a made-up Yomitan term dictionary: words the list and JMdict lack (source 'terms', never shown)
