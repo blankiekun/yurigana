@@ -75,6 +75,8 @@ to "Shown again".
 | 野 | の (was `only`, wrong there) in 野に下る, 野にある | や | `Reader._idioms`: the phrase's JMdict reading, `default` | bare: 3, all right after; ruby 0 of 3 (の) | T360 | show the phrases right 99%+ in ruby and bare text |
 | 男, 床, 鼓, others | おとこ, とこ/ゆか, つづみ … (was `only`) inside a JMdict phrase (男バス, 臨終の床, 鼓す) | だん, とこ, こ … | `Reader._idioms`: the phrase's JMdict reading, `default` | ruby 13 of 14 right after; bare under 1 per form | T360 | show the phrases right 99%+ in ruby and bare text |
 | names of 2+ characters (any) | the list's one reading (`only`) at bare occurrences before the book's first ruby of the name | the book's ruby (横浜 はま, 京坂 きょうさか) | `Reader.read` `carry` backfill: source `book`, not shown | 3 of 65 backfill changes were over `only` (Opus: 3 of 3 right for the book) | T440 (this PR) | show `book` readings |
+| 娘 | むすめ after この/あの/その/どの (was `only`) | こ, むすめ | `Reader._dominant` (`_DEMONSTRATIVE`) | bare post-war Opus labels there: こ 336, むすめ 232 of 568 | T531 (this PR) | a cue that separates a girl (こ) from a daughter (むすめ) at 99% on held-out authors |
+| 行き交う | いきかう (was `only`) | いきかう, ゆきかう | its `rules.TOP_READINGS` row dropped | bare post-war Opus labels いきかう 877, ゆきかう 470 | T532 (this PR) | none expected: both readings are standard (T154) |
 
 ## Shown again
 
