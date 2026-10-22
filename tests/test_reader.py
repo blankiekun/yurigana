@@ -206,6 +206,27 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(read('人家《じんか》。人家。', {}, known), [('じんか', 'ruby'), ('じんか', 'book')])
         self.assertEqual(read('人気《ひとけ》。人気。', {}, known)[1][1], 'dictionary')
 
+    def test_a_word_a_book_uses_as_a_name_carries_its_ruby(self):
+        known = {('温水', 'おんすい'), ('諸', 'しょ'), ('男', 'おとこ'), ('親御', 'おやご'), ('親', 'おや'), ('御', 'ご')}
+        reader = Reader(known)  # Sudachi: 諸|男 and 親|御 are two tokens
+
+        def read(marked, carry):
+            hints = []
+            text = aozora_text(marked, None, hints)
+            return [w[2:5] for w in reader.read(text, hints, carry) if w.form in ('温水', '諸', '男', '諸男', '親', '御', '親御')]
+        # T550: a listed word rubied with a reading the list lacks and marked twice as a name (honorific, speaker tag)
+        marked = '温水《ぬくみず》君。「うん」と温水は言った。温水。'
+        self.assertEqual(read(marked, {})[-1], ('温水', 'ぬくみず', 'book'))
+        self.assertEqual(read(marked, None)[-1], ('温水', 'おんすい', 'only'))
+        self.assertEqual(read('温水《ぬくみず》君。温水。', {})[-1], ('温水', 'おんすい', 'only'))  # one cue
+        self.assertEqual(read('温水《ぬくみず》様。温水様。温水。', {})[-1], ('温水', 'おんすい', 'only'))  # titles take 様 too
+        # T551: a name Sudachi cuts in kanji tokens, rubied per kanji: one Word at its bare occurrences
+        marked = '諸《もろ》男《お》さん。諸男さん。諸男。'
+        self.assertEqual(read(marked, {})[-1], ('諸男', 'もろお', 'book'))
+        self.assertEqual(read(marked, None)[-1], ('男', 'おとこ', 'only'))
+        # a listed word with its listed reading is no name (親御《おやご》さん)
+        self.assertNotIn('book', [w[2] for w in read('親《おや》御《ご》さん。親御さん。親御。', {})])
+
     def test_flavour_ruby_is_never_a_reading(self):
         for marked in ('宇宙《そら》', '宇宙《ソラ》'):
             hints = []
@@ -432,7 +453,11 @@ class SudachiReaderTest(unittest.TestCase):
         self.assertEqual(word('電車を降りた。', 3), ('降りる', 'おりる', 'only'))
         self.assertEqual(word('ギターが弾けない。', 4), ('弾ける', 'ひける', 'rule'))
         self.assertEqual(word('泡が弾けた。', 2)[1], 'はじける')
-        self.assertEqual(word('中には入れない。', 3), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中には入れない。', 3), ('入れる', 'はいれる', 'dictionary'))  # T546
+        self.assertEqual(word('中に入れた。', 2), ('入れる', 'いれる', 'dictionary'))
+        self.assertEqual(word('中に入れてある。', 2), ('入れる', 'いれる', 'only'))  # T545
+        self.assertEqual(word('気合入れていこう。', 2), ('入れる', 'いれる', 'only'))
+        self.assertEqual(word('中に入れないで。', 2), ('入れる', 'いれる', 'dictionary'))
         self.assertEqual(word('箱にお茶を入れた。', 5), ('入れる', 'いれる', 'only'))
         self.assertEqual(word('手に入れた。', 2), ('入れる', 'いれる', 'only'))
 
@@ -466,6 +491,15 @@ class SudachiReaderTest(unittest.TestCase):
         reader = Reader(known={('通う', 'かよう'): 5, ('通る', 'とおる'): 5})
         self.assertEqual(word('男の話は筋が通っている。', '通'), ('通る', 'とおる', 'only'))
         self.assertEqual(word('学校に通っている。', '通')[:2], ('通う', 'かよう'))
+        # T547: a test passed, a name one goes by, a way just gone through
+        self.assertEqual(word('書類選考に通った。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('彼女は優等生で通っている。', '通'), ('通る', 'とおる', 'only'))
+        self.assertEqual(word('バスで通っている。', '通')[:2], ('通う', 'かよう'))
+        # T548: 行っ that Sudachi takes for 行く after an action noun as topic or object: 行う, not shown
+        reader = Reader(known={('行く', 'いく'): 1, ('行う', 'おこなう'): 9})
+        self.assertEqual(word('募集は行っておりません。', '行'), ('行う', 'おこなう', 'dictionary'))
+        self.assertEqual(word('旅行は行った。', '行')[:2], ('行く', 'いく'))
+        self.assertEqual(word('調査は東京に行ってきた。', '行')[:2], ('行く', 'いく'))
 
     def test_line_veto(self):
         # T534: 弾く's はじく rule doesn't fire with music elsewhere in the paragraph

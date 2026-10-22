@@ -1044,7 +1044,7 @@ sentence	span	reading	alts	kind	status	note
 妹はギターが弾けない。	弾け	ひける		glaring		hand; T241: not はじける
 僕はピアノなんて弾けないよ。	弾け	ひける		glaring		hand; T241
 泡が弾けて消えた。	弾け	はじける		glaring		hand; T241: Sudachi's ひける
-鍵がなくて家に入れなかった。	入れ	はいれる		glaring	xfail	hand; T242: 入る's potential, not shown; xfail: word lists keep いれる
+鍵がなくて家に入れなかった。	入れ	はいれる		glaring		hand; T242: 入る's potential, not shown; T546: a negative reads はいれる
 何時か必ずここへ戻ってくる。	何時	いつ		glaring		hand; model なんじ (T250)
 あれは何時だったか、もう覚えていない。	何時	いつ		glaring		hand; model なんじ (T250)
 何故か涙が止まらなかった。	何故	なぜ		glaring		hand; model なにゆえ (T250)

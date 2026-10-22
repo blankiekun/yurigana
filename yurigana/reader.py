@@ -12,7 +12,7 @@ from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
-from .readings import (conjugated_reading, context_reading, default_kept, glued, goes, may_be_potential, right_lemma, ruby_reading,
+from .readings import (conjugated_reading, context_reading, default_kept, does, enters, glued, goes, negative, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
 from .rules import (VOICED_AFTER_NOUN, CONTEXT_RULES, DEFAULT_READINGS, GLUED_BEFORE, GLUED_CHECKED, HAND_DEFAULTS, MODEL_FIX, MODEL_UNSHOWN,
                     SHOWN_DEFAULTS, TOP_OVERRIDES, TOP_READINGS, TOP_UNSHOWN, WRONG_LEMMA)
@@ -82,6 +82,15 @@ _PRONOUNS = frozenset('あいつ こいつ そいつ どいつ やつ おれ お
                       'ここ そこ あそこ こちら そちら あちら こっち そっち あっち こつち そつち あつち うち'.split())
 # Common words whose ruby `carry` carries like a name's (T441): the book's 妾《わらわ》 is its later bare 妾 too.
 _CARRIED_WORDS = {'妾': 'わらわ'}
+# A listed word the book uses as a name (T550): `carry`'s key for the set of such forms, the honorifics and the speaker
+# tag (「…」と温水は) that mark one (not 様/殿/先生, which go after titles too: 中務卿さま), and kin words' flavour ruby
+# that is no name's reading (義父《とう》さん).
+_NAMED = '\0named'
+_HONORIFIC = re.compile('さん|くん|君|ちゃん|先輩|氏|嬢|姫|兄|姉')
+_SPEAKER = re.compile('」と?$')
+_KIN = frozenset('とう かあ にい ねえ じい ばあ'.split())
+_JOINED = '\0joined'  # carry's key for names Sudachi cuts in 2-3 kanji tokens: form -> the book's ruby (T551)
+_KANJI_ONLY = re.compile('[㐀-䶿一-鿿豈-﫿々]+')
 
 
 class _Any:
@@ -138,6 +147,7 @@ def _potential_of(form: str, reading: str, known) -> bool:
 _I_TO_U = dict(zip('いきぎしちにびみり', 'うくぐすつぬぶむる'))
 _SHOWN_DEFAULT = dict(SHOWN_DEFAULTS)
 _COUNT_NAME = re.compile('数[^字]|[一二三四五六七八九十百千万]{2,}')
+_NOUN_END = re.compile('[㐀-䶿一-鿿々ァ-ヺー]$')  # a kanji or katakana noun glued before 入れる: its object (T545)
 
 
 def _split_name(a, b, reading: str) -> dict:
@@ -388,7 +398,9 @@ class Reader(Compounds):
         common word (hiragana ruby once isn't assumed for its later bare heteronyms) except
         妾《わらわ》, and no more after ruby over the form that isn't taken (flavour, katakana,
         a pronoun or here/there: 東京《こっち》) or that differs. A name of 2+ characters rubied
-        after bare use takes the reading at its earlier bare occurrences in the same text too."""
+        after bare use takes the reading at its earlier bare occurrences in the same text too. A listed word the text
+        uses as a name is carried like one (T550, `_named`), and a name Sudachi cuts in kanji tokens is one Word
+        with its ruby (T551, `_joined_names`)."""
         hint_at = {start: (end, reading) for start, end, reading in hints}
         tokens = self._adjectives(list(self.tokenizer.tokens(text)), text)
         covering, parts = {}, {}
@@ -399,6 +411,11 @@ class Reader(Compounds):
                 end, reading = hint_at.get(a.begin, (None, ''))
                 if end == _end(b) and _end(a) == b.begin and HIRAGANA_WORD.match(reading):
                     parts.update(_split_name(a, b, reading))
+        if carry is not None:
+            carry.setdefault(_NAMED, set()).update(self._named(text, tokens, hint_at))
+            joined = carry.setdefault(_JOINED, {})
+            for form, reading in self._joined_names(text, tokens, hint_at).items():
+                joined[form] = reading if joined.get(form, reading) == reading else None
         words, pending = [], defaultdict(list)
         next_token = 0
         counted = list(counter_spans(text, tokens))
@@ -423,6 +440,8 @@ class Reader(Compounds):
             form = right_lemma(text, token.begin, form, token.begin + len(surface))
             if form == '行う' and surface == '行っ' and token.begin not in hint_at and goes(text, tokens, i):
                 form = '行く'  # read いっ below, not shown (T432)
+            elif form == '行く' and surface == '行っ' and token.begin not in hint_at and does(text, tokens, i):
+                form = '行う'  # read おこなっ, not shown (T548)
             # A lemma the list lacks that is a listed form plus kana (可愛いく: lemma 可愛いい かわいい,
             # its 可愛 read かわ, so the surface came out かわいく): read as that form (可愛い), whose kanji
             # hold the kana, with the lemma's reading when the list gives it (not 終る → 終わる, nor
@@ -470,7 +489,7 @@ class Reader(Compounds):
                     # a name rubied after bare use: its earlier bare occurrences in this text too
                     for k in pending.pop(form):
                         words[k] = words[k]._replace(reading=carry[form], source='book', certainty=1.0)
-                elif form not in carry and source not in ('ruby', 'book') and self._is_name(token, surface, form):
+                elif form not in carry and source not in ('ruby', 'book') and (self._is_name(token, surface, form) or form in carry[_NAMED]):
                     pending[form].append(len(words) - 1)
         # A number and its counter: one Word for the span (三本 さんぼん); the counter's own Word
         # keeps the counter's plain reading (本 ほん), as source 'counter', never 'only' with a
@@ -511,6 +530,8 @@ class Reader(Compounds):
                  and not (w.end - w.start == 1 and (glued(text, w.start, w.end) or re.match('[ァ-ヺー]', text[w.end:w.end + 1])))
                  else w for w in words]
         words = self._idioms(text, tokens, words, hint_at, counted)
+        if carry is not None:
+            words = self._carry_joined(text, tokens, words, hint_at, carry[_JOINED])
         if self.glued:
             words = self._glued(text, words, hint_at)
         words.sort(key=lambda w: (w.start, -w.end))
@@ -627,12 +648,84 @@ class Reader(Compounds):
         unlisted = not isinstance(self.known, _Any) and form not in self.readings
         return surface == form and not _NUMERAL.match(surface) and (unlisted or token.part_of_speech()[1] == '固有名詞')
 
+    def _named(self, text, tokens, hint_at) -> set:
+        """Listed words `text` uses as names (T550): forms of 2+ characters, not 固有名詞, marked twice or more by an
+        honorific after them or a speaker tag (「…」と温水は), and rubied at least once with a hiragana reading the list
+        doesn't know for them (温水《ぬくみず》, 名代《なしろ》), so `carry` takes their ruby like a name's."""
+        cues, rubied = defaultdict(int), set()
+        for i, token in enumerate(tokens):
+            surface, end = token.surface(), _end(token)
+            if (len(surface) < 2 or surface != token.dictionary_form() or not HAS_KANJI.search(surface)
+                    or surface not in self.readings or token.part_of_speech()[1] == '固有名詞'):
+                continue
+            after = tokens[i + 1] if i + 1 < len(tokens) and tokens[i + 1].begin == end else None
+            if after and _HONORIFIC.fullmatch(after.surface()) or _SPEAKER.search(text[max(0, token.begin - 2):token.begin]) \
+                    and text[end:end + 1] in ('は', 'が'):
+                cues[surface] += 1
+            reading = ruby_reading(hint_at, token.begin, surface, surface, _Any())
+            if (reading and reading not in _PRONOUNS and reading not in _KIN
+                    and not any((surface, r) in self.known for r in (reading, *small_kana(reading)))):
+                rubied.add(surface)
+        return {form for form in rubied if cues[form] >= 2}
+
+    def _joined_names(self, text, tokens, hint_at) -> dict:
+        """Names Sudachi cuts in 2-3 kanji tokens (諸|男, 天|愛|星) that `text` rubies as a whole (one ruby or one per
+        kanji: 諸《もろ》男《お》) in hiragana, and marks twice or more on token edges with an honorific after them or a
+        speaker tag (T551): form -> reading, large kana made small where that gives Sudachi's reading of the tokens."""
+        found, begins, ends = defaultdict(set), {t.begin for t in tokens}, {_end(t) for t in tokens}
+        for i in range(len(tokens)):
+            for k in (2, 3):
+                run = tokens[i:i + k]
+                if len(run) < k or any(not _KANJI_ONLY.fullmatch(t.surface()) or t.surface() != t.dictionary_form() for t in run) \
+                        or any(_end(a) != b.begin for a, b in zip(run, run[1:])):
+                    continue
+                start, end, pos, reading = run[0].begin, _end(run[-1]), run[0].begin, ''
+                while pos < end and pos in hint_at and hint_at[pos][0] > pos:
+                    pos, part = hint_at[pos]
+                    reading += part
+                if pos != end or not HIRAGANA_WORD.match(reading) or reading in _PRONOUNS or reading in _KIN:
+                    continue
+                variants = list(small_kana(reading))
+                if variants:  # large kana (りゆう): Sudachi's reading of the tokens says which, else none is sure
+                    sudachi = ''.join(to_hiragana(t.reading_form()) for t in run)
+                    reading = sudachi if sudachi in variants or sudachi == reading else None
+                if reading and (text[start:end], reading) not in self.known:  # a listed word's reading (親御《おやご》さん) is no name's sign
+                    found[text[start:end]].add(reading)
+        out = {}
+        for form, readings in found.items():
+            cues = 0
+            for m in re.finditer(re.escape(form), text):
+                start, end = m.span()
+                if start in begins and end in ends and (_HONORIFIC.match(text, end) or _SPEAKER.search(text[max(0, start - 2):start])
+                                                        and text[end:end + 1] in ('は', 'が')):
+                    cues += 1
+            if cues >= 2:
+                out[form] = next(iter(readings)) if len(readings) == 1 else None
+        return out
+
+    def _carry_joined(self, text, tokens, words, hint_at, joined):
+        """One Word with the book's ruby (source 'book') over each bare occurrence of a joined name (T551) on token edges
+        whose Words read it otherwise; not where a Word crosses its edges."""
+        begins, ends = {t.begin for t in tokens}, {_end(t) for t in tokens}
+        for form, reading in joined.items():
+            if not reading:
+                continue
+            for m in re.finditer(re.escape(form), text):
+                start, end = m.span()
+                inside = [w for w in words if w.start < end and w.end > start]
+                if (start not in begins or end not in ends or any(w.start < start or w.end > end for w in inside)
+                        or any(s < end and e > start for s, (e, _) in hint_at.items())
+                        or ''.join(w.reading or '' for w in sorted(inside)) == reading):
+                    continue
+                words = [w for w in words if not (w.start < end and w.end > start)] + [Word(start, end, form, reading, 'book', 1.0)]
+        return words
+
     def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
         """_reading with the book's ruby over names carried (Reader.read's `carry`)."""
         begin, end = tokens[i].begin, _end(tokens[i])
         name = self._is_name(tokens[i], surface, form)
         under = {covering[k] for k in range(begin, end) if k in covering}
-        name = name or form in _CARRIED_WORDS
+        name = name or form in _CARRIED_WORDS or form in carry[_NAMED]
         if not under:
             if name and carry.get(form):
                 return carry[form], 'book', 1.0
@@ -688,6 +781,8 @@ class Reader(Compounds):
             return reading, 'terms', None
         if form == '行く' and tokens[i].dictionary_form() == '行う':  # readings.goes (T432)
             return 'いく', 'dictionary', None
+        if form == '行う' and tokens[i].dictionary_form() == '行く':  # readings.does (T548)
+            return 'おこなう', 'dictionary', None
         # A number Sudachi reads digit by digit (六百 ろくひゃく, 三千 さんせん); 一千 (いっせん) and
         # a bare 万 (数万, 何千万: not いちまん) are left alone.
         if surface == '十':  # an age or a count of ten (十も年下, 九つか十の子): とお (CONTEXT_RULES)
@@ -754,7 +849,12 @@ class Reader(Compounds):
                 and _shared_conjugation(surface, form, self.readings, self.known if isinstance(self.known, Mapping) else None):
             only = None  # 行っ: 行う おこなっ or 行く いっ (Sudachi picks the lemma; WRONG_LEMMA's pick from context stands)
         if only and may_be_potential(text, begin, form):
-            only = None  # 部屋には入れない: はいれる (入る) or いれる
+            # 部屋には入れない: はいれる (入る) or いれる; a noun glued before is what is put in (気合入れて, T545)
+            if enters(text, begin):
+                return 'はいれる', 'dictionary', None
+            if not (previous and previous.part_of_speech()[0] == '名詞' and _NOUN_END.search(previous.surface())) \
+                    or negative(text, begin):
+                only = None
         # 癖 glued after a noun or a verb's stem is くせ, ぐせ or へき (逃げ癖, 貧乏癖, 収集癖): not shown (T254).
         if only and form == '癖' and previous and (_HEAD_SURFACE.match(previous.surface()[-1]) and previous.part_of_speech()[0] == '名詞'
                                                    or previous.part_of_speech()[0] == '動詞' and previous.part_of_speech()[5].startswith('連用形')):

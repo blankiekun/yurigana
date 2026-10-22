@@ -6,7 +6,7 @@ import re
 
 from .counters import TEN_MINUTES_AFTER as _TEN_MINUTES_AFTER, TEN_MINUTES_BEFORE as _TEN_MINUTES_BEFORE
 from .cues import (ABSTRACT, ACTIVITY, BODY, BUILDING, COUNTER, CUSTOMER_ACT, DISH, SPICE, DRAWN, EDGE, FEW, FOOTWEAR, GROUNDS,
-                   HALTED, HUGGED, INSECT, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
+                   HALTED, HUGGED, INSECT, INVOLUNTARY, INSTRUMENT, IRU_STEM, ISSUE, JEWELRY, KIN_TITLE, METAL, NIGHT, OCCUPATION,
                    OPEN_HOURS, PEOPLE, PERSON, PLAYED, PLURAL_PERSON, PRAISE, PRODUCE, REALM, ROLE, ROOM, SERVANT, SETTLEMENT, SOCIETY,
                    STREET, SUFFERED, HONOUR, SUPERIOR, TERM, THINGS, TIED, TRAIT, TIME_SPAN, TRAFFIC, VESSEL, VICINITY, words)
 
@@ -117,8 +117,8 @@ CONTEXT_RULES = {
     # 十分: Sudachi's じゅうぶん where it keeps one token; minutes with a cue (counters.TEN_MINUTES_*).
     '十分': [('じゅっぷん', _TEN_MINUTES_BEFORE, _TEN_MINUTES_AFTER)],
     # Lone single-kanji nouns Sudachi reads with the on'yomi where the text means the kun word (札 ふだ, 角 つの).
-    # 札 is ふだ on its own (HAND_DEFAULTS); さつ for money: 千円札 (glued), 財布の札, 札を刷る, 札束.
-    '札': [('さつ', r'(?:にせ|ニセ|偽|贋)$|(?:財布|札入れ|金庫|万|千|お金|紙幣|給料|現金|小銭|レジ|中身の)[^。」]{0,10}$', None),
+    # 札 is ふだ on its own (HAND_DEFAULTS); さつ for money: 千円札 (glued), ドル札 (T537), 財布の札, 札を刷る, 札束.
+    '札': [('さつ', r'(?:にせ|ニセ|偽|贋|ドル|ユーロ|ルピー|ポンド|ウォン|ルーブル|フラン|ペソ|マルク|人民元)$|(?:財布|札入れ|金庫|万|千|お金|紙幣|給料|現金|小銭|レジ|中身の)[^。」]{0,10}$', None),
            ('さつ', None, r'[をがもで]?(?:刷|印刷|両替|崩|束|払|数え|勘定)|の束|と(?:硬貨|小銭)|だけ(?:を|が)?(?:抜|掏|す[っりら]|取|盗)')],
     'お札': [('おさつ', r'(?:財布|万|千|円|お金|紙幣|現金|給料|小銭|レジ|両替)[^。」]{0,8}$', None),
              ('おふだ', r'(?:神社|寺|祠|神棚|鴨居|お守り|護符|魔除け|厄除け|火の用心|お祓い|祈祷|呪い|封印|様)[^。」]{0,6}$', None),
@@ -187,6 +187,10 @@ CONTEXT_RULES = {
            ('かた', r'亡くな(?:っ|られ)た$', _NOT_BETTER, 'and'),
            # A person: お方, お三方, 紛う方なき; この方 + copula or topic; after an honorific verb (教えてくださった方).
            ('かた', r'(?:お[一二三四五六七八九十]?|紛う|まごう)$', None),
+           ('かた', r'(?:て|から)この$', None),  # since: 生まれてこの方 (T541)
+           # Xの方 after a word for a kind of person (婚約者の方を, 視聴者の方から, 従業員の方だ); not a comparison or a side
+           # (後者の方が, 刑務官の方で, 患者の方の体力); 前者, 後者 are no kind of person (T541).
+           ('かた', r'[一-鿿ァ-ヺー]{1,5}(?<![前後両])(?:者|員|官|師|士|婦|族)の$', r'(?![がでのへ]|より)', 'and'),
            ('かた', r'(?:この|こちらの|そちらの)$', r'(?:です|でし|でいらっしゃ|は)', 'and'),  # その方は: also そのほう (you)
            ('かた', r'(?:くださ|下さ|なさ|いらし|おっしゃ|お越しにな|ご覧にな)(?:っ?た|る)$', _NOT_BETTER, 'and'),
            # A verb's stem before it (喋り方, 考え方, 生き方): the way of doing, かた; not い (早い方: ほう) (T490).
@@ -197,7 +201,7 @@ CONTEXT_RULES = {
             r'|に(?:向か|向け|歩|走|駆|進|視線|目を))', 'and')],
     # 間: ま in いつの間に, 束の間, 一瞬の間; あいだ in この間 (the other day; Sudachi says かん).
     # 間 ま also for a pause (間が空く, 間を置いて, する間もなく), not after の (その間も, AとBの間が空く: あいだ).
-    '間': [('ま', r'(?:いつ|何時|束|一瞬|咄嗟|瞬く|またたく|あっという|あっと言う|アッという|呼吸|呼吸分|一拍|謁見|玉座)の?$', None),
+    '間': [('ま', r'(?:(?<![そこあ])いつ|何時|束|一瞬|咄嗟|瞬く|またたく|あっという|あっと言う|アッという|呼吸|呼吸分|一拍|謁見|玉座)の?$', None),
            ('あいだ', r'この$', None),
            ('ま', r'(?<!の)$', r'が(?:空|あ[いくきけ]|開|でき|持た|悪|抜け)|も(?:な[くい]|無[くい]|与え|あた|惜し)'
             r'|を(?:置|お[いかきく])', 'and'),
@@ -242,7 +246,11 @@ CONTEXT_RULES = {
           ('あるじ', '(?:' + words(BUILDING - {'学校', '会社', '駅', 'ホテル'}, SERVANT,
                                     '邸', '邸宅', '道場', '店', '宿', '一家') + '[のと]|我が|わが|最愛の)$', None),
           # A master one serves: 主の命令, 主に仕える, 主を守る (not after の: 声の主の顔). 主様 is also ぬしさま.
-          ('あるじ', r'(?<![一-鿿々のが])$', r'の(?:命|元|もと|ため|為|傍|側|身|意|仰せ|好み|期待|役|顔|帰り)|に(?:仕え|忠誠|従)|を(?:守|失|裏切|迎え)', 'and')],
+          ('あるじ', r'(?<![一-鿿々のが])$', r'の(?:命|元|もと|ため|為|傍|側|身|意|仰せ|好み|期待|役|顔|帰り)|に(?:仕え|忠誠|従)|を(?:守|失|裏切|迎え)', 'and'),
+          # Whose trace or presence it is (視線の主, 足跡の主, 手紙の主), and the old creature of a wild place (森の主, 沼の主):
+          # ぬし, shown (T542).
+          ('ぬし', r'(?<![一-鿿々])(?:視線|眼差し|まなざし|気配|手|悲鳴|叫び|叫び声|笑い声|足音|物音|囁き|寝息|吐息|鳴き声|歌声|匂い|香り'
+                   r'|手紙|メール|電話|着信|影|足跡|指紋|筆跡|噂|発言|悪態|美貌|巨体|ノック|森|山|沼|湖|池|迷宮|巣)の$', None)],
     # 抱く だく: holding someone or something in the arms (赤ん坊を抱く, 抱きたい); Sudachi's いだく for feelings
     # (疑問を抱く) and, as books' ruby often has it, 腕に抱く and the passive (懐に抱かれる).
     '抱く': [('だく', r'(?<![一-鿿])' + words(HUGGED, PEOPLE, BODY) + r'を(?:[ぁ-ゑァ-ヶー]{2,6}と?|[一-鿿][ぁ-ゑ]{1,3})?$', None),
@@ -343,6 +351,9 @@ CONTEXT_RULES = {
     # なん before だ/です/で/の/と/て and counters (何年, 何冊, 何か国, 何作目: T291): Sudachi's; なに before か, する, verbs and ？.
     '何': [('なん', r'やら$', r'やら', 'and'),  # 雪かきやら何やら
           ('なに', r'何から$', None),  # 何から何まで
+          # Counts COUNTER doesn't list, before a particle or 目 (何重にも, 何体か, 何代目, 何世紀にも, 何往復も) (T540).
+          ('なん', None, r'(?:重|体|代|層|世紀|世代|拍|席|往復|手|等|刻|行|校|里|次|車線|車両|連勝|連敗|社|品)'
+                         r'(?:[もかのにで目]|ごろ|頃)'),
           ('なに', None, r'(?![かカヶケヵ箇]国|[玉針]|作(?![っらりるれろ]))(?:[をがもかし]|より|す|それ|これ|あれ|[？?！!、」]'
              r'|や(?:ら|かや|[っりるれろ])|' + _VERB_AFTER_NANI + r'|に(?:使|つい|つけ|する|し[たよま])|ごっこ|げな'
              r'|(?!' + words(COUNTER) + r')[一-鿿])'),
@@ -379,10 +390,13 @@ CONTEXT_RULES = {
            ('とこ', r'(?<!を)$', r'につ(?!け[てたるらま])', 'and')],
     '辛い': [('からい', words(DISH - {'味付け', 'ソース'}, '口') + r'(?:は|が|も|の)?(?:ほど|より|くらい|ぐらい)?'
               r'(?:少し|とても|すごく|かなり|ちょっと)?$', words(DISH - {'スープ', '唐辛子', 'わさび', 'キムチ', '味'}, '食べ物', '食物', 'ソーセージ', '鍋')),
-             # つらい unless food or a taste is near (辛い食べ物, 甘くて辛い, 舌が痺れるほど辛い: T294) or it ends a verb stem
-             # (見辛い づらい) or a kanji word; 辛くも (からくも) and 辛いもの go to the model.
-             ('つらい', r'^(?!.*(?:' + _TASTE + r')).*(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねい])(?<![一-鿿]し)$',
-              r'(?!も|物|の好き|方が|の(?:が|は|も)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
+             # a strict judge (点が辛い, 評価が辛く, 辛い評価: からい, T534, T539)
+             ('からい', r'(?:点|点数|評価|採点)(?:が|は|も)?(?:少し|とても|すごく|かなり|ちょっと)?$', r'(?:評価|点数|採点)'),
+             # つらい unless food or a taste is near (辛い食べ物, 甘くて辛い, 舌が痺れるほど辛い: T294; or anywhere in the
+             # paragraph, LINE_VETO) or it ends a verb stem (見辛い, し辛い づらい) or a kanji word; 辛さ (からさ as often,
+             # T534), 辛くも (からくも) and 辛いもの go to the model.
+             ('つらい', r'^(?!.*(?:' + _TASTE + r')).*(?<![一-鿿ァ-ヺりきみちびぎべめれけせえねいし])$',
+              r'(?!さ|も|物|の好き|方が|の(?:が|は|も)?(?:あまり|全然|少し|ちょっと)?(?:好き|苦手|得意|大好き|嫌い|ダメ|駄目)|けど(?:美味|おいし|うま|旨)'
               r'|すぎ|過ぎ|[？?]|ない(?:もの|物|の)|.*?(?:料理|' + _TASTE + '))', 'and')],
     '縁': [('ふち', words(VESSEL, '眼鏡', 'メガネ', 'めがね', '池', '崖', '井戸', 'ベッド', '帽子', '机', '窓') + 'の$',
             r'に(?:腰|座|手を|立)|を(?:なぞ|指で)')],
@@ -480,7 +494,12 @@ CONTEXT_RULES = {
     # 止める: とめる for machines and flows (エンジンを止める); やめる for doing something (食べるのを止める, お止めください).
     '止める': [('とめる', words(HALTED) + 'を$', None),
              ('とめる', None, r'に(?:入|はい)'),  # 止めに入る: stepping in to stop a fight
-             ('やめる', r'(?<!へ)(?:の|こと)を?$', r'(?!られ)', 'and'),
+             # Someone else's act or an event is stopped (T535): a person's のこと, a subject with が in the clause
+             # (彼が行くのを, 涙が零れるのを; not ながら or -がる verbs), trying or ongoing (しようとする, 広がっていく,
+             # されるの), a motion or flow (行く, 漏れる, 震える). Else, after a verb's の(を) or こと, quitting it (not そういうの).
+             ('とめる', r'のことを?$|(?:(?<![なすやかもだ])が(?![らりるれろっにく])[^、。！？」てで]*|うと(?:する|した)'
+              r'|て(?:い|ゆ)く|てしまう|ちゃう|される|' + words(INVOLUNTARY) + r')(?:のを|ことを?)$', None),
+             ('やめる', r'(?<!へ)(?:(?<![そこあど]ういう)(?<=[うくすつぬむぶぐる])のを?|ことを?)$', r'(?!られ)', 'and'),
              ('やめる', r'お$', r'(?:ください|下さい|になって|なさい)', 'and')],
     # 空く: すく for roads and trains (道が空いている); お腹が空く is left to the model (it reads it already).
     '空く': [('すく', '(?:' + words(STREET, TRAFFIC) + r'|(?<!海)道)[がはも]?$', None), ('あく', r'穴[がはもの]?$', None),
@@ -781,8 +800,15 @@ WRONG_LEMMA = {'降りる': ('降る', re.compile(f'(?:{_PRECIPITATION})|{_SURRE
                '通う': ('通る', re.compile(
                    r'(?:筋|鼻筋|鼻梁|芯|話|理屈|道理|理|論理|要求|要望|主張|意見|希望|計画|案|申請|審査|選考|試験|収益化|電気|'
                    r'水道|ガス|電車|線路|街道|運河|水路|河川|清流|霊脈|龍脈|霊道|管|ヒモ|紐|火|風|攻撃|ダメージ|射線|名|名前|顔|'
-                   r'車|馬車|救急車|刃)(?:が|も|は|の|さえ)$|(?:すっと|スッと|すうっと|すーっと|一本|綺麗に|きれいに)$'),
-                   re.compile(r'た(?:鼻|目鼻|声|後|跡|あと|道|場所)|て(?:き|来)た(?:道|場所|ところ|森|経路|ルート|土地|辺り)'))}
+                   r'車|馬車|救急車|刃)(?:が|も|は|の|さえ)$|(?:すっと|スッと|すうっと|すーっと|一本|綺麗に|きれいに)$'
+                   # T547: a test passed (審査に), a name one goes by (優等生で通っている), a way just gone through
+                   # (さっき通った, 森通って), what runs along (林道が, 配線が)
+                   r'|(?:審査|試験|選考|オーディション|面接|予選)に$'
+                   r'|(?:者|人間|男|女|嬢|優等生|名|ビューティ|イメージ|こと|評判|呼び名|兄妹|お人好し|真面目|女たらし|伊達男)で$'
+                   r'|(?:先程|先ほど|さっき|さきほど)(?:も)?$|(?:森|トンネル|改札|ゲート|門)$'
+                   r'|(?:新幹線|汽車|道路|林道|高架|航路|内線|鉛管|配線|背骨|経路|パス|編隊|企画|プレゼン|言い分|鉄道|血管)(?:が|も|は|の)$'),
+                   re.compile(r'た(?:鼻|目鼻|声|後|跡|あと|道|場所|扉|通路|形跡|痕跡|ルート|廊下)'
+                              r'|て(?:き|来)た(?:道|場所|ところ|森|経路|ルート|土地|辺り|トンネル|岩|通路|扉|廊下)'))}
 
 # A token Sudachi reads as one word that is another here, Word per entry (surface: [(before, after the token, kanji
 # span or None for the whole token, form, reading, shown)]). お話して, お話させて: 話 はなし + して (the し of
@@ -816,6 +842,10 @@ IKU_MEANS = re.compile(r'(?:[一二三四五六七八九十何数大０-９0-9]�
 IKU_AFTER = re.compile(r'て(?:く[るれ]|き|来|こ[いよ]|らっしゃ)|たり(?:来|き)|た(?:ほう|方)が|たところ|'
                        r'た(?:こと|事)(?:が|も)?(?:ある|あり|あっ|ない|なかっ|無)')
 IKU_PATH = re.compile(r'(?:先|(?<![㐀-䶿一-鿿々])道|前|後ろ|最先端|先頭)を$')
+# Action nouns that are a going (旅行は行った, 買い物も行った): not readings.does's 行う (T548).
+IKU_ACTS = re.compile(r'旅行|旅|散歩|買い物|買物|見学|留学|出張|遠足|遠征|観光|見物|見舞い|登校|通学|通勤|出勤|帰省|参拝|お参り|'
+                      r'墓参り|デート|ドライブ|ハイキング|キャンプ|ツーリング|偵察|巡回|視察|調達|仕入れ|使い|食事|外出|避難|応援|'
+                      r'挨拶|お礼|謝罪|面会|取材|営業|配達|迎え|出迎え|散策|探検|探索|冒険|狩り|狩猟|釣り|旅行中|就職|進学|入院|通院|受診')
 IKU_IDIOM = re.compile(r'(?:目|視線|注意|納得|合点|得心|連絡|情報)が$')  # 目が行く, 納得が行く
 
 # Joined forms the list reads one way that are a phrase of their tokens where the text after matches: 行く方が, 行く行く！
@@ -867,11 +897,18 @@ CONTEXT_TABLE = {
     '綿': [('わた', None, 'のよ')],
     '瞑る': [('つぶる', 'を', None), ('つぶる', None, 'て'), ('つぶる', None, 'た'), ('つぶる', None, '、'), ('つぶる', None, '。'), ('つぶる', None, 'と'), ('つぶる', 'く', None)],
     '良い': [('よい', None, 'た'), ('よい', None, 'な'), ('よい', None, 'さ'), ('よい', None, 'そ')],
+    # Mined from Opus labels of post-war books, rows kept at 100% on training authors (T535-T538).
+    '抱く': [('いだく', '感を', None), ('いだく', '情を', None), ('いだく', '心を', None), ('いだく', '念を', None), ('いだく', '問を', None), ('いだく', '想を', None), ('いだく', '意を', None), ('いだく', None, 'たの'), ('いだく', None, 'せる'), ('いだく', '味を', None), ('いだく', 'みを', None), ('いだく', '持ちを', None), ('だく', '腕に', None), ('いだく', '安を', None), ('いだく', '思いを', None), ('いだく', None, 'ず'), ('いだく', '満を', None), ('いだく', '望を', None), ('いだく', '待を', None), ('いだく', '対して', None)],
+    '間': [('あいだ', '人の', None), ('あいだ', 'ちの', None), ('あいだ', 'での', None), ('あいだ', '、その', None), ('あいだ', 'っている', None), ('あいだ', 'くの', None), ('あいだ', None, 'にも、'), ('あいだ', '少しの', None), ('かん', '月', None), ('あいだ', None, 'では'), ('あいだ', None, 'も、')],
+    '札': [('ふだ', 'う', None), ('ふだ', '』の', None), ('ふだ', None, 'がか'), ('ふだ', '御', None), ('ふだ', None, 'が掛'), ('ふだ', None, 'が貼'), ('ふだ', '」の', None), ('ふだ', None, 'が下'), ('ふだ', None, 'も'), ('さつ', '円', None), ('ふだ', 'せ', None), ('ふだ', 'ちの', None), ('ふだ', None, 'をか'), ('ふだ', 'この', None), ('ふだ', None, 'を貼')],
+    '描く': [('えがく', '弧を', None), ('えがく', '曲線を', None), ('えがく', '物線を', None), ('えがく', '跡を', None), ('えがく', '、円を', None), ('えがく', 'ブを', None), ('かく', None, 'ていただ'), ('えがく', '道を', None)],
+    '止める': [('とめる', None, 'られる'), ('とめる', None, 'られた'), ('とめる', '葉を', None), ('とめる', None, 'られなか')],
 }
 
 # A context rule's reading isn't given where the word's paragraph (the line, the word left out) has these: 弾く's
 # はじく near music (T534). The model's reading stays, not shown (MODEL_UNSHOWN).
-LINE_VETO = {('弾く', 'はじく'): re.compile(words(PLAYED) + r'|演奏|音色|音楽|楽譜|譜面|鍵盤|弦|絃|旋律|メロディ|曲(?![線がげ])|指揮'
+LINE_VETO = {('辛い', 'つらい'): re.compile(_TASTE + '|苦[いく]|しょっぱ|酸っぱ|すっぱ|ぴりっ|ピリッ|麻婆|味噌|ミソ|飴|シチュー|ケーキ|ピザ|香草|チリ|焼きそば|焼そば|丼|塩水|辛[みさ味]'),
+             ('弾く', 'はじく'): re.compile(words(PLAYED) + r'|演奏|音色|音楽|楽譜|譜面|鍵盤|弦|絃|旋律|メロディ|曲(?![線がげ])|指揮'
                                          r'|歌|唄|バンジョー|コントラバス|チェンバロ|三線|フェシュピール|イントロ|メドレー|ライブ|バンド')}
 
 CONTEXT_RULES = {form: [(reading, before and re.compile(before), after and re.compile(after), bool(both))
