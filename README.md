@@ -15,7 +15,8 @@ their readings and the reader its "Known" furigana style.
 pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.6.tar.gz"
 ```
 
-That installs SudachiPy and SudachiDict-core too (pinned: readings depend on its version). For
+That installs SudachiPy and SudachiDict-core too (20260723.1 or newer; pin it in your own project, since a
+few readings depend on its version). For
 SudachiDict-full, install `yurigana[full]` and set `YURIGANA_SUDACHI_DICT=full` (or pass
 `Reader(tokenizer=SudachiTokenizer('full'))`): it reads the sets below the same, within 0.1 point,
 and takes about 120 MB more disk and 100-240 MB more memory. Then:

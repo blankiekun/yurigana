@@ -22,11 +22,12 @@ class Word(NamedTuple):
 class Token:
     """The parts of a Sudachi morpheme the analysis uses. Morphemes keep their whole
     tokenizer result alive, which on very long books ran workers out of memory."""
-    __slots__ = ('_surface', '_dictionary_form', '_normalized_form', '_pos', '_reading', 'begin')
+    __slots__ = ('_surface', '_dictionary_form', '_normalized_form', '_pos', '_reading', 'begin', 'end')
 
     def __init__(self, surface: str, dictionary_form: str, normalized_form: str, pos: tuple, reading: str = '',
                  begin: int = 0):
         self.begin = begin  # offset in the analysed text
+        self.end = begin + len(surface)
         self._surface = surface
         self._dictionary_form = dictionary_form
         self._normalized_form = normalized_form

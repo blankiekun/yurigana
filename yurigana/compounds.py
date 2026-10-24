@@ -17,10 +17,6 @@ _MAX_COMPOUND = 4  # tokens
 _NOT_IDIOMS = {'八歳児', '十二神将'}
 
 
-def _end(token):
-    return token.begin + len(token.surface())
-
-
 def _spelled(span, reading: str) -> bool:
     """Whether the tokens' readings spell the reading, each after the first voiced or not (利根|川 とねがわ),
     each before the last ending in っ or not (学|校 がっこう)."""
@@ -49,21 +45,21 @@ class Compounds:
         JMdict has the joined form with that reading, else `dictionary` (names, list noise)."""
         if not self.single or not HAS_KANJI.search(tokens[i].surface()):
             return None
-        if i and _NUMERAL.match(tokens[i - 1].surface()) and _end(tokens[i - 1]) == tokens[i].begin:
+        if i and _NUMERAL.match(tokens[i - 1].surface()) and tokens[i - 1].end == tokens[i].begin:
             return None
         run = 1  # tokens from i without a gap
-        while run < min(_MAX_COMPOUND, len(tokens) - i) and _end(tokens[i + run - 1]) == tokens[i + run].begin:
+        while run < min(_MAX_COMPOUND, len(tokens) - i) and tokens[i + run - 1].end == tokens[i + run].begin:
             run += 1
         for n in range(min(run, len(tokens) - i), 1, -1):
             span = tokens[i:i + n]
-            begin, end = span[0].begin, _end(span[-1])
+            begin, end = span[0].begin, span[-1].end
             # a numeral compound the list and JMdict read one way (十|中|八九 じっちゅうはっく, 三|白眼, 四|人組);
             # not ending in one kanji, mostly a counter (二十|年 isn't はたとせ)
             idiom = len(span[-1].surface()) > 1 and self._numeral_idiom(span)
             if (any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
                     or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface()) and not idiom
                     or (i + n < len(tokens) and _NUMERAL.match(tokens[i + n].surface())
-                        and _end(span[-1]) == tokens[i + n].begin)  # 一対|一 isn't いっつい
+                        and span[-1].end == tokens[i + n].begin)  # 一対|一 isn't いっつい
                     or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一' and not idiom)
                     or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
                     or not hint_at.keys().isdisjoint(range(begin, end))
@@ -137,7 +133,7 @@ class Compounds:
         kana = [bool(KANA_READING.match(to_hiragana(t.surface()))) for t in tokens]
         run = [1] * len(tokens)  # tokens from each one without a gap
         for k in range(len(tokens) - 2, -1, -1):
-            if _end(tokens[k]) == tokens[k + 1].begin:
+            if tokens[k].end == tokens[k + 1].begin:
                 run[k] = run[k + 1] + 1
         prefixes, seen = self._idiom_prefixes(), {}  # seen: this text's lookups (a packed table's cost µs)
         i = 0
@@ -161,7 +157,7 @@ class Compounds:
             # glue: そのまま|放っ), nor a noun + case particle with a modifier right before it, which is meant literally
             # (大きな|音|を|上げ: おと); not after a demonstrative (その|身|を|捩る よじる), and compounds and noun-の-noun
             # phrases stay (大きな金ダライ かな, 従順な神の僕 しもべ)
-            prev = tokens[i - 1] if i and _end(tokens[i - 1]) == tokens[i].begin else None
+            prev = tokens[i - 1] if i and tokens[i - 1].end == tokens[i].begin else None
             pos, head = prev and prev.part_of_speech()[0], tokens[i].part_of_speech()[0]
             glued = prev and (pos in ('動詞', '形容詞', '接頭辞') or pos in ('名詞', '代名詞', '形状詞', '接尾辞')
                               and (head in ('名詞', '接尾辞') or _HEAD_SURFACE.match(prev.surface()[-1])))
@@ -198,7 +194,7 @@ class Compounds:
     def _idiom(self, text, span, kana, words, at, hint_at, counted):
         """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None;
         `kana`: whether each token is kana."""
-        begin, end = span[0].begin, _end(span[-1])
+        begin, end = span[0].begin, span[-1].end
         if (not any(kana) or all(kana)
                 or span[0].part_of_speech()[0] in ('助詞', '助動詞')
                 or len(span) < 3 and span[-1].part_of_speech()[0] in ('助詞', '助動詞')):
@@ -245,7 +241,7 @@ class Compounds:
             if kana[k]:
                 continue
             w = words[at[t.begin]] if t.begin in at else None
-            if not w or w.end != _end(t) or w.source in ('ruby', 'rule', 'counter', 'book'):
+            if not w or w.end != t.end or w.source in ('ruby', 'rule', 'counter', 'book'):
                 return None  # a Word over several tokens, or a sure reading: leave the phrase
             surface = t.surface()
             if k == len(span) - 1 or surface == w.form:
