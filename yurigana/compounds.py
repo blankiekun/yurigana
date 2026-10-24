@@ -2,6 +2,7 @@
 (三|日|月 みかづき) and phrases with a kana token inside (歩|を|進める), mixed into Reader."""
 import re
 
+from . import _spans as _sp
 from .kana import HAS_KANJI, KANA_READING, is_kanji, long_vowels, rendaku, spelling, to_hiragana
 from .readings import context_reading, surface_reading
 from .rules import DEFAULT_READINGS, NOT_JOINED, SHOWN_IDIOMS
@@ -66,7 +67,7 @@ class Compounds:
                     or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一' and not idiom)
                     or (_NUMERAL.match(span[0].surface()) and span[1].surface() == '月')  # a date: 四月一日 isn't わたぬき
                     or not hint_at.keys().isdisjoint(range(begin, end))
-                    or any(s <= begin and end <= e for s, _, e, _, _ in counted)):
+                    or _sp.covers(counted, begin, end)):
                 continue
             form = ''.join(t.surface() for t in span[:-1]) + span[-1].dictionary_form()
             if form in NOT_JOINED and NOT_JOINED[form].match(text, end):
@@ -184,8 +185,8 @@ class Compounds:
         readings = self._jmdict_all.get(form)
         if (not readings or len(readings) != 1 or form in NOT_JOINED and NOT_JOINED[form].match(text, end)
                 or form in self.readings and readings[0] not in self.readings[form]  # the list reads it otherwise
-                or any(s < end and e > begin for s, (e, _) in hint_at.items())
-                or any(s < end and e > begin for s, _, e, _, _ in counted)):
+                or _sp.overlaps(hint_at, begin, end)
+                or _sp.overlaps(counted, begin, end)):
             return None
         plain = self._plain_check
         parts = [t.surface() for t in span[:-1]] + [span[-1].dictionary_form()]
