@@ -139,8 +139,23 @@ class Compounds:
         for k in range(len(tokens) - 2, -1, -1):
             if _end(tokens[k]) == tokens[k + 1].begin:
                 run[k] = run[k + 1] + 1
+        prefixes, seen = self._idiom_prefixes(), {}  # seen: this text's lookups (a packed table's cost µs)
         i = 0
         while i < len(tokens):
+            # spans past the longest whose leading surfaces start a JMdict form with one reading can't be one, nor
+            # spans from a particle (_idiom)
+            limit, prefix = 1, tokens[i].surface()
+            top = min(8, run[i]) if tokens[i].part_of_speech()[0] not in ('助詞', '助動詞') else 1
+            while limit < top:
+                if prefix not in seen:
+                    seen[prefix] = prefix in prefixes
+                if not seen[prefix]:
+                    break
+                limit += 1
+                prefix += tokens[i + limit - 1].surface()
+            if limit < 2:
+                i += 1
+                continue
             found = None
             # not the tail of a longer word (書き|甲斐|が|ある: がい, not かいがある; a kana noun before a verb doesn't
             # glue: そのまま|放っ), nor a noun + case particle with a modifier right before it, which is meant literally
@@ -152,7 +167,7 @@ class Compounds:
                               and (head in ('名詞', '接尾辞') or _HEAD_SURFACE.match(prev.surface()[-1])))
             modified = prev and head == '名詞' and (pos == '連体詞' and not _DEMONSTRATIVE.match(prev.surface())
                                                    or prev.surface() == 'な' and pos == '助動詞')
-            for n in range(min(8, run[i]), 1, -1) if not glued else ():
+            for n in range(limit, 1, -1) if not glued else ():
                 span = tokens[i:i + n]
                 if modified and span[1].surface() in ('を', 'が', 'に', 'で', 'と') and span[1].part_of_speech()[0] == '助詞':
                     continue
@@ -172,6 +187,13 @@ class Compounds:
                                                  certainty=1.0 if shown else None)
             i += n
         return words
+
+    def _idiom_prefixes(self):
+        """The prefixes (and whole forms) of JMdict's forms with one reading, which _idiom looks up, built once."""
+        if getattr(self, '_idiom_index', None) is None:
+            self._idiom_index = {form[:k] for form, readings in self._jmdict_all.items() if len(readings) == 1
+                                 for k in range(1, len(form) + 1)}
+        return self._idiom_index
 
     def _idiom(self, text, span, kana, words, at, hint_at, counted):
         """(phrase, [(index in words, reading, form)]) for the kanji tokens' Words in `span`, or None;
