@@ -330,6 +330,7 @@ class Reader(Compounds):
         tables |= {name: dict(getattr(self, name)) for name in self._STRINGS}
         tables['tails'] = {f'{f}\t{r}': f'{v} {u}' for (f, r), (v, u) in self._tail_counts().items()}
         tables['kanji_index'] = {r: ''.join(sorted(kanji)) for r, kanji in self._kanji_by_reading().items()}
+        tables['idiom_index'] = dict.fromkeys(sorted(self._idiom_prefixes()), '')
         packed.write(path, tables, {'ranked': ranked, 'plain': self.plain is not None, 'source': _source_hash()})
 
     @classmethod
@@ -347,6 +348,7 @@ class Reader(Compounds):
             setattr(self, name, pack.table(name))
         self._tails = PairMap(pack.table('tails'), _counts)
         self._kanji_index = Decoded(pack.table('kanji_index'), set)
+        self._idiom_index = pack.table('idiom_index')
         self.plain = PlainReadings() if pack.meta['plain'] else None
         self._plain_check = self.plain or PlainReadings()
         self._term_pairs = _TermPairs(self.terms)
@@ -810,7 +812,8 @@ class Reader(Compounds):
             return 'いちにち', 'rule', 1.0
         if '〇' in surface[1:] and surface[0] != '〇':  # digit by digit with 〇 (六八〇, 二〇〇): the number, not れい
             value = number_value(surface)
-        if is_year(surface, text[:begin]):  # 昭和二三年: 23, not にさん
+        # 昭和二三年: 23, not にさん; _ERA looks only at the end, so no copy of all the text before (a µs per token)
+        if is_year(surface, text[max(0, begin - 8):begin]):
             value = number_value(surface)
         if value and tokens[i].part_of_speech()[1] == '数詞':
             return number_reading(value, bool(ONE_THOUSAND.search(surface))), 'counter', None
