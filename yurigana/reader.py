@@ -8,6 +8,7 @@ import unicodedata
 from collections import defaultdict
 from collections.abc import Mapping
 
+from . import _spans as _sp
 from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
@@ -428,7 +429,7 @@ class Reader(Compounds):
                 words.append(word)
                 continue
             split = split_token(text, token.begin, token.surface())
-            if split and not any(s < _end(token) and e > token.begin for s, (e, _) in hint_at.items()):
+            if split and not _sp.overlaps(hint_at, token.begin, _end(token)):
                 end, form, reading, shown = split
                 words.append(Word(token.begin, end, form, reading, 'rule' if shown else 'dictionary', 1.0 if shown else None))
                 continue
@@ -476,12 +477,12 @@ class Reader(Compounds):
             end = token.begin + len(surface)
             if (source == 'dictionary' and certainty == 0.0 and reading and token.part_of_speech()[1] != '固有名詞'
                     and self._parts_reading(form, reading)
-                    and not any(s < end and e > token.begin for s, (e, _) in hint_at.items())):
+                    and not _sp.overlaps(hint_at, token.begin, end)):
                 source, certainty = 'rule', 1.0
             if (source == 'dictionary' and form == surface and reading and self.names.get(form) == reading
                     and token.part_of_speech()[1] == '固有名詞'  # not glued to kanji or digits: 一日|中海岸 is 一日中 海岸
                     and not any(is_kanji(c) or c.isdigit() for c in text[max(token.begin - 1, 0):token.begin] + text[end:end + 1])
-                    and not any(s < end and e > token.begin for s, (e, _) in hint_at.items())):  # nor under partial ruby
+                    and not _sp.overlaps(hint_at, token.begin, end)):  # nor under partial ruby
                 source, certainty = 'only', 1.0
             words.append(Word(token.begin, token.begin + len(surface), form, reading, source, certainty))
             if carry is not None and len(form) > 1:
@@ -498,7 +499,7 @@ class Reader(Compounds):
         token_at = {t.begin: t for t in tokens}
         first_at = {t.begin: t for t in reversed(tokens)}
         for start, number_end, end, number, counter in counted:
-            if any(s < end and e > start for s, (e, _) in hint_at.items()):
+            if _sp.overlaps(hint_at, start, end):
                 continue
             if number == 'ふた' and text[max(0, start - 2):start] == '真っ':  # 真っ二つ まっぷたつ (T461)
                 number = 'ぷた'
@@ -523,7 +524,7 @@ class Reader(Compounds):
         for m in self._ateji_re.finditer(text):
             start, end = m.span()
             if (start in begins and end in ends and end not in {_end(t) for t in tokens if t.begin == start}
-                    and not any(s < end and e > start for s, (e, _) in hint_at.items())):
+                    and not _sp.overlaps(hint_at, start, end)):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
         words = [w._replace(source='rule', certainty=1.0) if w.source == 'default' and (w.form, w.reading) in SHOWN_DEFAULTS
@@ -551,7 +552,7 @@ class Reader(Compounds):
                     break
                 parts.append(k); pos = w.end
             if (pos != end or len(parts) != len(inside) or len(parts) < 2
-                    or any(s < end and e > start for s, (e, _) in hint_at.items())):
+                    or _sp.overlaps(hint_at, start, end)):
                 continue
             pieces = self._slices([words[k].form for k in parts], self.glued[m.group()])
             for k, piece in zip(parts, pieces or ()):
@@ -715,7 +716,7 @@ class Reader(Compounds):
                 start, end = m.span()
                 inside = [w for w in words if w.start < end and w.end > start]
                 if (start not in begins or end not in ends or any(w.start < start or w.end > end for w in inside)
-                        or any(s < end and e > start for s, (e, _) in hint_at.items())
+                        or _sp.overlaps(hint_at, start, end)
                         or ''.join(w.reading or '' for w in sorted(inside)) == reading):
                     continue
                 words = [w for w in words if not (w.start < end and w.end > start)] + [Word(start, end, form, reading, 'book', 1.0)]
