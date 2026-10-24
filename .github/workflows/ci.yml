@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install . ruff==0.17.1
+        run: pip install . ruff==0.17.1 SudachiDict-core==20260723.1  # the tests and README numbers were recorded with it
       - name: Lint
         run: ruff check .
       - name: Unit tests

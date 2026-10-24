@@ -333,7 +333,7 @@ def spans(text: str, tokens: list):
     `tokens` (Sudachi tokens of `text`); the number's reading is the whole span's and the counter's
     None when the reading doesn't split (一人 ひとり)."""
     def adjacent(a, b):
-        return a.begin + len(a.surface()) == b.begin
+        return a.end == b.begin
 
     out = []
     i = 0

@@ -9,7 +9,7 @@ from collections import defaultdict
 from collections.abc import Mapping
 
 from . import _spans as _sp
-from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds, _end
+from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds
 from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
 from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
@@ -412,7 +412,7 @@ class Reader(Compounds):
                 covering.update((k, reading) for k in range(start, end))
             for a, b in zip(tokens, tokens[1:]):
                 end, reading = hint_at.get(a.begin, (None, ''))
-                if end == _end(b) and _end(a) == b.begin and HIRAGANA_WORD.match(reading):
+                if end == b.end and a.end == b.begin and HIRAGANA_WORD.match(reading):
                     parts.update(_split_name(a, b, reading))
         if carry is not None:
             carry.setdefault(_NAMED, set()).update(self._named(text, tokens, hint_at))
@@ -431,7 +431,7 @@ class Reader(Compounds):
                 words.append(word)
                 continue
             split = split_token(text, token.begin, token.surface())
-            if split and not _sp.overlaps(hint_at, token.begin, _end(token)):
+            if split and not _sp.overlaps(hint_at, token.begin, token.end):
                 end, form, reading, shown = split
                 words.append(Word(token.begin, end, form, reading, 'rule' if shown else 'dictionary', 1.0 if shown else None))
                 continue
@@ -522,10 +522,10 @@ class Reader(Compounds):
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         # A loanword spelt in kanji that Sudachi cuts in pieces (無問題 = 無 む + 問題 もんだい, shown `only`):
         # one Word with the loanword's reading, never shown, where it starts and ends on token edges and has no ruby
-        begins, ends = {t.begin for t in tokens}, {_end(t) for t in tokens}
+        begins, ends = {t.begin for t in tokens}, {t.end for t in tokens}
         for m in self._ateji_re.finditer(text):
             start, end = m.span()
-            if (start in begins and end in ends and end not in {_end(t) for t in tokens if t.begin == start}
+            if (start in begins and end in ends and end not in {t.end for t in tokens if t.begin == start}
                     and not _sp.overlaps(hint_at, start, end)):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
@@ -657,7 +657,7 @@ class Reader(Compounds):
         doesn't know for them (温水《ぬくみず》, 名代《なしろ》), so `carry` takes their ruby like a name's."""
         cues, rubied = defaultdict(int), set()
         for i, token in enumerate(tokens):
-            surface, end = token.surface(), _end(token)
+            surface, end = token.surface(), token.end
             if (len(surface) < 2 or surface != token.dictionary_form() or not HAS_KANJI.search(surface)
                     or surface not in self.readings or token.part_of_speech()[1] == '固有名詞'):
                 continue
@@ -675,14 +675,14 @@ class Reader(Compounds):
         """Names Sudachi cuts in 2-3 kanji tokens (諸|男, 天|愛|星) that `text` rubies as a whole (one ruby or one per
         kanji: 諸《もろ》男《お》) in hiragana, and marks twice or more on token edges with an honorific after them or a
         speaker tag (T551): form -> reading, large kana made small where that gives Sudachi's reading of the tokens."""
-        found, begins, ends = defaultdict(set), {t.begin for t in tokens}, {_end(t) for t in tokens}
+        found, begins, ends = defaultdict(set), {t.begin for t in tokens}, {t.end for t in tokens}
+        plain = [bool(_KANJI_ONLY.fullmatch(t.surface())) and t.surface() == t.dictionary_form() for t in tokens]
         for i in range(len(tokens)):
             for k in (2, 3):
                 run = tokens[i:i + k]
-                if len(run) < k or any(not _KANJI_ONLY.fullmatch(t.surface()) or t.surface() != t.dictionary_form() for t in run) \
-                        or any(_end(a) != b.begin for a, b in zip(run, run[1:])):
+                if len(run) < k or not all(plain[i:i + k]) or any(a.end != b.begin for a, b in zip(run, run[1:])):
                     continue
-                start, end, pos, reading = run[0].begin, _end(run[-1]), run[0].begin, ''
+                start, end, pos, reading = run[0].begin, run[-1].end, run[0].begin, ''
                 while pos < end and pos in hint_at and hint_at[pos][0] > pos:
                     pos, part = hint_at[pos]
                     reading += part
@@ -710,7 +710,7 @@ class Reader(Compounds):
     def _carry_joined(self, text, tokens, words, hint_at, joined):
         """One Word with the book's ruby (source 'book') over each bare occurrence of a joined name (T551) on token edges
         whose Words read it otherwise; not where a Word crosses its edges."""
-        begins, ends = {t.begin for t in tokens}, {_end(t) for t in tokens}
+        begins, ends = {t.begin for t in tokens}, {t.end for t in tokens}
         for form, reading in joined.items():
             if not reading:
                 continue
@@ -726,7 +726,7 @@ class Reader(Compounds):
 
     def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
         """_reading with the book's ruby over names carried (Reader.read's `carry`)."""
-        begin, end = tokens[i].begin, _end(tokens[i])
+        begin, end = tokens[i].begin, tokens[i].end
         name = self._is_name(tokens[i], surface, form)
         under = {covering[k] for k in range(begin, end) if k in covering}
         name = name or form in _CARRIED_WORDS or form in carry[_NAMED]
@@ -827,7 +827,7 @@ class Reader(Compounds):
                 return 'ひと', 'rule', 1.0  # 一 + a verb's stem: 一睨み, 一撫で
         if form == '入れ' and _HAIRE.search(text[max(0, begin - 6):begin]) and _HAIRE_AFTER.match(text, begin + 2):
             return 'はいれ', 'dictionary', None  # 「入れ」: 入る's imperative; the list reads the noun 入れ いれ only (T251)
-        previous = tokens[i - 1] if i and tokens[i - 1].begin + len(tokens[i - 1].surface()) == begin else None
+        previous = tokens[i - 1] if i and tokens[i - 1].end == begin else None
         reading = context_reading(text, begin, surface, form, self.known, previous and previous.part_of_speech())
         if reading:
             return reading, 'rule', 1.0
@@ -839,7 +839,7 @@ class Reader(Compounds):
         if reading:
             certainty = round(self.model.posterior(form, self.model.context(text, tokens, i))[1], 3)
             for before, after, given, shown in MODEL_FIX.get((form, reading), ()):  # T250
-                if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, _end(tokens[i]))):
+                if (not before or before.search(text[max(0, begin - 12):begin])) and (not after or after.match(text, tokens[i].end)):
                     return given, 'model' if shown else 'dictionary', certainty if given == reading else None
             # Forms whose readings the model often gets wrong keep its reading but aren't shown (T150).
             return reading, 'dictionary' if form in MODEL_UNSHOWN else 'model', certainty
@@ -932,7 +932,7 @@ class Reader(Compounds):
         reading spells (not the classical 若かり). Pairs admitted on bare-text evidence (dominant_checked) are also
         not shown right after a noun, adverb, prefix or verb stem, where they may be a compound's voiced tail
         (パン好き ずき, いつも通り どおり, ソファ代わり がわり)."""
-        begin, end = token.begin, token.begin + len(token.surface())
+        begin, end = token.begin, token.end
         if form in TOP_OVERRIDES and token.surface() == form and reading != TOP_READINGS[form] and token.part_of_speech()[1] != '固有名詞':
             reading, certainty = TOP_READINGS[form], None  # Sudachi's other reading is the rarer one (T513)
             if form in TOP_UNSHOWN:
@@ -995,7 +995,7 @@ class Reader(Compounds):
         # A first part: a noun ending in kanji or katakana right before it; not a number or counter
         # (一|箱, 時間|話), an adverbial or adjectival noun (今|風呂, いい加減|部屋), kana (こと|好き)
         # or a prefix (お|菓子).
-        if (pos and _end(prev) == token.begin and pos[0] == '名詞' and pos[1] != '数詞'
+        if (pos and prev.end == token.begin and pos[0] == '名詞' and pos[1] != '数詞'
                 and (pos[2] not in ('副詞可能', '形状詞可能', '助数詞可能') and _HEAD_SURFACE.match(prev.surface()[-1])
                      and not _ACTION_COUNT.match(prev.surface()) or _LETTER.fullmatch(prev.surface()))):
             if token.part_of_speech()[0] not in ('名詞', '接尾辞'):
