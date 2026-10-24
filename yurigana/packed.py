@@ -69,6 +69,7 @@ class PackedMap(Mapping):
     def __init__(self, mm, base, start, end, slots, count, size):
         self._mm, self._start, self._end, self._len = mm, base + start, base + end, size
         self._slots = memoryview(mm)[base + slots:base + slots + 4 * count].cast('I')
+        self._memo = {}  # key -> value or None: a book asks the same few thousand keys over and over
 
     def _find(self, key: str):
         """The offset of the key's value, or -1."""
@@ -83,8 +84,14 @@ class PackedMap(Mapping):
         return -1
 
     def _value(self, key: str):
-        at = self._find(key)
-        return None if at < 0 else self._mm[at:self._mm.find(b'\0', at)].decode()
+        try:
+            return self._memo[key]
+        except KeyError:
+            if len(self._memo) > 100_000:  # a long-lived worker reads many books: keep it to a few MB
+                self._memo.clear()
+            at = self._find(key)
+            value = self._memo[key] = None if at < 0 else self._mm[at:self._mm.find(b'\0', at)].decode()
+            return value
 
     def get(self, key, default=None):
         value = self._value(key) if isinstance(key, str) else None
