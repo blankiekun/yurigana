@@ -66,6 +66,8 @@ _ONLY_AS = {'間': 'けん', '町': 'ちょう', '畳': 'じょう'}
 _PAIR = re.compile('[一二三四五六七八][二三四五六七八九]')
 # right after an era name the digits are a year (昭和二三年 is 23), not "two or three"
 _ERA = re.compile('(?:明治|大正|昭和|平成|令和|元禄)$')
+# characters of text before a number that `before` needs: its patterns end in $ and match 6 at most (test_counters)
+BEFORE = 16
 _PAIR_FIRST = {'一': 'いち', '二': 'に', '三': 'さん', '四': 'し', '五': 'ご', '六': 'ろく', '七': 'しち', '八': 'はち'}
 _GEMINATE = {'k': {1, 6, 8, 10, 100}, 'h': {1, 6, 8, 10, 100}, 's': {1, 8, 10}, 't': {1, 8, 10},
              'w': {6, 8, 10, 100}}
@@ -342,7 +344,7 @@ def spans(text: str, tokens: list):
         surface = token.surface()
         m = NUMERAL.match(surface)
         if m and m.end() < len(surface) and surface[m.end():] in COUNTERS and _fused(token, m.group(), surface[m.end():]):
-            found = reading(m.group(), surface[m.end():], '', text[:token.begin],
+            found = reading(m.group(), surface[m.end():], '', text[max(0, token.begin - BEFORE):token.begin],
                             text[token.begin + len(surface):token.begin + len(surface) + 4])
             if found:
                 out.append((token.begin, token.begin + m.end(), token.begin + len(surface), *found))
@@ -360,7 +362,7 @@ def spans(text: str, tokens: list):
             tens = re.fullmatch('(十)(分|人)', counter.surface())
             if tens:  # 三 + 十分 (じゅうぶん), 二 + 十人: the number goes on
                 found = reading(text[token.begin:counter.begin + 1], tens[2], 'ふん' if tens[2] == '分' else '',
-                                text[:token.begin], text[end:end + 4])
+                                text[max(0, token.begin - BEFORE):token.begin], text[end:end + 4])
                 if found:
                     out.append((token.begin, counter.begin + 1, end, *found))
                 i = j + 1
@@ -372,7 +374,7 @@ def spans(text: str, tokens: list):
                 compound = word[:1] == '裂' or len(word) == 1 and is_kanji(word) and word not in _TSU_GOES_ON \
                     and following.part_of_speech()[0] == '名詞'
                 found = reading(text[token.begin:counter.begin], counter.normalized_form(),
-                                to_hiragana(counter.reading_form()), text[:token.begin], text[end:end + 4], compound)
+                                to_hiragana(counter.reading_form()), text[max(0, token.begin - BEFORE):token.begin], text[end:end + 4], compound)
                 if found:
                     out.append((token.begin, counter.begin, end, *found))
         i = j

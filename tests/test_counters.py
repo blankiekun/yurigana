@@ -1,4 +1,5 @@
 """Tests for yurigana.counters: readings of a number + counter."""
+import re
 import unittest
 
 from yurigana import Reader, Word, aozora_text
@@ -281,6 +282,29 @@ class SudachiCounterTest(unittest.TestCase):
                 self.assertEqual(words[0], (span, expected))
         words = reader.read('一人で十分です。')  # lexicalised: one token each, left alone
         self.assertNotIn('counter', [w.source for w in words])
+
+
+
+class WindowTest(unittest.TestCase):
+    """The rules that look back from a word see a window of text, not all of it before (a long book's reads stayed
+    linear): each pattern ends in $, has no lookbehind and matches less than its window (one more for $ before a newline)."""
+
+    def test_windows(self):
+        import re._parser as parser
+
+        from yurigana import counters, readings
+        from yurigana.kana import KANJI, is_kanji
+        windows = [(counters.BEFORE, p) for p in (counters._ERA, counters._HITOTOKI_BEFORE, counters._BU_BEFORE,
+                                                  counters._HITOMA_BEFORE, counters._TEN_MINUTES[0], counters._HATACHI_AGE,
+                                                  counters._HATACHI_PERSON, re.compile('月 ?$'))]
+        windows += [(8, p) for p in (readings._TIME_SPAN, readings._TAIL_BEFORE, readings._COUNTED)]
+        for window, pattern in windows:
+            self.assertTrue(pattern.pattern.endswith('$') and '(?<' not in pattern.pattern, pattern.pattern)
+            self.assertLess(parser.parse(pattern.pattern).getwidth()[1] + 1, window, pattern.pattern)
+        # KANJI (the index of kanji by reading) is is_kanji's set
+        for code in range(0x110000):
+            if not 0xD800 <= code <= 0xDFFF:
+                self.assertEqual(bool(KANJI.fullmatch(chr(code))), is_kanji(chr(code)), hex(code))
 
 
 if __name__ == '__main__':

@@ -94,7 +94,10 @@ class PackedMap(Mapping):
             return value
 
     def get(self, key, default=None):
-        value = self._value(key) if isinstance(key, str) else None
+        try:  # the memo first: most lookups are repeats
+            value = self._memo[key]
+        except (KeyError, TypeError):
+            value = self._value(key) if isinstance(key, str) else None
         return default if value is None else value
 
     def __getitem__(self, key):
@@ -104,7 +107,10 @@ class PackedMap(Mapping):
         return value
 
     def __contains__(self, key):
-        return isinstance(key, str) and self._value(key) is not None
+        try:
+            return self._memo[key] is not None
+        except (KeyError, TypeError):
+            return isinstance(key, str) and self._value(key) is not None
 
     def items(self):
         mm, at = self._mm, self._start
@@ -149,7 +155,10 @@ class Decoded(Mapping):
 
 def _key(pair):
     """`form \\t reading`, or None (in no table) for a pair with a None or other non-str part."""
-    return '\t'.join(pair) if all(isinstance(x, str) for x in pair) else None
+    try:
+        return '\t'.join(pair)
+    except TypeError:  # a None or other non-str part
+        return None
 
 
 class PairMap(Mapping):

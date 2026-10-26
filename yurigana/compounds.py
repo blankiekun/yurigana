@@ -47,17 +47,20 @@ class Compounds:
             return None
         if i and _NUMERAL.match(tokens[i - 1].surface()) and tokens[i - 1].end == tokens[i].begin:
             return None
-        run = 1  # tokens from i without a gap
-        while run < min(_MAX_COMPOUND, len(tokens) - i) and tokens[i + run - 1].end == tokens[i + run].begin:
+        if tokens[i].part_of_speech()[0] in ('助詞', '助動詞'):
+            return None
+        run = 1  # tokens from i without a gap or a particle (no span has one)
+        while (run < min(_MAX_COMPOUND, len(tokens) - i) and tokens[i + run - 1].end == tokens[i + run].begin
+               and tokens[i + run].part_of_speech()[0] not in ('助詞', '助動詞')):
             run += 1
         for n in range(min(run, len(tokens) - i), 1, -1):
             span = tokens[i:i + n]
             begin, end = span[0].begin, span[-1].end
             # a numeral compound the list and JMdict read one way (十|中|八九 じっちゅうはっく, 三|白眼, 四|人組);
             # not ending in one kanji, mostly a counter (二十|年 isn't はたとせ)
-            idiom = len(span[-1].surface()) > 1 and self._numeral_idiom(span)
-            if (any(t.part_of_speech()[0] in ('助詞', '助動詞') for t in span)
-                    or not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface()) and not idiom
+            idiom = (len(span[-1].surface()) > 1 and any(_NUMERAL.match(t.surface()) for t in span)  # _numeral_idiom's cheap test first
+                     and self._numeral_idiom(span))
+            if (not HAS_KANJI.search(span[-1].surface()) or _NUMERAL.match(span[-1].surface()) and not idiom
                     or (i + n < len(tokens) and _NUMERAL.match(tokens[i + n].surface())
                         and span[-1].end == tokens[i + n].begin)  # 一対|一 isn't いっつい
                     or (n == 2 and _NUMERAL.match(span[0].surface()) and span[0].surface() != '一' and not idiom)

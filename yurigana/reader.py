@@ -5,13 +5,14 @@ import math
 import os
 import re
 import unicodedata
+from bisect import bisect_left
 from collections import defaultdict
 from collections.abc import Mapping
 
 from . import _spans as _sp
 from .compounds import _HEAD_SURFACE, _NUMERAL, Compounds
-from .counters import COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
-from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
+from .counters import BEFORE, COUNTERS, ONE_THOUSAND, is_hatachi, is_kin, is_year, shown as counter_shown, number_reading, number_value, spans as counter_spans
+from .kana import (HAS_KANJI, HIRAGANA_WORD, KANA_READING, KANJI, UNVOICED, VOICED, colloquial, is_kanji, long_vowels, rendaku, small_kana, spelling,
                    to_hiragana)
 from .readings import (conjugated_reading, context_reading, default_kept, does, enters, glued, goes, negative, may_be_potential, right_lemma, ruby_reading,
                        split_suffix, split_token, surface_reading, unlisted_reading)
@@ -522,10 +523,12 @@ class Reader(Compounds):
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         # A loanword spelt in kanji that Sudachi cuts in pieces (無問題 = 無 む + 問題 もんだい, shown `only`):
         # one Word with the loanword's reading, never shown, where it starts and ends on token edges and has no ruby
-        begins, ends = {t.begin for t in tokens}, {t.end for t in tokens}
+        begins, ends, pairs = {t.begin for t in tokens}, {t.end for t in tokens}, None
         for m in self._ateji_re.finditer(text):
             start, end = m.span()
-            if (start in begins and end in ends and end not in {t.end for t in tokens if t.begin == start}
+            if start in begins and end in ends and pairs is None:
+                pairs = {(t.begin, t.end) for t in tokens}  # built once, where a match needs it
+            if (start in begins and end in ends and (start, end) not in pairs
                     and not _sp.overlaps(hint_at, start, end)):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
@@ -665,7 +668,7 @@ class Reader(Compounds):
             if after and _HONORIFIC.fullmatch(after.surface()) or _SPEAKER.search(text[max(0, token.begin - 2):token.begin]) \
                     and text[end:end + 1] in ('は', 'が'):
                 cues[surface] += 1
-            reading = ruby_reading(hint_at, token.begin, surface, surface, _Any())
+            reading = token.begin in hint_at and ruby_reading(hint_at, token.begin, surface, surface, _Any())
             if (reading and reading not in _PRONOUNS and reading not in _KIN
                     and not any((surface, r) in self.known for r in (reading, *small_kana(reading)))):
                 rubied.add(surface)
@@ -678,6 +681,8 @@ class Reader(Compounds):
         found, begins, ends = defaultdict(set), {t.begin for t in tokens}, {t.end for t in tokens}
         plain = [bool(_KANJI_ONLY.fullmatch(t.surface())) and t.surface() == t.dictionary_form() for t in tokens]
         for i in range(len(tokens)):
+            if tokens[i].begin not in hint_at:  # no ruby starts at the run: no reading below
+                continue
             for k in (2, 3):
                 run = tokens[i:i + k]
                 if len(run) < k or not all(plain[i:i + k]) or any(a.end != b.begin for a, b in zip(run, run[1:])):
@@ -714,14 +719,26 @@ class Reader(Compounds):
         for form, reading in joined.items():
             if not reading:
                 continue
+            # A form's matches don't overlap, and a Word taken out lies inside its match: each match is decided on the
+            # Words as they were before the form, found through their starts (not a pass over all Words per match).
+            order = sorted(range(len(words)), key=lambda k: words[k].start)
+            starts = [words[k].start for k in order]
+            longest = max((w.end - w.start for w in words), default=0)
+            removed, added = set(), []
             for m in re.finditer(re.escape(form), text):
                 start, end = m.span()
-                inside = [w for w in words if w.start < end and w.end > start]
-                if (start not in begins or end not in ends or any(w.start < start or w.end > end for w in inside)
-                        or _sp.overlaps(hint_at, start, end)
-                        or ''.join(w.reading or '' for w in sorted(inside)) == reading):
+                if start not in begins or end not in ends:
                     continue
-                words = [w for w in words if not (w.start < end and w.end > start)] + [Word(start, end, form, reading, 'book', 1.0)]
+                inside = [k for k in order[bisect_left(starts, start - longest):bisect_left(starts, end)]
+                          if words[k].start < end and words[k].end > start]
+                if (any(words[k].start < start or words[k].end > end for k in inside)
+                        or _sp.overlaps(hint_at, start, end)
+                        or ''.join(w.reading or '' for w in sorted(words[k] for k in inside)) == reading):
+                    continue
+                removed.update(inside)
+                added.append(Word(start, end, form, reading, 'book', 1.0))
+            if added:
+                words = [w for k, w in enumerate(words) if k not in removed] + added
         return words
 
     def _carried(self, text, tokens, i, surface, form, hint_at, covering, parts, carry):
@@ -772,7 +789,7 @@ class Reader(Compounds):
             if _STEM_KANJI.fullmatch(surface) and token.part_of_speech()[0] != '形容詞' and (
                     tail in ('ェ', 'ぇ') or len(surface) == 1 and _STEM_AFTER.match(text, end) and surface + 'い' in self.readings):
                 small = tail in ('ェ', 'ぇ')
-                after = next((t for t in tokens if t.begin == end), None)
+                after = small and next((t for t in tokens if t.begin == end), None)  # a scan: only where it counts
                 whole = list(self.tokenizer.tokens(surface + ('え' if small else 'い')))
                 if (len(whole) == 1 and whole[0].part_of_speech()[0] == '形容詞' and len(whole[0].surface()) == len(surface) + 1
                         and not (small and after and after.surface() != tail)):
@@ -785,11 +802,11 @@ class Reader(Compounds):
 
     def _reading(self, text, tokens, i, surface, form, hint_at):
         begin = tokens[i].begin
-        reading = hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
+        reading = begin in hint_at and (ruby_reading(hint_at, begin, surface, form, self.known)
                                or self.plain and ruby_reading(hint_at, begin, surface, form, self.plain))
         if reading:
             return reading, 'ruby', 1.0
-        reading = hint_at and form in self.terms and ruby_reading(hint_at, begin, surface, form, self._term_pairs)
+        reading = begin in hint_at and form in self.terms and ruby_reading(hint_at, begin, surface, form, self._term_pairs)
         if reading:
             return reading, 'terms', None
         if form == '行く' and tokens[i].dictionary_form() == '行う':  # readings.goes (T432)
@@ -802,13 +819,13 @@ class Reader(Compounds):
             reading = context_reading(text, begin, surface, form, self.known)
             if reading:
                 return reading, 'rule', 1.0
-        hatachi = surface == '二十' and is_hatachi(text[:begin], text[begin + 2:begin + 6])
+        hatachi = surface == '二十' and is_hatachi(text[max(0, begin - BEFORE):begin], text[begin + 2:begin + 6])
         if hatachi:
             return ('はたち', 'rule', 1.0) if hatachi == 'shown' else ('はたち', 'dictionary', None)
         if surface == '金' and is_kin(text, begin):
             return 'きん', 'dictionary', None
         value = _UNITS.search(surface) and not _ONE_UNIT.search(surface) and number_value(surface)
-        if surface in ('1日', '１日') and not re.search('月 ?$', text[:begin]):  # Sudachi's ついたち is a date, after a month
+        if surface in ('1日', '１日') and not re.search('月 ?$', text[max(0, begin - BEFORE):begin]):  # Sudachi's ついたち is a date, after a month
             return 'いちにち', 'rule', 1.0
         if '〇' in surface[1:] and surface[0] != '〇':  # digit by digit with 〇 (六八〇, 二〇〇): the number, not れい
             value = number_value(surface)
@@ -976,8 +993,9 @@ class Reader(Compounds):
         if getattr(self, '_kanji_index', None) is None:
             self._kanji_index = defaultdict(set)
             for form, readings in self.readings.items():
+                kanji = KANJI.findall(form)  # once per form, in C (is_kanji per character took 0.5 s)
                 for reading in readings:
-                    self._kanji_index[reading].update(c for c in form if is_kanji(c))
+                    self._kanji_index[reading].update(kanji)
         return self._kanji_index
 
     def _voicing(self, tokens, i, form, reading):
