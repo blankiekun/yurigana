@@ -523,12 +523,12 @@ class Reader(Compounds):
                 words[at[number_end]] = own._replace(reading=reading, source='counter', certainty=None)
         # A loanword spelt in kanji that Sudachi cuts in pieces (無問題 = 無 む + 問題 もんだい, shown `only`):
         # one Word with the loanword's reading, never shown, where it starts and ends on token edges and has no ruby
-        begins, ends, ends_at = {t.begin for t in tokens}, {t.end for t in tokens}, defaultdict(set)
-        for t in tokens:
-            ends_at[t.begin].add(t.end)
+        begins, ends, pairs = {t.begin for t in tokens}, {t.end for t in tokens}, None
         for m in self._ateji_re.finditer(text):
             start, end = m.span()
-            if (start in begins and end in ends and end not in ends_at[start]
+            if start in begins and end in ends and pairs is None:
+                pairs = {(t.begin, t.end) for t in tokens}  # built once, where a match needs it
+            if (start in begins and end in ends and (start, end) not in pairs
                     and not _sp.overlaps(hint_at, start, end)):
                 words = [w for w in words if w.end <= start or w.start >= end]
                 words.append(Word(start, end, m.group(), self.ateji[m.group()], 'dictionary', 0.0))
