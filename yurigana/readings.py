@@ -38,8 +38,11 @@ def ruby_reading(hints: dict, begin: int, surface: str, form: str, known) -> str
 
 def split_token(text: str, begin: int, surface: str):
     """(end, form, reading, shown) of SPLIT_TOKENS's first entry for the token `surface` at `begin`, else None."""
+    rows = SPLIT_TOKENS.get(surface)
+    if not rows:
+        return None
     line = max(text.rfind('\n', 0, begin) + 1, begin - 12)
-    for before, after, span, form, reading, shown in SPLIT_TOKENS.get(surface, ()):
+    for before, after, span, form, reading, shown in rows:
         if (not before or before.search(text[line:begin])) and (not after or after.match(text, begin + len(surface))):
             return begin + (span or len(surface)), form, reading, shown
     return None
@@ -158,7 +161,7 @@ def split_suffix(text: str, begin: int, surface: str, sudachi: str, pos, previou
         return reading if (before or surface != '的') and before in _SPLIT_EDGE.get(surface, '「」『（）()、。，！？!?▼〝《》 \u3000\n') else None
     if previous_pos[0] in _SPLIT_POS.get(surface, _NO_SUFFIX_POS):
         return reading
-    if surface != '的' and (tuple(previous_pos[1:3]) == ('普通名詞', '副詞可能') or _TIME_SPAN.search(text[:begin])):
+    if surface != '的' and (tuple(previous_pos[1:3]) == ('普通名詞', '副詞可能') or _TIME_SPAN.search(text, max(0, begin - 8), begin)):
         return reading
     return None
 
@@ -220,8 +223,8 @@ def context_reading(text: str, begin: int, surface: str, form: str, known, previ
     # (一匹部屋, 一回部屋), but for 頃 (三月頃).
     if form in VOICED_AFTER_NOUN and previous_pos and previous_pos[0] in ('名詞', '接尾辞') and previous_pos[1] != '数詞' \
             and (previous_pos[1] != '固有名詞' or form == '川') \
-            and previous_pos[2] not in ('副詞可能', '形状詞可能') and _TAIL_BEFORE.search(text, 0, begin) and (form == '頃' or (
-                previous_pos[2] not in ('助数詞', '助数詞可能') and not _COUNTED.search(text, 0, begin))):
+            and previous_pos[2] not in ('副詞可能', '形状詞可能') and _TAIL_BEFORE.search(text, max(0, begin - 8), begin) and (form == '頃' or (
+                previous_pos[2] not in ('助数詞', '助数詞可能') and not _COUNTED.search(text, max(0, begin - 8), begin))):
         return VOICED_AFTER_NOUN[form]
     rules = _RULES.get(form)
     if not rules:

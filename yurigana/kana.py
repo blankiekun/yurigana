@@ -7,6 +7,9 @@ HIRAGANA_WORD = re.compile(r'^[ぁ-ゖ]+$')
 KANA_READING = re.compile(r'^[ぁ-ゖー]+$')  # loanwords keep ー: ラーメン屋 らーめんや
 
 
+KANJI = re.compile('[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\U00020000-\U0003134f]')  # is_kanji's characters
+
+
 def is_kanji(char: str) -> bool:
     code = ord(char)
     return (0x4E00 <= code <= 0x9FFF or 0x3400 <= code <= 0x4DBF or 0xF900 <= code <= 0xFAFF
