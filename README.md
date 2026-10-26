@@ -12,7 +12,7 @@ their readings and the reader its "Known" furigana style.
 ## Python
 
 ```sh
-pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.10.tar.gz"
+pip install "yurigana @ https://github.com/blankiekun/yurigana/archive/refs/tags/v0.5.11.tar.gz"
 ```
 
 That installs SudachiPy and SudachiDict-core too (20260723.1 or newer; pin it in your own project, since a

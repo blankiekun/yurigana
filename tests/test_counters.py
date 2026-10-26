@@ -290,7 +290,10 @@ class WindowTest(unittest.TestCase):
     linear): each pattern ends in $, has no lookbehind and matches less than its window (one more for $ before a newline)."""
 
     def test_windows(self):
-        import re._parser as parser
+        try:
+            import re._parser as parser
+        except ImportError:  # Python 3.10
+            import sre_parse as parser
 
         from yurigana import counters, readings
         from yurigana.kana import KANJI, is_kanji
