@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    # Only when a release falls outside pyproject's ranges: raising SudachiDict's floor
+    # on every release would change the numbers measured in README.md.
+    versioning-strategy: increase-if-necessary
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
